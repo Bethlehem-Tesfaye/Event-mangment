@@ -61,5 +61,6 @@ create table registrations (
   id serial primary key,
   user_id integer not null references users(id) on delete cascade,
   ticket_id integer not null references tickets(id) on delete cascade,
+  quantity integer not null default 1,
   registered_at timestamp default current_timestamp
 );
