@@ -1,10 +1,11 @@
 import jwt from "jsonwebtoken";
+import CustomError from "../utils/customError.js";
 
 const userMiddleware = (req, res, next) => {
   const { token } = req.cookies;
 
   if (!token) {
-    return res.status(401).json({ success: false, message: "Unauthorized: No token" });
+    return next(new CustomError("Unauthorized: No token", 401));
   }
 
   try {
@@ -12,12 +13,13 @@ const userMiddleware = (req, res, next) => {
     req.userId = decoded.id;
 
     if (!req.userId) {
-      return res.status(401).json({ success: false, message: "Unauthorized: Invalid token" });
+      return next(new CustomError("Unauthorized: Invalid token", 401));
     }
 
     next();
   } catch (error) {
-    return res.status(401).json({ success: false, message: "Unauthorized: " + error.message });
+    return next(new CustomError("Unauthorized", 401));
+
   }
 };
 

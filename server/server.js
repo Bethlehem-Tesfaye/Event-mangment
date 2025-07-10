@@ -6,6 +6,8 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import userRouter from './routes/userRoutes.js';
 import eventRouter from './routes/eventRoutes.js';
+import attendeeRouter from './routes/attendeeRoutes.js';
+import errorMiddleware from './middleware/errorMiddleware.js';
 const port = process.env.PORT || 4000
 
 const app = express();
@@ -22,6 +24,8 @@ app.get('/', (req,res)=>{
 })
 app.use('/api/user', userRouter)
 app.use('/api/event', eventRouter)
+app.use('/api/attendee', attendeeRouter)
+app.use(errorMiddleware)
 
 conn.query('SELECT 1').then(()=>{
     console.log("database connected");

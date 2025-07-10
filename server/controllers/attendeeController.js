@@ -1,98 +1,127 @@
 import conn from "../db/db.js"
+import CustomError from "../utils/customError.js";
 
-
-export const getAllEvents =async(req,res)=>{
+export const getAllEvents =async(req,res,next)=>{
     try {
-        const query = 'SELECT e.title ,e.description, e.date, e.location, u.name FROM events e JOIN users u ON u.id= e.user_id WHERE e.status=$1'
+       const query = `SELECT e.id, e.title, e.description, e.date, e.location, p.first_name FROM events e JOIN profiles p ON p.user_id = e.user_id WHERE e.status = $1`;
+
 
         const result = await conn.query(query,['published'])
         if(result.rows.length===0){
-            return res.status(404).json({success:false, message:"no published event"})
-        }
+          return next(new CustomError("no published event", 404));
 
+        }
         return res.status(200).json({success:true, data:result.rows, message:"published events"})
 
+    } catch (error) {
+      next(error);
+    }
+}
+export const getAllEventsByCategory =async(req,res, next)=>{
+  const {id} = req.params;
+
+    try {
+       const query = `  SELECT e.id, e.title, e.description, e.date, e.location, p.first_name FROM events e JOIN profiles p ON p.user_id = e.user_id JOIN event_categories ec ON e.id = ec.event_id WHERE ec.category_id = $1 AND e.status = $2`;
+
+        const result = await conn.query(query,[id, 'published'])
+        if(result.rows.length===0){
+          return next(new CustomError("no published event", 404));
+
+        }
+        return res.status(200).json({success:true, data:result.rows, message:"published events"})
 
     } catch (error) {
-            return res.status(500).json({success:false, message:error.message})
-        
+      next(error);
     }
 }
 
-export const getEventInfo = async (req, res) => {
-    const { id } = req.params;
+export const getEventPreview = async (req, res,next) => {
+  const { id } = req.params;
 
-    try {
-        const eventQuery = `SELECT id, title, description, date, start_time, end_time, location_type, location, status FROM events WHERE id = $1AND status = 'published'
-`;
-        const eventResult = await conn.query(eventQuery, [id]);
-        const event = eventResult.rows[0];
+  try {
+    const eventQuery = conn.query(`SELECT * FROM events WHERE id = $1 AND status = 'published'`, [id]);
+    const speakersQuery = conn.query(`SELECT name, bio FROM event_speakers WHERE event_id = $1`, [id]);
+    const ticketsQuery = conn.query(`SELECT id, type, price, quantity FROM tickets WHERE event_id = $1`, [id]);
+    const categoriesQuery = conn.query(`SELECT c.id, c.name FROM event_categories ec JOIN categories c ON ec.category_id = c.id WHERE ec.event_id = $1`, [id]);
 
-        if (!event) {
-        return res.status(404).json({ success: false, message: "Event not found" });
-        }
+    const [eventResult, speakersResult, ticketsResult, categoriesResult] = await Promise.all([
+      eventQuery, speakersQuery, ticketsQuery, categoriesQuery
+    ]);
 
-        const speakerQuery = `SELECT id, name, bio FROM event_speakers WHERE event_id = $1`;
-        const speakersResult = await conn.query(speakerQuery, [id]);
+    if (eventResult.rows.length===0) {
+      return next(new CustomError("Event not found", 404));
+    }
 
-        const ticketQuery = `SELECT id, type, price, quantity FROM tickets WHERE event_id = $1`;
-        const ticketsResult = await conn.query(ticketQuery, [id]);
-
-        const categoryQuery = `SELECT c.id, c.name FROM categories c JOIN event_categories ec ON c.id = ec.category_id WHERE ec.event_id = $1`;
-        const categoriesResult = await conn.query(categoryQuery, [id]);
-
-        return res.status(200).json({
-        success: true,
-        data: {
-            event:event,
-            speakers: speakersResult.rows,
-            tickets: ticketsResult.rows,
-            categories: categoriesResult.rows,
-        },
-        message: "Event details retrieved successfully"
-        });
-
+    return res.status(200).json({
+      success: true,
+      event: eventResult.rows[0],
+      speakers: speakersResult.rows,
+      tickets: ticketsResult.rows,
+      categories: categoriesResult.rows
+    });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-
-export const eventRegister = async (req, res) => {
+export const eventRegister = async (req, res, next) => {
   const userId = req.userId;
   const { ticketId } = req.params;
   const { quantity } = req.body;
 
+  const client = await conn.connect()
   try {
-    const ticketQuery = 'SELECT quantity FROM tickets WHERE id = $1';
-    const ticketResult = await conn.query(ticketQuery, [ticketId]);
+    await client.query('BEGIN')
+
+    const ticketQuery = 'SELECT t.quantity, t.max_per_user, t.event_id, e.title FROM tickets t JOIN events e ON t.event_id = e.id WHERE t.id = $1';
+
+    const ticketResult = await client.query(ticketQuery, [ticketId]);
     const ticket = ticketResult.rows[0];
-
     if (!ticket) {
-      return res.status(404).json({ success: false, message: 'Ticket not found' });
+      await client.query('ROLLBACK');
+      return next(new CustomError("Ticket not found", 404));
+
+    }
+    if (quantity <= 0) {
+      await client.query('ROLLBACK');
+      return next(new CustomError("Quantity must be greater than 0", 400));
+
     }
 
+    const countQuery = 'SELECT COALESCE(SUM(quantity), 0) AS total FROM registrations WHERE user_id = $1 AND ticket_id = $2';
+    const countResult = await client.query(countQuery, [userId, ticketId]);
+    const alreadyPurchased = parseInt(countResult.rows[0].total);
+
+    if ((alreadyPurchased + quantity) > ticket.max_per_user) {
+      await client.query('ROLLBACK');
+      return next(new CustomError(`You can only buy up to ${ticket.max_per_user} tickets.`, 400));
+    }
     if (ticket.quantity < quantity) {
-      return res.status(400).json({ success: false, message: 'Not enough tickets available' });
+      await client.query('ROLLBACK');
+      return next(new CustomError("Not enough tickets available", 400));
     }
 
-    await conn.query(
+    await client.query(
       'UPDATE tickets SET quantity = quantity - $1 WHERE id = $2',
       [quantity, ticketId]
     );
 
-    await conn.query(
+    await client.query(
       'INSERT INTO registrations (user_id, ticket_id, quantity) VALUES ($1, $2, $3)',
       [userId, ticketId, quantity]
     );
 
-    return res.status(200).json({ success: true, message: 'Ticket purchased successfully' });
+    await client.query('COMMIT');
+    return res.status(200).json({ success: true,event: {id: ticket.event_id,title: ticket.title}, message: 'Ticket purchased successfully' });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+      await client.query('ROLLBACK')
+      next(error);
+  } finally{
+    client.release()
   }
 }
 
-export const viewMyTickets = async (req, res) => {
+export const viewMyTickets = async (req, res, next) => {
   const userId = req.userId;
 
   try {
@@ -101,7 +130,7 @@ export const viewMyTickets = async (req, res) => {
     const result = await conn.query(query, [userId]);
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ success: false, message: 'No tickets purchased' });
+      return next(new CustomError("No tickets purchased", 404));
     }
 
     return res.status(200).json({
@@ -111,16 +140,15 @@ export const viewMyTickets = async (req, res) => {
     });
 
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    next(error);
   }
 };
 
-
-export const viewBuyersForMyEvents = async (req, res) => {
+export const viewAttendeesForMyEvents = async (req, res, next) => { 
   const organizerId = req.userId;
 
   try {
-    const query = `SELECT e.id AS event_id, e.title AS event_title, u.id AS user_id, u.name AS user_name, u.email AS user_email,t.type AS ticket_type, r.quantityFROM events e JOIN tickets t ON e.id = t.event_id  JOIN registrations r ON r.ticket_id = t.id JOIN users u ON u.id = r.user_id WHERE e.user_id = $1 ORDER BY e.id`;
+    const query = ` SELECT e.id AS event_id, e.title AS event_title, p.first_name AS attendee_first_name, t.type AS ticket_type, r.quantity FROM events e JOIN tickets t ON e.id = t.event_id JOIN registrations r ON r.ticket_id = t.id JOIN users u ON u.id = r.user_id JOIN profiles p ON p.user_id = u.id WHERE e.user_id = $1 ORDER BY e.id`;
 
     const result = await conn.query(query, [organizerId]);
 
@@ -130,8 +158,7 @@ export const viewBuyersForMyEvents = async (req, res) => {
       const existing = grouped.find(g => g.event_id === row.event_id);
 
       const attendee = {
-        name: row.user_name,
-        email: row.user_email,
+        first_name: row.attendee_first_name,
         ticket_type: row.ticket_type,
         quantity: row.quantity
       };
@@ -147,10 +174,11 @@ export const viewBuyersForMyEvents = async (req, res) => {
       }
     }
 
-    return res.status(200).json({ success: true, data: grouped, message: "Buyers per event" });
-
+    return res.status(200).json({ success: true, data: grouped, message: "Attendees per event" });
   } catch (error) {
-    return res.status(500).json({ success: false, message: error.message });
+    next(error);
+
   }
 };
+
 
