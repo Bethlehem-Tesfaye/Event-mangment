@@ -1,25 +1,35 @@
 import express from 'express'
 
-import userMiddleware from '../middleware/userMiddleware.js'
-import { cancelEvent, createEvent, deleteDraftEvent, getAllCategories, getDraftEvents, getEvent, getEventCategories, getEventSpeakers, getEventTickets, getPublishedEvents, publishEvent, updateCategories, updateEventInfo, updateSpeakers, updateTickets } from '../controllers/eventController.js'
+import authMiddleware from '../middleware/authMiddleware.js'
+import { cancelEvent, createEvent, deleteDraftEvent, getAllCategories, getAllEvents, getAllEventsByCategory, getEvent, getEventCategories, getEventPreview, getEvents, getEventSpeakers, getEventTickets, publishEvent, updateCategories, updateEventInfo, updateSpeakers, updateTickets } from '../controllers/eventController.js'
+import attendeeRouter from './attendeeRoutes.js';
+
 
 const eventRouter = express.Router()
 
-eventRouter.post('/create-event', userMiddleware, createEvent)
-eventRouter.put('/edit-event/:id', userMiddleware, updateEventInfo)
-eventRouter.put('/edit-speakers/:id', userMiddleware, updateSpeakers)
-eventRouter.put('/edit-tickets/:id', userMiddleware, updateTickets)
-eventRouter.put('/edit-categories/:id', userMiddleware, updateCategories)
-eventRouter.put('/publish-event/:id', userMiddleware, publishEvent)
-eventRouter.get('/get-event/:id', userMiddleware, getEvent)
-eventRouter.get('/get-speakers/:id', userMiddleware, getEventSpeakers)
-eventRouter.get('/get-tickets/:id', userMiddleware, getEventTickets)
-eventRouter.get('/get-categories/:id', userMiddleware, getEventCategories)
-eventRouter.get('/get-all-categories', userMiddleware, getAllCategories)
-eventRouter.get('/get-draft-event', userMiddleware, getDraftEvents)
-eventRouter.get('/get-published-event', userMiddleware, getPublishedEvents)
-eventRouter.put('/cancel-event/:id', userMiddleware, cancelEvent)
-eventRouter.delete('/delete-event/:id', userMiddleware, deleteDraftEvent)
+eventRouter.post('/', authMiddleware, createEvent)
+eventRouter.put('/:id', authMiddleware, updateEventInfo)
+eventRouter.put('/:id/speakers', authMiddleware, updateSpeakers)
+eventRouter.put('/:id/tickets', authMiddleware, updateTickets)
+eventRouter.put('/:id/categories', authMiddleware, updateCategories)
+eventRouter.put('/:id/publish', authMiddleware, publishEvent)
+
+eventRouter.get('/:id', authMiddleware, getEvent)
+eventRouter.get('/:id/speakers', authMiddleware, getEventSpeakers)
+eventRouter.get('/:id/tickets', authMiddleware, getEventTickets)
+eventRouter.get('/:id/categories', authMiddleware, getEventCategories)
+eventRouter.get('/categories', authMiddleware, getAllCategories)
+
+eventRouter.get('/', authMiddleware, getEvents)
+
+eventRouter.put('/:id/cancel', authMiddleware, cancelEvent)
+eventRouter.delete('/:id', authMiddleware, deleteDraftEvent)
+
+eventRouter.get('/public', getAllEvents);                   
+eventRouter.get('/public/category/:id', getAllEventsByCategory);            
+eventRouter.get('/public/:id', getEventPreview);  
+
+eventRouter.use('/:id/attendees', attendeeRouter)
 
 
 export default eventRouter

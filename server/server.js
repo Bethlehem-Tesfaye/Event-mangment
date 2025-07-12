@@ -6,25 +6,25 @@ import cors from 'cors'
 import cookieParser from 'cookie-parser'
 import userRouter from './routes/userRoutes.js';
 import eventRouter from './routes/eventRoutes.js';
-import attendeeRouter from './routes/attendeeRoutes.js';
 import errorMiddleware from './middleware/errorMiddleware.js';
+import authRouter from './routes/authRoutes.js';
 const port = process.env.PORT || 4000
 
 const app = express();
-app.use(express.json())
-app.use(cors())
-app.use(cookieParser())
 app.use(cors({
-    origin:"http://localhost:5173",
+    origin: process.env.CLIENT_URL || true,
     credentials: true,
 }))
+app.use(cookieParser())
+app.use(express.json())
+
 
 app.get('/', (req,res)=>{
     res.send('server works!!!');
 })
-app.use('/api/user', userRouter)
-app.use('/api/event', eventRouter)
-app.use('/api/attendee', attendeeRouter)
+app.use('/api/auth', authRouter)
+app.use('/api/users', userRouter)
+app.use('/api/events', eventRouter)
 app.use(errorMiddleware)
 
 conn.query('SELECT 1').then(()=>{
