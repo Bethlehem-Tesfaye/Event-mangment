@@ -7,7 +7,10 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start": "nodemon server.js",
     "dev": "node --watch server.js",
-    "migrate": "node-pg-migrate"
+    "migrate": "node-pg-migrate",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write ."
   },
   "keywords": [],
   "author": "",
@@ -23,5 +26,13 @@
     "node-pg-migrate": "^8.0.3",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3"
+  },
+  "devDependencies": {
+    "eslint": "^8.2.0",
+    "eslint-config-airbnb-base": "^15.0.0",
+    "eslint-config-prettier": "^10.1.5",
+    "eslint-plugin-import": "^2.25.2",
+    "eslint-plugin-prettier": "^5.5.1",
+    "prettier": "^3.6.2"
   }
 }
