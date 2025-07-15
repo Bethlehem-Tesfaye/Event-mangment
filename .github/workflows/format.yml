@@ -7,16 +7,18 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v3
 
-      - name: Setup Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
+    - name: Setup Node.js
+      uses: actions/setup-node@v3
+      with:
+        node-version: '18'
 
-      - name: Install dependencies
-        run: npm install
+    - name: Install dependencies
+      working-directory: ./server
+      run: npm install
 
-      - name: Run Prettier check
-        run: npx prettier --check .
+    - name: Run Prettier check
+      working-directory: ./server
+      run: npx prettier --check .
