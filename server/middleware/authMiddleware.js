@@ -16,10 +16,9 @@ const userMiddleware = (req, res, next) => {
       return next(new CustomError("Unauthorized: Invalid token", 401));
     }
 
-    next();
+    return next();
   } catch (error) {
     return next(new CustomError("Unauthorized", 401));
-
   }
 };
 
