@@ -10,7 +10,8 @@
     "migrate": "node-pg-migrate",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "seed": "node seeds/seed.js"
   },
   "keywords": [],
   "author": "",
