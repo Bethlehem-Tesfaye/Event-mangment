@@ -21,6 +21,13 @@ import {
   updateTickets
 } from "../controllers/eventController.js";
 import attendeeRouter from "./attendeeRoutes.js";
+import { validate } from "../middleware/validate.js";
+import {
+  eventSchema,
+  updateCategoriesSchema,
+  updateSpeakersSchema,
+  updateTicketsSchema
+} from "../schemas/eventSchema.js";
 
 const eventRouter = express.Router();
 
@@ -28,11 +35,26 @@ eventRouter.get("/public", getAllEvents);
 eventRouter.get("/public/category/:id", getAllEventsByCategory);
 eventRouter.get("/public/:id", getEventPreview);
 
-eventRouter.post("/", authMiddleware, createEvent);
-eventRouter.put("/:id", authMiddleware, updateEventInfo);
-eventRouter.put("/:id/speakers", authMiddleware, updateSpeakers);
-eventRouter.put("/:id/tickets", authMiddleware, updateTickets);
-eventRouter.put("/:id/categories", authMiddleware, updateCategories);
+eventRouter.post("/", authMiddleware, validate(eventSchema), createEvent);
+eventRouter.put("/:id", authMiddleware, validate(eventSchema), updateEventInfo);
+eventRouter.put(
+  "/:id/speakers",
+  authMiddleware,
+  validate(updateSpeakersSchema),
+  updateSpeakers
+);
+eventRouter.put(
+  "/:id/tickets",
+  authMiddleware,
+  validate(updateTicketsSchema),
+  updateTickets
+);
+eventRouter.put(
+  "/:id/categories",
+  authMiddleware,
+  validate(updateCategoriesSchema),
+  updateCategories
+);
 eventRouter.put("/:id/publish", authMiddleware, publishEvent);
 
 eventRouter.get("/:id", authMiddleware, getEvent);
