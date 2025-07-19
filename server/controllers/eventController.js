@@ -13,17 +13,6 @@ export const createEvent = async (req, res, next) => {
     endTime
   } = req.body;
 
-  if (
-    !title ||
-    !description ||
-    !locationType ||
-    !date ||
-    !startTime ||
-    !endTime ||
-    !location
-  ) {
-    return next(new CustomError("Required fields missing", 400));
-  }
   try {
     const result = await conn.query(
       "INSERT INTO events (user_id, title, description, location_type, location,date, start_time, end_time, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft') RETURNING id",
@@ -95,9 +84,6 @@ export const updateSpeakers = async (req, res, next) => {
   const { id } = req.params;
   const { speakers } = req.body;
 
-  if (!Array.isArray(speakers) || speakers.length === 0) {
-    return next(new CustomError("Speakers Required", 400));
-  }
   const client = await conn.connect();
   try {
     await client.query("BEGIN");
@@ -125,9 +111,6 @@ export const updateTickets = async (req, res, next) => {
   const { id } = req.params;
   const { tickets } = req.body;
 
-  if (!Array.isArray(tickets) || tickets.length === 0) {
-    return next(new CustomError("tickets required", 400));
-  }
   const client = await conn.connect();
   try {
     await client.query("BEGIN");
@@ -155,9 +138,6 @@ export const updateCategories = async (req, res, next) => {
   const { id } = req.params;
   const { categories } = req.body;
 
-  if (!Array.isArray(categories) || categories.length === 0) {
-    return next(new CustomError("categories required", 400));
-  }
   const client = await conn.connect();
   try {
     await client.query("BEGIN");
