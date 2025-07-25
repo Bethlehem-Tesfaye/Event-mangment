@@ -8,7 +8,7 @@ export const eventSchema = z.object({
   location: z.string(),
   startDateTime: z.string().datetime({ message: "Invalid start date" }),
   endDateTime: z.string().datetime({ message: "Invalid end date" }),
-  duration: z.string(),
+  duration: z.number().int().positive(),
   eventBannerUrl: z.string().url("Invalid URL").optional()
 });
 
