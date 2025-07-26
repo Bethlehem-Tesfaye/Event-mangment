@@ -11,7 +11,7 @@ export const eventRegister = async (req, res, next) => {
     await client.query("BEGIN");
 
     const ticketQuery =
-      "SELECT t.quantity, t.max_per_user, t.event_id, e.title FROM tickets t JOIN events e ON t.event_id = e.id WHERE t.id = $1 AND e.id = $2";
+      "SELECT t.total_quantity, t.max_per_user, t.event_id, e.title FROM tickets t JOIN events e ON t.event_id = e.id WHERE t.id = $1 AND e.id = $2";
 
     const ticketResult = await client.query(ticketQuery, [ticketId, id]);
     const ticket = ticketResult.rows[0];
@@ -38,13 +38,13 @@ export const eventRegister = async (req, res, next) => {
         )
       );
     }
-    if (ticket.quantity < quantity) {
+    if (ticket.total_quantity < quantity) {
       await client.query("ROLLBACK");
       return next(new CustomError("Not enough tickets available", 400));
     }
 
     await client.query(
-      "UPDATE tickets SET quantity = quantity - $1 WHERE id = $2",
+      "UPDATE tickets SET current_quantity = current_quantity - $1 WHERE id = $2",
       [quantity, ticketId]
     );
 

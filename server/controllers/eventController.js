@@ -1,6 +1,7 @@
 import conn from "../db/db.js";
 import CustomError from "../utils/customError.js";
 
+// events table
 export const createEvent = async (req, res, next) => {
   const { userId } = req;
   const {
@@ -8,34 +9,25 @@ export const createEvent = async (req, res, next) => {
     description,
     locationType,
     location,
-    date,
-    startTime,
-    endTime
+    startDateTime,
+    endDateTime,
+    duration,
+    eventBannerUrl
   } = req.body;
 
-  if (
-    !title ||
-    !description ||
-    !locationType ||
-    !date ||
-    !startTime ||
-    !endTime ||
-    !location
-  ) {
-    return next(new CustomError("Required fields missing", 400));
-  }
   try {
     const result = await conn.query(
-      "INSERT INTO events (user_id, title, description, location_type, location,date, start_time, end_time, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, 'draft') RETURNING id",
+      "INSERT INTO events (user_id, title, description, location_type, location,start_datetime, end_datetime, duration,event_banner_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft') RETURNING id",
       [
         userId,
         title,
         description,
         locationType,
         location,
-        date,
-        startTime,
-        endTime
+        startDateTime,
+        endDateTime,
+        duration,
+        eventBannerUrl
       ]
     );
     const eventId = result.rows[0].id;
@@ -47,7 +39,6 @@ export const createEvent = async (req, res, next) => {
     return next(error);
   }
 };
-
 export const updateEventInfo = async (req, res, next) => {
   const { id } = req.params;
   const { userId } = req;
@@ -56,22 +47,24 @@ export const updateEventInfo = async (req, res, next) => {
     description,
     locationType,
     location,
-    date,
-    startTime,
-    endTime
+    startDateTime,
+    endDateTime,
+    duration,
+    eventBannerUrl
   } = req.body;
 
   try {
     const result = await conn.query(
-      "UPDATE events SET title = $1, description = $2, location_type = $3,location = $4, date = $5, start_time = $6, end_time = $7 WHERE id = $8 AND user_id = $9 RETURNING *",
+      "UPDATE events SET title = $1, description = $2, location_type = $3,location = $4, start_datetime = $5, end_datetime = $6, duration = $7, event_banner_url = $8, updated_at = CURRENT_TIMESTAMP WHERE id = $9 AND user_id = $10 RETURNING *",
       [
         title,
         description,
         locationType,
         location,
-        date,
-        startTime,
-        endTime,
+        startDateTime,
+        endDateTime,
+        duration,
+        eventBannerUrl,
         id,
         userId
       ]
@@ -90,29 +83,46 @@ export const updateEventInfo = async (req, res, next) => {
     return next(error);
   }
 };
-
-export const updateSpeakers = async (req, res, next) => {
+export const getEventInfo = async (req, res, next) => {
   const { id } = req.params;
-  const { speakers } = req.body;
-
-  if (!Array.isArray(speakers) || speakers.length === 0) {
-    return next(new CustomError("Speakers Required", 400));
+  const { userId } = req;
+  try {
+    const result = await conn.query(
+      "SELECT title, description, location_type, location,start_datetime, end_datetime, duration,event_banner_url FROM events WHERE id = $1 AND user_id=$2",
+      [id, userId]
+    );
+    return res.status(200).json({ success: true, event: result.rows[0] });
+  } catch (error) {
+    return next(error);
   }
+};
+
+// tickets table
+export const addTickets = async (req, res, next) => {
+  const { id: eventId } = req.params;
+  const { tickets } = req.body;
+
   const client = await conn.connect();
   try {
     await client.query("BEGIN");
-    await client.query("DELETE FROM event_speakers WHERE event_id = $1", [id]);
+    const inserted = [];
 
-    await Promise.all(
-      speakers.map((s) =>
-        client.query(
-          "INSERT INTO event_speakers (event_id, name, bio) VALUES ($1, $2, $3)",
-          [id, s.name, s.bio]
-        )
-      )
-    );
+    for (const t of tickets) {
+      const result = await client.query(
+        "INSERT INTO tickets (event_id, type, price, total_quantity, current_quantity, max_per_user) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *",
+        [
+          eventId,
+          t.type,
+          t.price,
+          t.total_quantity,
+          t.total_quantity,
+          t.max_per_user ?? 1
+        ]
+      );
+      inserted.push(result.rows[0]);
+    }
     await client.query("COMMIT");
-    return res.status(200).json({ success: true, message: "Speakers updated" });
+    return res.status(201).json(inserted);
   } catch (error) {
     await client.query("ROLLBACK");
     return next(error);
@@ -120,27 +130,57 @@ export const updateSpeakers = async (req, res, next) => {
     client.release();
   }
 };
-
 export const updateTickets = async (req, res, next) => {
-  const { id } = req.params;
-  const { tickets } = req.body;
+  const { id: eventId } = req.params;
+  const {
+    newTickets = [],
+    updatedTickets = [],
+    deletedTicketIds = []
+  } = req.body;
 
-  if (!Array.isArray(tickets) || tickets.length === 0) {
-    return next(new CustomError("tickets required", 400));
-  }
   const client = await conn.connect();
   try {
     await client.query("BEGIN");
-    await client.query("DELETE FROM tickets WHERE event_id = $1", [id]);
 
-    await Promise.all(
-      tickets.map((t) =>
-        client.query(
-          "INSERT INTO tickets (event_id, type, price, quantity, max_per_user) VALUES ($1, $2, $3, $4, $5)",
-          [id, t.type, t.price, t.quantity, t.max_per_user ?? 1]
-        )
-      )
-    );
+    // soft delete
+    for (const id of deletedTicketIds) {
+      await client.query(
+        "UPDATE tickets SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND event_id = $2",
+        [id, eventId]
+      );
+    }
+
+    // update
+    for (const ticket of updatedTickets) {
+      await client.query(
+        "UPDATE tickets SET type = $1, price = $2, total_quantity = $3, current_quantity = $4, max_per_user = $5, updated_at = CURRENT_TIMESTAMP WHERE id = $6 AND event_id = $7",
+        [
+          ticket.type,
+          ticket.price,
+          ticket.total_quantity,
+          ticket.total_quantity,
+          ticket.max_per_user ?? 1,
+          ticket.id,
+          eventId
+        ]
+      );
+    }
+
+    // insert new ticket
+    for (const t of newTickets) {
+      await client.query(
+        "INSERT INTO tickets (event_id, type, price, total_quantity, current_quantity, max_per_user) VALUES ($1, $2, $3, $4, $5, $6)",
+        [
+          eventId,
+          t.type,
+          t.price,
+          t.total_quantity,
+          t.total_quantity,
+          t.max_per_user ?? 1
+        ]
+      );
+    }
+
     await client.query("COMMIT");
     return res.status(200).json({ success: true, message: "tickets updated" });
   } catch (error) {
@@ -150,29 +190,153 @@ export const updateTickets = async (req, res, next) => {
     client.release();
   }
 };
-
-export const updateCategories = async (req, res, next) => {
+export const getEventTickets = async (req, res, next) => {
   const { id } = req.params;
-  const { categories } = req.body;
-
-  if (!Array.isArray(categories) || categories.length === 0) {
-    return next(new CustomError("categories required", 400));
+  try {
+    const result = await conn.query(
+      "SELECT id, type, price, total_quantity, current_quantity, max_per_user FROM tickets WHERE event_id = $1 AND deleted_at IS NULL",
+      [id]
+    );
+    return res.status(200).json({ success: true, tickets: result.rows });
+  } catch (error) {
+    return next(error);
   }
+};
+
+// event_speakers table
+export const addSpeakers = async (req, res, next) => {
+  const { id: eventId } = req.params;
+  const { speakers } = req.body;
+
   const client = await conn.connect();
   try {
     await client.query("BEGIN");
-    await client.query("DELETE FROM event_categories WHERE event_id = $1", [
-      id
-    ]);
+    const inserted = [];
 
-    await Promise.all(
-      categories.map((c) =>
-        client.query(
-          "INSERT INTO event_categories (event_id, category_id) VALUES ($1, $2)",
-          [id, c]
-        )
-      )
+    for (const s of speakers) {
+      const result = await client.query(
+        "INSERT INTO event_speakers (event_id, name, bio) VALUES ($1, $2, $3) RETURNING *",
+        [eventId, s.name, s.bio]
+      );
+      inserted.push(result.rows[0]);
+    }
+    await client.query("COMMIT");
+    return res.status(201).json(inserted);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return next(error);
+  } finally {
+    client.release();
+  }
+};
+export const updateSpeakers = async (req, res, next) => {
+  const { id: eventId } = req.params;
+  const {
+    newSpeakers = [],
+    updatedSpeakers = [],
+    deletedSpeakersIds = []
+  } = req.body;
+
+  const client = await conn.connect();
+  try {
+    await client.query("BEGIN");
+
+    // soft delete
+    for (const id of deletedSpeakersIds) {
+      await client.query(
+        "UPDATE event_speakers SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND event_id = $2",
+        [id, eventId]
+      );
+    }
+
+    // update
+    for (const speaker of updatedSpeakers) {
+      await client.query(
+        "UPDATE event_speakers SET name=$1, bio=$2, updated_at = CURRENT_TIMESTAMP WHERE id = $3 AND event_id = $4",
+        [speaker.name, speaker.bio, speaker.id, eventId]
+      );
+    }
+
+    // insert new ticket
+    for (const s of newSpeakers) {
+      await client.query(
+        "INSERT INTO event_speakers (event_id, name, bio) VALUES ($1, $2, $3)",
+        [eventId, s.name, s.bio]
+      );
+    }
+
+    await client.query("COMMIT");
+    return res.status(200).json({ success: true, message: "speakers updated" });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return next(error);
+  } finally {
+    client.release();
+  }
+};
+export const getEventSpeakers = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const result = await conn.query(
+      "SELECT name, bio FROM event_speakers WHERE event_id = $1 AND deleted_at IS NULL",
+      [id]
     );
+    return res.status(200).json({ success: true, speakers: result.rows });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// event_categories table
+export const addCategories = async (req, res, next) => {
+  const { id: eventId } = req.params;
+  const { categories } = req.body;
+
+  const client = await conn.connect();
+  try {
+    await client.query("BEGIN");
+    const inserted = [];
+
+    for (const c of categories) {
+      const result = await client.query(
+        "INSERT INTO event_categories (event_id, category_id) VALUES ($1, $2) RETURNING *",
+        [eventId, c.id]
+      );
+      inserted.push(result.rows[0]);
+    }
+    await client.query("COMMIT");
+    return res.status(201).json(inserted);
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return next(error);
+  } finally {
+    client.release();
+  }
+};
+export const updateCategories = async (req, res, next) => {
+  const { id: eventId } = req.params;
+  const { newCategories = [], deletedCategoriesIds = [] } = req.body;
+
+  const client = await conn.connect();
+  try {
+    await client.query("BEGIN");
+
+    // soft delete
+    for (const id of deletedCategoriesIds) {
+      await client.query(
+        "UPDATE event_categories SET deleted_at = CURRENT_TIMESTAMP WHERE category_id = $1 AND event_id = $2",
+        [id, eventId]
+      );
+    }
+
+    // insert new categorise
+    for (const s of newCategories) {
+      await client.query(
+        "INSERT INTO event_categories (event_id, category_id) VALUES ($1, $2)",
+        [eventId, s.id]
+      );
+    }
+
     await client.query("COMMIT");
     return res
       .status(200)
@@ -184,7 +348,32 @@ export const updateCategories = async (req, res, next) => {
     client.release();
   }
 };
+export const getEventCategories = async (req, res, next) => {
+  const { id } = req.params;
+  try {
+    const result = await conn.query(
+      "SELECT c.id, c.name FROM event_categories ec JOIN categories c ON ec.category_id = c.id WHERE ec.event_id = $1 AND deleted_at IS NULL",
+      [id]
+    );
+    return res.status(200).json({ success: true, categories: result.rows });
+  } catch (error) {
+    return next(error);
+  }
+};
 
+// all catogories-categories table
+export const getAllCategories = async (req, res, next) => {
+  try {
+    const result = await conn.query(
+      "SELECT id, name FROM categories Where deleted_at IS NULL"
+    );
+    return res.status(200).json({ success: true, allCategories: result.rows });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// published events
 export const publishEvent = async (req, res, next) => {
   const { id } = req.params;
   const { userId } = req;
@@ -202,9 +391,10 @@ export const publishEvent = async (req, res, next) => {
       e.title,
       e.description,
       e.location_type,
-      e.date,
-      e.start_time,
-      e.end_time
+      e.start_datetime,
+      e.end_datetime,
+      e.duration,
+      e.event_banner_url
     ];
     if (requiredFields.some((f) => !f)) {
       return next(new CustomError("Incomplete event data", 400));
@@ -235,106 +425,17 @@ export const publishEvent = async (req, res, next) => {
     return next(error);
   }
 };
-
-export const getEvent = async (req, res, next) => {
-  const { id } = req.params;
-  const { userId } = req;
-  try {
-    const result = await conn.query(
-      "SELECT title, description, location_type, location, date, start_time, end_time FROM events WHERE id = $1 AND user_id=$2",
-      [id, userId]
-    );
-    return res.status(200).json({ success: true, event: result.rows[0] });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getEventSpeakers = async (req, res, next) => {
-  const { id } = req.params;
-  try {
-    const result = await conn.query(
-      "SELECT name, bio FROM event_speakers WHERE event_id = $1",
-      [id]
-    );
-    return res.status(200).json({ success: true, speakers: result.rows });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getEventTickets = async (req, res, next) => {
-  const { id } = req.params;
-  try {
-    const result = await conn.query(
-      "SELECT id, type, price, quantity, max_per_user FROM tickets WHERE event_id = $1",
-      [id]
-    );
-    return res.status(200).json({ success: true, tickets: result.rows });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getEventCategories = async (req, res, next) => {
-  const { id } = req.params;
-  try {
-    const result = await conn.query(
-      "SELECT c.id, c.name FROM event_categories ec JOIN categories c ON ec.category_id = c.id WHERE ec.event_id = $1",
-      [id]
-    );
-    return res.status(200).json({ success: true, categories: result.rows });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getAllCategories = async (req, res, next) => {
-  try {
-    const result = await conn.query("SELECT id, name FROM categories");
-    return res.status(200).json({ success: true, allCategories: result.rows });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getEvents = async (req, res, next) => {
-  const { userId } = req;
-  const { status } = req.query;
-
-  try {
-    let query =
-      "SELECT id, title, status, created_at FROM events WHERE user_id = $1";
-    const values = [userId];
-
-    if (status) {
-      query += " AND status = $2";
-      values.push(status);
-    }
-
-    const result = await conn.query(query, values);
-
-    return res.status(200).json({
-      success: true,
-      data: result.rows,
-      message: "events retrieved successfully"
-    });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 export const cancelEvent = async (req, res, next) => {
   const { userId } = req;
   const { id } = req.params;
 
   try {
     const query =
-      "UPDATE events SET status = $1 WHERE id = $2 AND user_id = $3 AND status = 'published'";
+      "UPDATE events SET status = $1, deleted_at = CURRENT_TIMESTAMP WHERE id = $2 AND user_id = $3 AND status = 'published'";
     const result = await conn.query(query, ["cancelled", id, userId]);
 
     if (result.rowCount === 0) {
-      return next(new CustomError("Event not found or not publishable", 404));
+      return next(new CustomError("Event not found or not published", 404));
     }
 
     return res
@@ -344,53 +445,12 @@ export const cancelEvent = async (req, res, next) => {
     return next(error);
   }
 };
-
-export const deleteDraftEvent = async (req, res, next) => {
-  const { userId } = req;
-  const { id } = req.params;
-
-  try {
-    const query =
-      "DELETE FROM events WHERE id = $1 AND user_id = $2 AND status = 'draft'";
-    const result = await conn.query(query, [id, userId]);
-
-    if (result.rowCount === 0) {
-      return next(
-        new CustomError("Draft event not found or cannot be deleted", 404)
-      );
-    }
-
-    return res
-      .status(200)
-      .json({ success: true, message: "Draft event deleted successfully" });
-  } catch (error) {
-    return next(error);
-  }
-};
-
-export const getAllEvents = async (req, res, next) => {
-  try {
-    const query =
-      "SELECT e.id, e.title, e.description, e.date, e.location, p.first_name FROM events e JOIN profiles p ON p.user_id = e.user_id WHERE e.status = $1";
-
-    const result = await conn.query(query, ["published"]);
-    if (result.rows.length === 0) {
-      return next(new CustomError("no published event", 404));
-    }
-    return res
-      .status(200)
-      .json({ success: true, data: result.rows, message: "published events" });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 export const getAllEventsByCategory = async (req, res, next) => {
   const { id } = req.params;
 
   try {
     const query =
-      "  SELECT e.id, e.title, e.description, e.date, e.location, p.first_name FROM events e JOIN profiles p ON p.user_id = e.user_id JOIN event_categories ec ON e.id = ec.event_id WHERE ec.category_id = $1 AND e.status = $2";
+      "  SELECT e.id, e.title, e.description, e.start_datetime, e.location, p.first_name FROM events e JOIN profiles p ON p.user_id = e.user_id JOIN event_categories ec ON e.id = ec.event_id WHERE ec.category_id = $1 AND e.status = $2";
 
     const result = await conn.query(query, [id, "published"]);
     if (result.rows.length === 0) {
@@ -403,7 +463,7 @@ export const getAllEventsByCategory = async (req, res, next) => {
     return next(error);
   }
 };
-
+// published event preview
 export const getEventPreview = async (req, res, next) => {
   const { id } = req.params;
 
@@ -413,15 +473,15 @@ export const getEventPreview = async (req, res, next) => {
       [id]
     );
     const speakersQuery = conn.query(
-      "SELECT name, bio FROM event_speakers WHERE event_id = $1",
+      "SELECT name, bio FROM event_speakers WHERE event_id = $1 AND deleted_at IS NULL",
       [id]
     );
     const ticketsQuery = conn.query(
-      "SELECT id, type, price, quantity FROM tickets WHERE event_id = $1",
+      "SELECT id, type, price, total_quantity, current_quantity, max_per_user FROM tickets WHERE event_id = $1 AND deleted_at IS NULL",
       [id]
     );
     const categoriesQuery = conn.query(
-      "SELECT c.id, c.name FROM event_categories ec JOIN categories c ON ec.category_id = c.id WHERE ec.event_id = $1",
+      "SELECT c.id, c.name FROM event_categories ec JOIN categories c ON ec.category_id = c.id WHERE ec.event_id = $1 AND ec.deleted_at IS NULL",
       [id]
     );
 
@@ -444,6 +504,74 @@ export const getEventPreview = async (req, res, next) => {
       tickets: ticketsResult.rows,
       categories: categoriesResult.rows
     });
+  } catch (error) {
+    return next(error);
+  }
+};
+// draft event
+export const deleteDraftEvent = async (req, res, next) => {
+  const { userId } = req;
+  const { id } = req.params;
+
+  try {
+    const query =
+      "UPDATE events SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2 AND status = 'draft'";
+    const result = await conn.query(query, [id, userId]);
+
+    if (result.rowCount === 0) {
+      return next(
+        new CustomError("Draft event not found or cannot be deleted", 404)
+      );
+    }
+
+    return res
+      .status(200)
+      .json({ success: true, message: "Draft event deleted successfully" });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// organizers-events by status
+export const getEvents = async (req, res, next) => {
+  const { userId } = req;
+  const { status } = req.query;
+
+  try {
+    let query =
+      "SELECT id, title, status, created_at FROM events WHERE user_id = $1 AND deleted_at IS NULL";
+    const values = [userId];
+
+    if (status) {
+      query += " AND status = $2";
+      values.push(status);
+    }
+
+    const result = await conn.query(query, values);
+
+    return res.status(200).json({
+      success: true,
+      data: result.rows,
+      message: "events retrieved successfully"
+    });
+  } catch (error) {
+    return next(error);
+  }
+};
+
+// all published events
+export const getAllEvents = async (req, res, next) => {
+  try {
+    const query =
+      "SELECT e.id, e.title, e.description, e.start_datetime, e.location, p.first_name FROM events e JOIN profiles p ON p.user_id = e.user_id WHERE e.status = $1";
+
+    const result = await conn.query(query, ["published"]);
+    if (result.rows.length === 0) {
+      return next(new CustomError("no published event", 404));
+    }
+    return res
+      .status(200)
+      .json({ success: true, data: result.rows, message: "published events" });
   } catch (error) {
     return next(error);
   }
