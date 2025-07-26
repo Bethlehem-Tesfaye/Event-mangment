@@ -48,17 +48,18 @@ export const eventRegister = async (req, res, next) => {
       [quantity, ticketId]
     );
 
-    await client.query(
-      "INSERT INTO registrations (user_id, ticket_id, quantity) VALUES ($1, $2, $3)",
+    const insertResult = await client.query(
+      "INSERT INTO registrations (user_id, ticket_id, quantity) VALUES ($1, $2, $3) RETURNING *",
       [userId, ticketId, quantity]
     );
+
+    const registration = insertResult.rows[0];
 
     await client.query("COMMIT");
     return res.status(200).json({
       data: {
-        event: {
-          id: ticket.event_id,
-          title: ticket.title
+        registration,
+      event: { id: ticket.event_id, title: ticket.title
         }
       }
     });

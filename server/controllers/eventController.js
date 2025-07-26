@@ -17,7 +17,7 @@ export const createEvent = async (req, res, next) => {
 
   try {
     const result = await conn.query(
-      "INSERT INTO events (user_id, title, description, location_type, location,start_datetime, end_datetime, duration,event_banner_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft') RETURNING id",
+      "INSERT INTO events (user_id, title, description, location_type, location,start_datetime, end_datetime, duration,event_banner_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft') RETURNING *",
       [
         userId,
         title,
@@ -30,7 +30,6 @@ export const createEvent = async (req, res, next) => {
         eventBannerUrl
       ]
     );
-    const eventId = result.rows[0].id;
 
     return res.status(201).json({
       data: {
