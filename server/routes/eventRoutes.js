@@ -37,7 +37,7 @@ eventRouter.put("/:id/status", authMiddleware, updateEventStatus);
 // Deletion
 eventRouter.delete("/:id", authMiddleware, deleteDraftEvent);
 
-//nested router
+// nested router
 eventRouter.use("/:id/attendees", attendeeRouter);
 eventRouter.use("/:id/speakers", speakerRouter);
 eventRouter.use("/:id/tickets", ticketRouter);

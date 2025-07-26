@@ -443,7 +443,7 @@ export const updateCategories = async (req, res, next) => {
     await client.query("COMMIT");
     return res.status(200).json({
       data: {
-        categories: updatedCategories.rows
+      categories: updatedCategories.rows
       }
     });
   } catch (error) {
@@ -639,9 +639,8 @@ export const deleteDraftEvent = async (req, res, next) => {
 
     return res.status(200).json({
       data: {
-        event: result.rows[0]
-      }
-    });
+      event: result.rows[0]
+    }});
   } catch (error) {
     return next(error);
   }
