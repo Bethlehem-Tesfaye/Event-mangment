@@ -86,7 +86,7 @@ export const updateTicketsSchema = z.object({
 // categories
 export const categoriesSchema = z.object({
   categories: z
-    .array(
+     .array(
       z.object({
         id: z.number().int()
       })
