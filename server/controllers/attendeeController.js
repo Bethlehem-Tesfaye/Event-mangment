@@ -48,19 +48,19 @@ export const eventRegister = async (req, res, next) => {
       [quantity, ticketId]
     );
 
-    const insertResult = await client.query(
-      "INSERT INTO registrations (user_id, ticket_id, quantity) VALUES ($1, $2, $3) RETURNING *",
+    await client.query(
+      "INSERT INTO registrations (user_id, ticket_id, quantity) VALUES ($1, $2, $3)",
       [userId, ticketId, quantity]
     );
 
-    const registration = insertResult.rows[0];
-
     await client.query("COMMIT");
     return res.status(200).json({
-      success: true,
-      registration,
-      event: { id: ticket.event_id, title: ticket.title },
-      message: "Ticket purchased successfully"
+      data: {
+        event: {
+          id: ticket.event_id,
+          title: ticket.title
+        }
+      }
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -84,9 +84,9 @@ export const viewMyTickets = async (req, res, next) => {
     }
 
     return res.status(200).json({
-      success: true,
-      data: result.rows,
-      message: "Purchased tickets retrieved successfully"
+      data: {
+        tickets: result.rows
+      }
     });
   } catch (error) {
     return next(error);
@@ -101,7 +101,9 @@ export const viewAttendeesForMyEvents = async (req, res, next) => {
       " SELECT e.id AS event_id, e.title AS event_title, p.first_name AS attendee_first_name, t.type AS ticket_type, r.quantity FROM events e JOIN tickets t ON e.id = t.event_id JOIN registrations r ON r.ticket_id = t.id JOIN users u ON u.id = r.user_id JOIN profiles p ON p.user_id = u.id WHERE e.user_id = $1 ORDER BY e.id";
 
     const result = await conn.query(query, [organizerId]);
-
+    if (result.rows.length === 0) {
+      return next(new CustomError("No attendees found", 404));
+    }
     const grouped = [];
 
     result.rows.forEach((row) => {
@@ -124,9 +126,9 @@ export const viewAttendeesForMyEvents = async (req, res, next) => {
       }
     });
 
-    return res
-      .status(200)
-      .json({ success: true, data: grouped, message: "Attendees per event" });
+    return res.status(200).json({
+      data: grouped
+    });
   } catch (error) {
     return next(error);
   }
