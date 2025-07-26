@@ -18,6 +18,7 @@ import attendeeRouter from "./attendeeRoutes.js";
 import speakerRouter from "./speakerRoutes.js";
 import ticketRouter from "./ticketRoutes.js";
 import categoryRouter from "./categoryRoutes.js";
+import isEventOwner from "../middleware/isEventOwner.js";
 
 const eventRouter = express.Router();
 
@@ -28,14 +29,20 @@ eventRouter.get("/:id/preview", getEventPreview);
 eventRouter.get("/categories", authMiddleware, getAllCategories);
 
 eventRouter.post("/", authMiddleware, validate(eventSchema), createEvent);
-eventRouter.put("/:id", authMiddleware, validate(eventSchema), updateEventInfo);
+eventRouter.put(
+  "/:id",
+  authMiddleware,
+  isEventOwner,
+  validate(eventSchema),
+  updateEventInfo
+);
 eventRouter.get("/:id", authMiddleware, getEventInfo);
 
 // publishing and canceling
-eventRouter.put("/:id/status", authMiddleware, updateEventStatus);
+eventRouter.put("/:id/status", authMiddleware, isEventOwner, updateEventStatus);
 
 // Deletion
-eventRouter.delete("/:id", authMiddleware, deleteDraftEvent);
+eventRouter.delete("/:id", authMiddleware, isEventOwner, deleteDraftEvent);
 
 // nested router
 eventRouter.use("/:id/attendees", attendeeRouter);
