@@ -86,10 +86,10 @@ export const updateTicketsSchema = z.object({
 // categories
 export const categoriesSchema = z.object({
   categories: z
-    .array(
-      z
-        .number("Category ID must be a number")
-        .int({ message: "Category ID must be an integer" })
+     .array(
+      z.object({
+        id: z.number().int()
+      })
     )
     .nonempty()
 });
