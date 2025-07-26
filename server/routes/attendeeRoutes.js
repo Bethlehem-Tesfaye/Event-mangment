@@ -1,8 +1,6 @@
 import express from "express";
 import {
-  eventRegister,
-  viewAttendeesForMyEvents,
-  viewMyTickets
+  eventRegister
 } from "../controllers/attendeeController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
@@ -15,12 +13,6 @@ attendeeRouter.post(
   authMiddleware,
   validate(eventRegisterSchema),
   eventRegister
-);
-attendeeRouter.get("/my-tickets", authMiddleware, viewMyTickets);
-attendeeRouter.get(
-  "/my-event-attendees",
-  authMiddleware,
-  viewAttendeesForMyEvents
 );
 
 export default attendeeRouter;

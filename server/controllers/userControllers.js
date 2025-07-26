@@ -43,7 +43,7 @@ export const register = async (req, res, next) => {
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    return res.status(200).json({ success: true, message: "user registered" });
+    return res.status(200).json({ success: true, message: "user registered", user:user});
   } catch (error) {
     await client.query("ROLLBACK");
     return next(error);
