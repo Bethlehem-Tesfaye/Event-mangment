@@ -10,14 +10,22 @@ import {
   speakersSchema,
   updateSpeakersSchema
 } from "../schemas/eventSchema.js";
+import isEventOwner from "../middleware/isEventOwner.js";
 
 const speakerRouter = express.Router({ mergeParams: true });
 
 speakerRouter.get("/", authMiddleware, getEventSpeakers);
-speakerRouter.post("/", authMiddleware, validate(speakersSchema), addSpeakers);
+speakerRouter.post(
+  "/",
+  authMiddleware,
+  isEventOwner,
+  validate(speakersSchema),
+  addSpeakers
+);
 speakerRouter.patch(
   "/",
   authMiddleware,
+  isEventOwner,
   validate(updateSpeakersSchema),
   updateSpeakers
 );
