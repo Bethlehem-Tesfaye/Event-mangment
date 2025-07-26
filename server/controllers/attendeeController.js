@@ -54,7 +54,7 @@ export const eventRegister = async (req, res, next) => {
     );
 
     const registration = insertResult.rows[0];
-    
+
     await client.query("COMMIT");
     return res.status(200).json({
       success: true,

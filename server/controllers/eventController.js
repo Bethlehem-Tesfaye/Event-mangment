@@ -360,13 +360,11 @@ export const updateCategories = async (req, res, next) => {
     );
 
     await client.query("COMMIT");
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "categories updated",
-        categories: updatedCategoriesResult.rows
-      });
+    return res.status(200).json({
+      success: true,
+      message: "categories updated",
+      categories: updatedCategoriesResult.rows
+    });
   } catch (error) {
     await client.query("ROLLBACK");
     return next(error);
@@ -540,13 +538,11 @@ export const deleteDraftEvent = async (req, res, next) => {
       );
     }
 
-    return res
-      .status(200)
-      .json({
-        success: true,
-        message: "Draft event deleted successfully",
-        event: result.rows[0]
-      });
+    return res.status(200).json({
+      success: true,
+      message: "Draft event deleted successfully",
+      event: result.rows[0]
+    });
   } catch (error) {
     return next(error);
   }
