@@ -5,9 +5,6 @@ import CustomError from "../utils/customError.js";
 
 export const register = async (req, res, next) => {
   const { email, password } = req.body;
-  if (!email || !password) {
-    return next(new CustomError("All fields required", 400));
-  }
 
   const client = await conn.connect();
 
@@ -58,9 +55,6 @@ export const register = async (req, res, next) => {
 export const login = async (req, res, next) => {
   const { email, password } = req.body;
   try {
-    if (!email || !password) {
-      return next(new CustomError("All fields required", 400));
-    }
     const emailCheck = await conn.query("SELECT * from users WHERE email=$1", [
       email
     ]);
