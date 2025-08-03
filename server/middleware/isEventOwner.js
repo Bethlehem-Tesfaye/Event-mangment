@@ -5,6 +5,14 @@ const isEventOwner = async (req, res, next) => {
   const { id: eventId } = req.params;
   const { userId } = req;
 
+  if (!userId) {
+    return next(new CustomError("Unauthorized, Missing userId", 401));
+  }
+
+  if (!eventId) {
+    return next(new CustomError("Missing event ID", 400));
+  }
+
   try {
     const query =
       "SELECT id FROM events WHERE id=$1 AND user_id=$2 AND deleted_at IS NULL";

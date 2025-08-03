@@ -1,5 +1,8 @@
 import express from "express";
-import { eventRegister } from "../controllers/attendeeController.js";
+import {
+  cancelRegistration,
+  eventRegister
+} from "../controllers/attendeeController.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
 import { eventRegisterSchema } from "../schemas/attendeeSchema.js";
@@ -12,5 +15,9 @@ attendeeRouter.post(
   validate(eventRegisterSchema),
   eventRegister
 );
-
+attendeeRouter.delete(
+  "/register/:registrationId",
+  authMiddleware,
+  cancelRegistration
+);
 export default attendeeRouter;
