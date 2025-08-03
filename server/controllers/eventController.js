@@ -17,7 +17,7 @@ export const createEvent = async (req, res, next) => {
 
   try {
     const result = await conn.query(
-      "INSERT INTO events (user_id, title, description, location_type, location,start_datetime, end_datetime, duration,event_banner_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft') RETURNING *",
+      "INSERT INTO events (user_id, title, description, location_type, location,start_datetime, end_datetime, duration,event_banner_url, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'draft') RETURNING id",
       [
         userId,
         title,
@@ -30,10 +30,13 @@ export const createEvent = async (req, res, next) => {
         eventBannerUrl
       ]
     );
+    const eventId = result.rows[0].id;
 
-    return res
-      .status(201)
-      .json({ success: true, message: "Draft created", event: result.rows[0] });
+    return res.status(201).json({
+      data: {
+        event_id: eventId
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -74,9 +77,9 @@ export const updateEventInfo = async (req, res, next) => {
     }
 
     return res.status(200).json({
-      success: true,
-      message: "Event info updated",
-      event: result.rows[0]
+      data: {
+        event: result.rows[0]
+      }
     });
   } catch (error) {
     return next(error);
@@ -90,7 +93,15 @@ export const getEventInfo = async (req, res, next) => {
       "SELECT title, description, location_type, location,start_datetime, end_datetime, duration,event_banner_url FROM events WHERE id = $1 AND user_id=$2",
       [id, userId]
     );
-    return res.status(200).json({ success: true, event: result.rows[0] });
+    if (result.rowCount === 0) {
+      return next(new CustomError("Event not found", 404));
+    }
+
+    return res.status(200).json({
+      data: {
+        event: result.rows[0]
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -103,6 +114,14 @@ export const addTickets = async (req, res, next) => {
 
   const client = await conn.connect();
   try {
+    const eventCheck = await client.query(
+      "SELECT id FROM events WHERE id = $1",
+      [eventId]
+    );
+    if (eventCheck.rowCount === 0) {
+      return next(new CustomError("Event not found", 404));
+    }
+
     await client.query("BEGIN");
     const inserted = [];
 
@@ -121,7 +140,12 @@ export const addTickets = async (req, res, next) => {
       inserted.push(result.rows[0]);
     }
     await client.query("COMMIT");
-    return res.status(201).json(inserted);
+
+    return res.status(201).json({
+      data: {
+        tickets: inserted
+      }
+    });
   } catch (error) {
     await client.query("ROLLBACK");
     return next(error);
@@ -139,6 +163,13 @@ export const updateTickets = async (req, res, next) => {
 
   const client = await conn.connect();
   try {
+    const eventCheck = await client.query(
+      "SELECT id FROM events WHERE id = $1",
+      [eventId]
+    );
+    if (eventCheck.rowCount === 0) {
+      return next(new CustomError("Event not found", 404));
+    }
     await client.query("BEGIN");
 
     // soft delete
@@ -180,16 +211,16 @@ export const updateTickets = async (req, res, next) => {
       );
     }
 
-    const updatedTicketsResult = await conn.query(
+    const updatedResult = await client.query(
       "SELECT * FROM tickets WHERE event_id = $1 AND deleted_at IS NULL",
       [eventId]
     );
 
     await client.query("COMMIT");
     return res.status(200).json({
-      success: true,
-      message: "tickets updated",
-      tickets: updatedTicketsResult.rows
+      data: {
+        tickets: updatedResult.rows
+      }
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -205,7 +236,14 @@ export const getEventTickets = async (req, res, next) => {
       "SELECT id, type, price, total_quantity, current_quantity, max_per_user FROM tickets WHERE event_id = $1 AND deleted_at IS NULL",
       [id]
     );
-    return res.status(200).json({ success: true, tickets: result.rows });
+    if (result.rowCount === 0) {
+      return next(new CustomError("Tickets not found", 404));
+    }
+    return res.status(200).json({
+      data: {
+        tickets: result.rows
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -218,6 +256,13 @@ export const addSpeakers = async (req, res, next) => {
 
   const client = await conn.connect();
   try {
+    const eventCheck = await client.query(
+      "SELECT id FROM events WHERE id = $1",
+      [eventId]
+    );
+    if (eventCheck.rowCount === 0) {
+      return next(new CustomError("Event not found", 404));
+    }
     await client.query("BEGIN");
     const inserted = [];
 
@@ -229,7 +274,11 @@ export const addSpeakers = async (req, res, next) => {
       inserted.push(result.rows[0]);
     }
     await client.query("COMMIT");
-    return res.status(201).json(inserted);
+    return res.status(201).json({
+      data: {
+        speakers: inserted
+      }
+    });
   } catch (error) {
     await client.query("ROLLBACK");
     return next(error);
@@ -247,6 +296,13 @@ export const updateSpeakers = async (req, res, next) => {
 
   const client = await conn.connect();
   try {
+    const eventCheck = await client.query(
+      "SELECT id FROM events WHERE id = $1",
+      [eventId]
+    );
+    if (eventCheck.rowCount === 0) {
+      return next(new CustomError("Event not found", 404));
+    }
     await client.query("BEGIN");
 
     // soft delete
@@ -273,16 +329,15 @@ export const updateSpeakers = async (req, res, next) => {
       );
     }
 
-    const updatedSpeakersResult = await conn.query(
-      "SELECT * FROM event_speakers WHERE event_id = $1 AND deleted_at IS NULL",
+    const updatedResult = await client.query(
+      "SELECT id, name, bio FROM event_speakers WHERE event_id = $1 AND deleted_at IS NULL",
       [eventId]
     );
-
     await client.query("COMMIT");
     return res.status(200).json({
-      success: true,
-      message: "speakers updated",
-      speakers: updatedSpeakersResult.rows
+      data: {
+        speakers: updatedResult.rows
+      }
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -298,7 +353,14 @@ export const getEventSpeakers = async (req, res, next) => {
       "SELECT name, bio FROM event_speakers WHERE event_id = $1 AND deleted_at IS NULL",
       [id]
     );
-    return res.status(200).json({ success: true, speakers: result.rows });
+    if (result.rowCount === 0) {
+      return next(new CustomError("Speakers not found", 404));
+    }
+    return res.status(200).json({
+      data: {
+        speakers: result.rows
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -311,6 +373,14 @@ export const addCategories = async (req, res, next) => {
 
   const client = await conn.connect();
   try {
+    const eventCheck = await client.query(
+      "SELECT id FROM events WHERE id = $1",
+      [eventId]
+    );
+    if (eventCheck.rowCount === 0) {
+      return next(new CustomError("Event not found", 404));
+    }
+
     await client.query("BEGIN");
     const inserted = [];
 
@@ -322,7 +392,11 @@ export const addCategories = async (req, res, next) => {
       inserted.push(result.rows[0]);
     }
     await client.query("COMMIT");
-    return res.status(201).json(inserted);
+    return res.status(201).json({
+      data: {
+        categories: inserted
+      }
+    });
   } catch (error) {
     await client.query("ROLLBACK");
     return next(error);
@@ -336,6 +410,14 @@ export const updateCategories = async (req, res, next) => {
 
   const client = await conn.connect();
   try {
+    const eventCheck = await client.query(
+      "SELECT id FROM events WHERE id = $1",
+      [eventId]
+    );
+    if (eventCheck.rowCount === 0) {
+      return next(new CustomError("Event not found", 404));
+    }
+
     await client.query("BEGIN");
 
     // soft delete
@@ -354,16 +436,16 @@ export const updateCategories = async (req, res, next) => {
       );
     }
 
-    const updatedCategoriesResult = await conn.query(
-      "SELECT c.* FROM categories c JOIN event_categories ec ON c.id = ec.category_id WHERE ec.event_id = $1 AND ec.deleted_at IS NULL",
+    const updatedCategories = await client.query(
+      "SELECT category_id FROM event_categories WHERE event_id = $1 AND deleted_at IS NULL",
       [eventId]
     );
 
     await client.query("COMMIT");
     return res.status(200).json({
-      success: true,
-      message: "categories updated",
-      categories: updatedCategoriesResult.rows
+      data: {
+        categories: updatedCategories.rows
+      }
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -379,7 +461,14 @@ export const getEventCategories = async (req, res, next) => {
       "SELECT c.id, c.name FROM event_categories ec JOIN categories c ON ec.category_id = c.id WHERE ec.event_id = $1 AND deleted_at IS NULL",
       [id]
     );
-    return res.status(200).json({ success: true, categories: result.rows });
+    if (result.rowCount === 0) {
+      return next(new CustomError("Categories not found", 404));
+    }
+    return res.status(200).json({
+      data: {
+        categories: result.rows
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -391,13 +480,20 @@ export const getAllCategories = async (req, res, next) => {
     const result = await conn.query(
       "SELECT id, name FROM categories Where deleted_at IS NULL"
     );
-    return res.status(200).json({ success: true, allCategories: result.rows });
+    if (result.rows.length === 0) {
+      throw new CustomError("No categories found", 404);
+    }
+    return res.status(200).json({
+      data: {
+        categories: result.rows
+      }
+    });
   } catch (error) {
     return next(error);
   }
 };
 
-// published events
+// published and cancle events
 export const updateEventStatus = async (req, res, next) => {
   const { id } = req.params;
   const { status } = req.body;
@@ -450,9 +546,9 @@ export const updateEventStatus = async (req, res, next) => {
     const result = await conn.query(query, [status, status, id, userId]);
 
     return res.status(200).json({
-      success: true,
-      message: `Event status updated to '${status}' successfully`,
-      event: result.rows[0]
+      data: {
+        event: result.rows[0]
+      }
     });
   } catch (error) {
     return next(error);
@@ -470,9 +566,12 @@ export const getAllEventsByCategory = async (req, res, next) => {
     if (result.rows.length === 0) {
       return next(new CustomError("no published event", 404));
     }
-    return res
-      .status(200)
-      .json({ success: true, data: result.rows, message: "published events" });
+    return res.status(200).json({
+      success: true,
+      data: {
+        events: result.rows
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -512,11 +611,12 @@ export const getEventPreview = async (req, res, next) => {
     }
 
     return res.status(200).json({
-      success: true,
-      event: eventResult.rows[0],
-      speakers: speakersResult.rows,
-      tickets: ticketsResult.rows,
-      categories: categoriesResult.rows
+      data: {
+        event: eventResult.rows[0],
+        speakers: speakersResult.rows,
+        tickets: ticketsResult.rows,
+        categories: categoriesResult.rows
+      }
     });
   } catch (error) {
     return next(error);
@@ -539,9 +639,9 @@ export const deleteDraftEvent = async (req, res, next) => {
     }
 
     return res.status(200).json({
-      success: true,
-      message: "Draft event deleted successfully",
-      event: result.rows[0]
+      data: {
+        event: result.rows[0]
+      }
     });
   } catch (error) {
     return next(error);
@@ -564,11 +664,14 @@ export const getEvents = async (req, res, next) => {
     }
 
     const result = await conn.query(query, values);
+    if (result.rows.length === 0) {
+      return next(new CustomError("No events found", 404));
+    }
 
     return res.status(200).json({
-      success: true,
-      data: result.rows,
-      message: "events retrieved successfully"
+      data: {
+        events: result.rows
+      }
     });
   } catch (error) {
     return next(error);
@@ -585,9 +688,11 @@ export const getAllEvents = async (req, res, next) => {
     if (result.rows.length === 0) {
       return next(new CustomError("no published event", 404));
     }
-    return res
-      .status(200)
-      .json({ success: true, data: result.rows, message: "published events" });
+    return res.status(200).json({
+      data: {
+        events: result.rows
+      }
+    });
   } catch (error) {
     return next(error);
   }
