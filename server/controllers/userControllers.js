@@ -43,7 +43,11 @@ export const register = async (req, res, next) => {
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    return res.status(200).json({ success: true, message: "user registered" });
+    return res.status(200).json({
+      data: {
+        user
+      }
+    });
   } catch (error) {
     await client.query("ROLLBACK");
     return next(error);
@@ -78,9 +82,11 @@ export const login = async (req, res, next) => {
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    return res
-      .status(200)
-      .json({ success: true, message: "succesfully logged in" });
+    return res.status(200).json({
+      data: {
+        user: { id: user.id, email: user.email }
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -95,9 +101,7 @@ export const logout = async (req, res, next) => {
       maxAge: 24 * 60 * 60 * 1000
     });
 
-    return res
-      .status(200)
-      .json({ success: true, message: "successfuly logout" });
+    return res.status(200);
   } catch (error) {
     return next(error);
   }
@@ -110,7 +114,7 @@ export const getProfile = async (req, res, next) => {
     const result = await conn.query(query, [userId]);
 
     if (!result.rows[0]) {
-      return next(new CustomError("no profile", 400));
+      return next(new CustomError("no profile", 404));
     }
 
     const profile = {
@@ -121,9 +125,11 @@ export const getProfile = async (req, res, next) => {
       country: result.rows[0]?.country || "",
       city: result.rows[0]?.city || ""
     };
-    return res
-      .status(200)
-      .json({ success: true, data: profile, message: "user profile retrived" });
+    return res.status(200).json({
+      data: {
+        profile
+      }
+    });
   } catch (error) {
     return next(error);
   }
@@ -146,11 +152,13 @@ export const setProfile = async (req, res, next) => {
       city,
       userId
     ]);
-
+    if (result.rowCount === 0) {
+      return next(new CustomError("Profile not found", 404));
+    }
     return res.status(200).json({
-      success: true,
-      data: result.rows[0],
-      message: "Profile updated"
+      data: {
+        profile: result.rows[0]
+      }
     });
   } catch (error) {
     return next(error);
