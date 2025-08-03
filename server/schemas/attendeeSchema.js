@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+// For eventRegister
 export const eventRegisterSchema = z.object({
-  quantity: z.number().int("Quantity must be an integer")
+  registeredQuantity: z.number().int().positive()
 });

@@ -3,64 +3,59 @@ import CustomError from "../utils/customError.js";
 
 export const eventRegister = async (req, res, next) => {
   const { userId } = req;
-  const { ticketId, id } = req.params;
-  const { quantity } = req.body;
+  const { ticketId, id: eventId } = req.params;
+  const { registeredQuantity } = req.body;
 
   const client = await conn.connect();
   try {
     await client.query("BEGIN");
 
-    const ticketQuery =
-      "SELECT t.total_quantity, t.max_per_user, t.event_id, e.title FROM tickets t JOIN events e ON t.event_id = e.id WHERE t.id = $1 AND e.id = $2";
-
-    const ticketResult = await client.query(ticketQuery, [ticketId, id]);
+    const ticketQuery = `SELECT * FROM tickets WHERE id = $1 AND event_id = $2 AND deleted_at IS NULL`;
+    const ticketResult = await client.query(ticketQuery, [ticketId, eventId]);
     const ticket = ticketResult.rows[0];
+
     if (!ticket) {
-      await client.query("ROLLBACK");
       return next(new CustomError("Ticket not found", 404));
     }
-    if (quantity <= 0) {
-      await client.query("ROLLBACK");
-      return next(new CustomError("Quantity must be greater than 0", 400));
+
+    if (registeredQuantity > ticket.remaining_quantity) {
+      return next(new CustomError("Not enough tickets available", 400));
     }
 
-    const countQuery =
-      "SELECT COALESCE(SUM(quantity), 0) AS total FROM registrations WHERE user_id = $1 AND ticket_id = $2";
+    const countQuery = `
+      SELECT COALESCE(SUM(registered_quantity), 0) AS total 
+      FROM registrations 
+      WHERE user_id = $1 AND ticket_type = $2 AND deleted_at IS NULL`;
     const countResult = await client.query(countQuery, [userId, ticketId]);
-    const alreadyPurchased = parseInt(countResult.rows[0].total, 10);
+    const alreadyRegistered = parseInt(countResult.rows[0].total, 10);
 
-    if (alreadyPurchased + quantity > ticket.max_per_user) {
-      await client.query("ROLLBACK");
+    if (alreadyRegistered + registeredQuantity > ticket.max_per_user) {
       return next(
         new CustomError(
-          `You can only buy up to ${ticket.max_per_user} tickets.`,
+          `You can only register up to ${ticket.max_per_user} tickets.`,
           400
         )
       );
     }
-    if (ticket.total_quantity < quantity) {
-      await client.query("ROLLBACK");
-      return next(new CustomError("Not enough tickets available", 400));
-    }
 
+    // Update remaining quantity
     await client.query(
-      "UPDATE tickets SET current_quantity = current_quantity - $1 WHERE id = $2",
-      [quantity, ticketId]
+      `UPDATE tickets 
+       SET remaining_quantity = remaining_quantity - $1, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $2`,
+      [registeredQuantity, ticketId]
     );
 
-    await client.query(
-      "INSERT INTO registrations (user_id, ticket_id, quantity) VALUES ($1, $2, $3)",
-      [userId, ticketId, quantity]
+    // Insert registration
+    const insertResult = await client.query(
+      `INSERT INTO registrations (user_id, ticket_type, registered_quantity, event_id)
+       VALUES ($1, $2, $3, $4) RETURNING *`,
+      [userId, ticketId, registeredQuantity, eventId]
     );
 
     await client.query("COMMIT");
     return res.status(200).json({
-      data: {
-        event: {
-          id: ticket.event_id,
-          title: ticket.title
-        }
-      }
+      data: { registration: insertResult.rows[0] }
     });
   } catch (error) {
     await client.query("ROLLBACK");
@@ -75,7 +70,7 @@ export const viewMyTickets = async (req, res, next) => {
 
   try {
     const query =
-      "SELECT e.title, t.type, r.quantity FROM registrations r JOIN tickets t ON r.ticket_id = t.id JOIN events e ON t.event_id = e.id WHERE r.user_id = $1";
+      "SELECT e.title, t.type, r.* FROM registrations r JOIN tickets t ON r.ticket_type = t.id JOIN events e ON t.event_id = e.id WHERE r.user_id = $1 AND r.deleted_at IS NULL AND t.deleted_at IS NULL AND e.deleted_at IS NULL";
 
     const result = await conn.query(query, [userId]);
 
@@ -84,52 +79,112 @@ export const viewMyTickets = async (req, res, next) => {
     }
 
     return res.status(200).json({
-      data: {
-        tickets: result.rows
-      }
+      data: { myTickets: result.rows }
     });
   } catch (error) {
     return next(error);
   }
 };
 
-export const viewAttendeesForMyEvents = async (req, res, next) => {
-  const organizerId = req.userId;
+export const cancelRegistration = async (req, res, next) => {
+  const { userId } = req; // logged-in user
+  const { registrationId } = req.params;
+
+  const client = await conn.connect();
+  try {
+    await client.query("BEGIN");
+
+    // Fetch registration with ticket and event info
+    const regRes = await client.query(
+      `SELECT r.registered_quantity, r.user_id, t.id AS ticket_id, t.event_id, e.start_datetime
+       FROM registrations r
+       JOIN tickets t ON r.ticket_type = t.id
+       JOIN events e ON t.event_id = e.id
+       WHERE r.id = $1 AND r.deleted_at IS NULL`,
+      [registrationId]
+    );
+
+    const registration = regRes.rows[0];
+
+    if (!registration) {
+      return next(new CustomError("Registration not found", 404));
+    }
+
+    // Check if the user owns this registration
+    if (registration.user_id !== userId) {
+      return next(
+        new CustomError("Unauthorized to cancel this registration", 403)
+      );
+    }
+
+    // Check event hasn't started
+    const now = new Date();
+    if (new Date(registration.start_datetime) <= now) {
+      return next(
+        new CustomError(
+          "Cannot cancel registration after event has started",
+          400
+        )
+      );
+    }
+
+    //  Soft delete registration
+    await client.query(
+      `UPDATE registrations 
+       SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $1`,
+      [registrationId]
+    );
+
+    // Increase ticket remaining_quantity
+    await client.query(
+      `UPDATE tickets 
+       SET remaining_quantity = remaining_quantity + $1, updated_at = CURRENT_TIMESTAMP 
+       WHERE id = $2`,
+      [registration.registered_quantity, registration.ticket_id]
+    );
+
+    await client.query("COMMIT");
+
+    return res.status(200).json();
+  } catch (error) {
+    await client.query("ROLLBACK");
+    return next(error);
+  } finally {
+    client.release();
+  }
+};
+
+export const getEventAttendees = async (req, res, next) => {
+  const { eventId } = req.params;
 
   try {
-    const query =
-      " SELECT e.id AS event_id, e.title AS event_title, p.first_name AS attendee_first_name, t.type AS ticket_type, r.quantity FROM events e JOIN tickets t ON e.id = t.event_id JOIN registrations r ON r.ticket_id = t.id JOIN users u ON u.id = r.user_id JOIN profiles p ON p.user_id = u.id WHERE e.user_id = $1 ORDER BY e.id";
+    // Fetch attendees for the event
+    const result = await conn.query(
+      `SELECT 
+        p.first_name || ' ' || p.last_name AS full_name,
+        u.email,
+        t.type AS ticket_type,
+        r.registered_quantity,
+        r.registered_at
+      FROM registrations r
+      JOIN users u ON r.user_id = u.id AND u.deleted_at IS NULL
+      JOIN profiles p ON p.user_id = u.id AND p.deleted_at IS NULL
+      JOIN tickets t ON r.ticket_type = t.id AND t.deleted_at IS NULL
+      WHERE r.event_id = $1 AND r.deleted_at IS NULL`,
+      [eventId]
+    );
 
-    const result = await conn.query(query, [organizerId]);
     if (result.rows.length === 0) {
-      return next(new CustomError("No attendees found", 404));
+      return next(new CustomError("no attendees", 404));
     }
-    const grouped = [];
-
-    result.rows.forEach((row) => {
-      const existing = grouped.find((g) => g.event_id === row.event_id);
-
-      const attendee = {
-        first_name: row.attendee_first_name,
-        ticket_type: row.ticket_type,
-        quantity: row.quantity
-      };
-
-      if (existing) {
-        existing.attendees.push(attendee);
-      } else {
-        grouped.push({
-          event_id: row.event_id,
-          event_title: row.event_title,
-          attendees: [attendee]
-        });
-      }
-    });
 
     return res.status(200).json({
-      data: grouped
+      data: {
+        attendees: result.rows
+      }
     });
-  } catch (error) {
-    return next(error);
+  } catch (err) {
+    return next(err);
   }
 };

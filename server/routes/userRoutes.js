@@ -3,21 +3,24 @@ import { getProfile, setProfile } from "../controllers/userControllers.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
 import { profileSchema } from "../schemas/userSchema.js";
-import { getEvents } from "../controllers/eventController.js";
+import { getEvents } from "../controllers/eventOrganizerController.js";
 import {
-  viewAttendeesForMyEvents,
+  getEventAttendees,
   viewMyTickets
 } from "../controllers/attendeeController.js";
+import isEventOwner from "../middleware/isEventOwner.js";
 
 const userRouter = express.Router();
 
 userRouter.get("/profile", authMiddleware, getProfile);
 userRouter.put("/profile", authMiddleware, validate(profileSchema), setProfile);
-// users-events by status
-userRouter.get("/events", authMiddleware, getEvents);
-// user-tickets
+userRouter.get("/organizer/events", authMiddleware, getEvents);
 userRouter.get("/events/my", authMiddleware, viewMyTickets);
-// user event attendees
-userRouter.get("/events/attendees", authMiddleware, viewAttendeesForMyEvents);
+userRouter.get(
+  "/events/:id/attendees",
+  authMiddleware,
+  isEventOwner,
+  getEventAttendees
+);
 
 export default userRouter;
