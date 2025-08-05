@@ -13,7 +13,7 @@ export const getAllEvents = async (req, res, next) => {
     }
     return res
       .status(200)
-      .json({ success: true, data: result.rows, message: "published events" });
+      .json({ data: result.rows, message: "published events" });
   } catch (error) {
     return next(error);
   }
@@ -54,7 +54,6 @@ export const getEventPreview = async (req, res, next) => {
     }
 
     return res.status(200).json({
-      success: true,
       event: eventResult.rows[0],
       speakers: speakersResult.rows,
       tickets: ticketsResult.rows,
