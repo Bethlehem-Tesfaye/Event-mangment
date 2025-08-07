@@ -7,6 +7,7 @@ import {
   deleteDraftEvent,
   getAllCategories,
   getEventDetails,
+  getEvents,
   updateEvent,
   updateEventStatus
 } from "../controllers/eventOrganizerController.js";
@@ -18,6 +19,8 @@ import {
 } from "../schemas/eventSchema.js";
 
 const eventOrgainizerRouter = express.Router();
+
+eventOrgainizerRouter.get("/", authMiddleware, getEvents);
 
 eventOrgainizerRouter.post(
   "/",

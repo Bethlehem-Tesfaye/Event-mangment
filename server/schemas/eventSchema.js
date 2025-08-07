@@ -2,8 +2,17 @@ import { z } from "zod";
 
 // For createEvent
 export const createEventSchema = z.object({
-  title: z.string(),
-  categoryIds: z.array(z.number().int()).nonempty()
+  event: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    locationType: z.enum(["online", "in-person"]).optional(),
+    location: z.string().optional(),
+    startDatetime: z.coerce.date().optional(),
+    endDatetime: z.coerce.date().optional(),
+    duration: z.number().optional(),
+    eventBannerUrl: z.string().url().optional()
+  }),
+  categoryIds: z.array(z.number().int()).optional()
 });
 
 // For updateEvent
