@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "migrate": "node-pg-migrate up -d DATABASE_URL",

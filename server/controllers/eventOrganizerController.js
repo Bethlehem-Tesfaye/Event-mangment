@@ -194,7 +194,7 @@ export const updateEvent = async (req, res, next) => {
     return res.status(200).json({
       data: {
         event: updatedEvent,
-        speaker: updatedSpeakers,
+        speakers: updatedSpeakers,
         tickets: updatedTickets
       }
     });
