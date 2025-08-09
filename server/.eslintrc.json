@@ -22,6 +22,10 @@
     "import/prefer-default-export": "off",
     "no-await-in-loop": "off",
     "no-restricted-syntax": "off",
-    "no-inner-declarations": "off"
+    "no-inner-declarations": "off",
+    "no-underscore-dangle": [
+      "error",
+      { "allow": ["_sum", "_count", "_avg", "_min", "_max"] }
+    ]
   }
 }

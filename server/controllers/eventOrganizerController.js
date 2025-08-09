@@ -1,246 +1,216 @@
-import conn from "../db/db.js";
+import prisma from "../lib/prisma.js";
 import CustomError from "../utils/customError.js";
 
 // create only the title and category
 export const createEvent = async (req, res, next) => {
-  const client = await conn.connect();
   try {
-    const { title, categoryIds } = req.body;
+    const { event = {}, categoryIds = [] } = req.body;
     const { userId } = req;
 
-    await client.query("BEGIN");
-
-    const eventResult = await client.query(
-      `INSERT INTO events (user_id, title, status)
-       VALUES ($1, $2, 'draft')
-       RETURNING id, title, user_id, status`,
-      [userId, title]
-    );
-
-    const event = eventResult.rows[0];
-    if (categoryIds.length > 0) {
-      for (const catId of categoryIds) {
-        await client.query(
-          `INSERT INTO event_categories (event_id, category_id)
-           VALUES ($1, $2)`,
-          [event.id, catId]
-        );
+    const createdEvent = await prisma.event.create({
+      data: {
+        title: event.title,
+        description: event.description,
+        locationType: event.locationType,
+        location: event.location,
+        startDatetime: event.startDatetime,
+        endDatetime: event.endDatetime,
+        duration: event.duration,
+        eventBannerUrl: event.eventBannerUrl,
+        userId,
+        eventCategories: categoryIds.length
+          ? {
+              create: categoryIds.map((categoryId) => ({
+                category: {
+                  connect: { id: categoryId }
+                }
+              }))
+            }
+          : undefined
       }
-    }
-
-    await client.query("COMMIT");
+    });
 
     return res.status(201).json({
       data: {
-        event
+        event: createdEvent
       }
     });
   } catch (error) {
-    await client.query("ROLLBACK");
     return next(error);
-  } finally {
-    client.release();
   }
 };
 
 // get event inforamtion fro db
 export const getEventDetails = async (req, res, next) => {
-  const client = await conn.connect();
   try {
-    const { id: eventId } = req.params;
+    const eventId = parseInt(req.params.id, 10);
 
-    const eventResult = await client.query(
-      `SELECT *
-       FROM events
-       WHERE id = $1`,
-      [eventId]
-    );
-    const event = eventResult.rows[0];
+    const event = await prisma.event.findUnique({
+      where: {
+        id: eventId
+      },
+      include: {
+        tickets: {
+          where: { deletedAt: null }
+        },
+        eventSpeakers: {
+          where: {
+            deletedAt: null
+          }
+        }
+      }
+    });
     if (!event) {
       return next(new CustomError("event not found", 404));
     }
 
-    const ticketResult = await client.query(
-      `SELECT *
-       FROM tickets
-       WHERE event_id = $1 AND deleted_at IS NULL`,
-      [eventId]
-    );
-
-    const speakerResult = await client.query(
-      `SELECT *
-       FROM event_speakers
-       WHERE event_id = $1 AND deleted_at IS NULL`,
-      [eventId]
-    );
-
     return res.status(200).json({
       data: {
-        event,
-        tickets: ticketResult.rows,
-        speakers: speakerResult.rows
+        event
       }
     });
   } catch (error) {
     return next(error);
-  } finally {
-    client.release();
   }
 };
 
 // update the event
 export const updateEvent = async (req, res, next) => {
-  const { id: eventId } = req.params; // event id
+  const eventId = parseInt(req.params.id, 10);
   const { userId } = req; // from auth middleware
   const { eventInfo = {}, speakers = [], tickets = [] } = req.body;
-  const client = await conn.connect();
   try {
-    await client.query("BEGIN");
+    const event = await prisma.event.findFirst({
+      where: {
+        id: parseInt(eventId, 10),
+        userId,
+        deletedAt: null
+      }
+    });
 
-    //  Update event table
-    const updateEventQuery = `
-      UPDATE events SET
-        title = $1,
-        description = $2,
-        location_type = $3,
-        location = $4,
-        start_datetime = $5,
-        end_datetime = $6,
-        duration = $7,
-        event_banner_url = $8,
-        updated_at = CURRENT_TIMESTAMP
-      WHERE id = $9 AND user_id = $10 AND deleted_at IS NULL
-      RETURNING *;
-    `;
-
-    const updatedEventResult = await client.query(updateEventQuery, [
-      eventInfo.title,
-      eventInfo.description,
-      eventInfo.locationType,
-      eventInfo.location,
-      eventInfo.startDateTime,
-      eventInfo.endDateTime,
-      eventInfo.duration,
-      eventInfo.eventBannerUrl || null,
-      eventId,
-      userId
-    ]);
-
-    if (updatedEventResult.rowCount === 0) {
-      await client.query("ROLLBACK");
+    if (!event) {
       return next(new CustomError("Event not found", 404));
     }
+    const updatedEvent = await prisma.event.update({
+      where: { id: parseInt(eventId, 10) },
+      data: {
+        title: eventInfo.title,
+        description: eventInfo.description,
+        locationType: eventInfo.locationType,
+        location: eventInfo.location,
+        startDatetime: eventInfo.startDateTime,
+        endDatetime: eventInfo.endDateTime,
+        duration: eventInfo.duration,
+        eventBannerUrl: eventInfo.eventBannerUrl ?? null,
+        updatedAt: new Date()
+      }
+    });
 
     // Helper function to soft delete removed records:
-    async function softDeleteRemoved(table, idField, items) {
-      // Get existing ids
-      const existingRes = await client.query(
-        `SELECT id FROM ${table} WHERE event_id = $1 AND deleted_at IS NULL`,
-        [eventId]
-      );
-      const existingIds = existingRes.rows.map((r) => r.id);
-
+    async function softDeleteRemoved(model, items) {
       // IDs sent in payload (for update or add)
       const newIds = items.filter((item) => item.id).map((item) => item.id);
 
-      // IDs to soft delete = existingIds - newIds
-      const toDelete = existingIds.filter((id) => !newIds.includes(id));
-
-      for (const id of toDelete) {
-        await client.query(
-          `UPDATE ${table} SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND event_id = $2`,
-          [id, eventId]
-        );
-      }
+      await prisma[model].updateMany({
+        where: {
+          eventId,
+          deletedAt: null,
+          NOT: {
+            id: { in: newIds.length > 0 ? newIds : [0] }
+          }
+        },
+        data: {
+          deletedAt: new Date()
+        }
+      });
     }
 
     // delete speakers
-    await softDeleteRemoved("event_speakers", "id", speakers);
+    await softDeleteRemoved("eventSpeaker", speakers);
+    // delted tickets
+    await softDeleteRemoved("ticket", tickets);
+
     // Update and add new speakers
     for (const spk of speakers) {
       if (spk.id) {
-        // Update existing speaker
-        await client.query(
-          `UPDATE event_speakers SET name = $1, bio = $2, photo_url=$3, updated_at = CURRENT_TIMESTAMP
-           WHERE id = $4 AND event_id = $5`,
-          [spk.name, spk.bio, spk.photoUrl, spk.id, eventId]
-        );
+        await prisma.eventSpeaker.update({
+          where: { id: spk.id },
+          data: {
+            name: spk.name,
+            bio: spk.bio,
+            photoUrl: spk.photoUrl ?? null,
+            updatedAt: new Date()
+          }
+        });
       } else {
-        // Insert new speaker
-        await client.query(
-          `INSERT INTO event_speakers (event_id, name, bio) VALUES ($1, $2, $3)`,
-          [eventId, spk.name, spk.bio]
-        );
+        await prisma.eventSpeaker.create({
+          data: {
+            eventId: parseInt(eventId, 10),
+            name: spk.name,
+            bio: spk.bio,
+            photoUrl: spk.photoUrl ?? null
+          }
+        });
       }
     }
-    // delted tickets
-    await softDeleteRemoved("tickets", "id", tickets);
+
     // Update amd add new tickets
     for (const tkt of tickets) {
       if (tkt.id) {
-        // Update existing ticket
-        await client.query(
-          `UPDATE tickets SET type = $1, price = $2, total_quantity = $3, remaining_quantity = $4, max_per_user = $5, updated_at = CURRENT_TIMESTAMP
-           WHERE id = $6 AND event_id = $7`,
-          [
-            tkt.type,
-            tkt.price,
-            tkt.totalQuantity,
-            tkt.totalQuantity,
-            tkt.maxPerUser ?? 1,
-            tkt.id,
-            eventId
-          ]
-        );
+        await prisma.ticket.update({
+          where: { id: tkt.id },
+          data: {
+            type: tkt.type,
+            price: tkt.price,
+            totalQuantity: tkt.totalQuantity,
+            remainingQuantity: tkt.totalQuantity,
+            maxPerUser: tkt.maxPerUser ?? 1,
+            updatedAt: new Date()
+          }
+        });
       } else {
-        // Insert new ticket
-        await client.query(
-          `INSERT INTO tickets (event_id, type, price, total_quantity, remaining_quantity, max_per_user)
-           VALUES ($1, $2, $3, $4, $5, $6)`,
-          [
-            eventId,
-            tkt.type,
-            tkt.price,
-            tkt.totalQuantity,
-            tkt.totalQuantity,
-            tkt.maxPerUser ?? 1
-          ]
-        );
+        await prisma.ticket.create({
+          data: {
+            eventId: parseInt(eventId, 10),
+            type: tkt.type,
+            price: tkt.price,
+            totalQuantity: tkt.totalQuantity,
+            remainingQuantity: tkt.totalQuantity,
+            maxPerUser: tkt.maxPerUser ?? 1
+          }
+        });
       }
     }
-    const updatedSpeakersResult = await conn.query(
-      "SELECT * FROM event_speakers WHERE event_id = $1 AND deleted_at IS NULL",
-      [eventId]
-    );
-    const updatedTicketsResult = await client.query(
-      "SELECT * FROM tickets WHERE event_id = $1 AND deleted_at IS NULL",
-      [eventId]
-    );
 
-    await client.query("COMMIT");
+    const [updatedSpeakers, updatedTickets] = await Promise.all([
+      prisma.eventSpeaker.findMany({
+        where: { eventId: parseInt(eventId, 10), deletedAt: null }
+      }),
+      prisma.ticket.findMany({
+        where: { eventId: parseInt(eventId, 10), deletedAt: null }
+      })
+    ]);
 
     return res.status(200).json({
       data: {
-        event: updatedEventResult.rows,
-        speaker: updatedSpeakersResult.rows,
-        tickets: updatedTicketsResult.rows
+        event: updatedEvent,
+        speaker: updatedSpeakers,
+        tickets: updatedTickets
       }
     });
   } catch (error) {
-    await client.query("ROLLBACK");
     return next(error);
-  } finally {
-    client.release();
   }
 };
 
 // list all categories table
 export const getAllCategories = async (req, res, next) => {
   try {
-    const result = await conn.query(
-      "SELECT id, name FROM categories Where deleted_at IS NULL"
-    );
-    return res.status(200).json({ data: { Categories: result.rows } });
+    const categories = await prisma.category.findMany({
+      where: { deletedAt: null },
+      select: { id: true, name: true }
+    });
+    return res.status(200).json({ data: { Categories: categories } });
   } catch (error) {
     return next(error);
   }
@@ -254,30 +224,24 @@ export const updateEventStatus = async (req, res, next) => {
 
   try {
     // 1. Check if the event exists and belongs to the current user
-    const event = await conn.query(
-      "SELECT * FROM events WHERE id = $1 AND user_id = $2",
-      [id, userId]
-    );
+    const event = await prisma.event.findFirst({
+      where: { id: parseInt(id, 10), userId }
+    });
 
-    if (!event.rows.length) {
-      return next(new CustomError("Event not found", 404));
-    }
+    if (!event) return next(new CustomError("Event not found", 404));
 
     // If the user wants to publish the event, validate event completeness
     if (status === "published") {
-      const e = event.rows[0];
-
       // Required event fields for publishing
       const requiredFields = [
-        e.title,
-        e.description,
-        e.location_type,
-        e.start_datetime,
-        e.end_datetime,
-        e.duration,
-        e.event_banner_url
+        event.title,
+        event.description,
+        event.locationType,
+        event.startDatetime,
+        event.endDatetime,
+        event.duration,
+        event.eventBannerUrl
       ];
-
       // Check if any required field is missing
       if (requiredFields.some((f) => !f)) {
         return next(new CustomError("Incomplete event data", 400));
@@ -285,12 +249,12 @@ export const updateEventStatus = async (req, res, next) => {
 
       // Check if event has at least one category, speaker, and ticket before publishing
       const [cat, spk, tkt] = await Promise.all([
-        conn.query("SELECT 1 FROM event_categories WHERE event_id = $1", [id]),
-        conn.query("SELECT 1 FROM event_speakers WHERE event_id = $1", [id]),
-        conn.query("SELECT 1 FROM tickets WHERE event_id = $1", [id])
+        prisma.eventCategory.findFirst({ where: { eventId: event.id } }),
+        prisma.eventSpeaker.findFirst({ where: { eventId: event.id } }),
+        prisma.ticket.findFirst({ where: { eventId: event.id } })
       ]);
 
-      if (!cat.rowCount || !spk.rowCount || !tkt.rowCount) {
+      if (!cat || !spk || !tkt) {
         return next(
           new CustomError(
             "Event must have category, speaker, and ticket to publish",
@@ -303,13 +267,15 @@ export const updateEventStatus = async (req, res, next) => {
     // Update the event status
     // If status is 'cancelled', set deleted_at timestamp for soft delete
     // Otherwise update status yo published
-    const query =
-      "UPDATE events SET status = $1, deleted_at = CASE WHEN $2 = 'cancelled' THEN CURRENT_TIMESTAMP ELSE deleted_at END WHERE id = $3 AND user_id = $4 RETURNING *";
-    const result = await conn.query(query, [status, status, id, userId]);
-
-    return res.status(200).json({
-      data: { event: result.rows[0] }
+    const updatedEvent = await prisma.event.update({
+      where: { id: parseInt(id, 10), userId },
+      data: {
+        status,
+        deletedAt: status === "cancelled" ? new Date() : undefined
+      }
     });
+
+    return res.status(200).json({ data: { event: updatedEvent } });
   } catch (error) {
     return next(error);
   }
@@ -321,19 +287,22 @@ export const deleteDraftEvent = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const query =
-      "UPDATE events SET deleted_at = CURRENT_TIMESTAMP WHERE id = $1 AND user_id = $2 AND status = 'draft'  RETURNING *";
-    const result = await conn.query(query, [id, userId]);
+    const event = await prisma.event.updateMany({
+      where: {
+        id: parseInt(id, 10),
+        userId,
+        status: "draft"
+      },
+      data: { deletedAt: new Date() }
+    });
 
-    if (result.rowCount === 0) {
+    if (event.count === 0) {
       return next(
         new CustomError("Draft event not found or cannot be deleted", 404)
       );
     }
 
-    return res.status(200).json({
-      data: { event: result.rows[0] }
-    });
+    return res.status(200).json({ data: { event } });
   } catch (error) {
     return next(error);
   }
@@ -345,19 +314,16 @@ export const getEvents = async (req, res, next) => {
   const { status } = req.query;
 
   try {
-    let query =
-      "SELECT id, title, status, created_at FROM events WHERE user_id = $1 AND deleted_at IS NULL";
-    const values = [userId];
-
-    if (status) {
-      query += " AND status = $2";
-      values.push(status);
-    }
-
-    const result = await conn.query(query, values);
+    const events = await prisma.event.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        status: status || undefined
+      }
+    });
 
     return res.status(200).json({
-      data: { event: result.rows }
+      data: { events }
     });
   } catch (error) {
     return next(error);

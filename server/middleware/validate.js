@@ -6,7 +6,9 @@ export const validate = (schema) => (req, res, next) => {
     return next();
   } catch (error) {
     if (error.issues) {
-      const message = error.issues.map((e) => e.message).join(", ");
+      const message = error.issues
+        .map((e) => `${e.path.join(".")}: ${e.message}`)
+        .join(", ");
       return next(new CustomError(message, 400));
     }
     return next(new CustomError("Invalid request data", 400));

@@ -7,6 +7,7 @@ import userRouter from "./routes/userRoutes.js";
 import eventRouter from "./routes/eventRoutes.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import authRouter from "./routes/authRoutes.js";
+import eventOrgainizerRouter from "./routes/eventOrganizerRouter.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -27,6 +28,7 @@ app.get("/", (req, res) => {
 app.use("/api/auth", authRouter);
 app.use("/api/users", userRouter);
 app.use("/api/events", eventRouter);
+app.use("/api/organizers/events", eventOrgainizerRouter);
 app.use(errorMiddleware);
 
 conn
