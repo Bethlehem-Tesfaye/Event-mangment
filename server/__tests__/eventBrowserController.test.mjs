@@ -1,13 +1,16 @@
 import { jest, test, expect, describe, it } from "@jest/globals";
-import { getAllEvents, getEventPreview } from "../controllers/eventBrowserController.js";
+import {
+  getAllEvents,
+  getEventPreview
+} from "../controllers/eventBrowserController.js";
 import prisma from "../lib/prisma.js";
 import CustomError from "../utils/customError.js";
 
 jest.mock("../lib/prisma.js");
-prisma.event= {
-    findMany: jest.fn(),
-    findFirst: jest.fn(),
-  }
+prisma.event = {
+  findMany: jest.fn(),
+  findFirst: jest.fn()
+};
 
 const createResponse = () => {
   const res = {};
@@ -24,7 +27,7 @@ describe("browseEventsController", () => {
     next = jest.fn();
   });
 
-//   getAllEvent
+  //   getAllEvent
   describe("getAllEvents", () => {
     it("should return events if found", async () => {
       const events = [{ id: 1, name: "Event 1" }];
@@ -57,7 +60,7 @@ describe("browseEventsController", () => {
     });
   });
 
-//   getEventPreview
+  //   getEventPreview
   describe("getEventPreview", () => {
     it("should return event preview if found", async () => {
       const event = { id: 1, name: "Event 1" };
