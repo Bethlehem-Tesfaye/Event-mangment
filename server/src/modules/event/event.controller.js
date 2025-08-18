@@ -29,6 +29,28 @@ export const getEventDetails = async (req, res, next) => {
   }
 };
 
+export const getEventSpeakers = async (req, res, next) => {
+  const { eventId } = req.params;
+
+  try {
+    const speakers = await eventService.getEventSpeakers(eventId);
+    return res.status(200).json({ data: speakers });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getEventTickets = async (req, res, next) => {
+  const { eventId } = req.params;
+
+  try {
+    const tickets = await eventService.getEventTickets(eventId);
+    return res.status(200).json({ data: tickets });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 export const purchaseTicket = async (req, res, next) => {
   const { eventId } = req.params;
   const { ticketId, attendeeName, attendeeEmail, quantity } = req.body;
@@ -101,6 +123,89 @@ export const deleteEvent = async (req, res, next) => {
   }
 };
 
+export const createTicket = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+    const ticket = await eventService.createTicket({ eventId, ...req.body });
+    return res.status(201).json({ data: ticket });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getTicketsForEvent = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+    const tickets = await eventService.getTicketsForEvent(eventId);
+    return res.status(200).json({ data: tickets });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const updateTicket = async (req, res, next) => {
+  try {
+    const { ticketId } = req.params;
+    const updatedTicket = await eventService.updateTicket(ticketId, req.body);
+    return res.status(200).json({ data: updatedTicket });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const deleteTicket = async (req, res, next) => {
+  try {
+    const { ticketId } = req.params;
+    const deletedTicket = await eventService.deleteTicket(ticketId);
+    return res.status(200).json({ data: deletedTicket });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const createSpeaker = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+    const speaker = await eventService.createSpeaker({ eventId, ...req.body });
+    return res.status(201).json({ data: speaker });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getSpeakersForEvent = async (req, res, next) => {
+  try {
+    const { eventId } = req.params;
+    const speakers = await eventService.getSpeakersForEvent(eventId);
+    return res.status(200).json({ data: speakers });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const updateSpeaker = async (req, res, next) => {
+  try {
+    const { speakerId } = req.params;
+    const updatedSpeaker = await eventService.updateSpeaker(
+      speakerId,
+      req.body
+    );
+    return res.status(200).json({ data: updatedSpeaker });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const deleteSpeaker = async (req, res, next) => {
+  try {
+    const { speakerId } = req.params;
+    const deletedSpeaker = await eventService.deleteSpeaker(speakerId);
+    return res.status(200).json({ data: deletedSpeaker });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 export const addCategoryToEvent = async (req, res, next) => {
   try {
     const { eventId } = req.params;
@@ -125,6 +230,23 @@ export const removeCategoryFromEvent = async (req, res, next) => {
     return res.status(200).json({ data: removedCategory });
   } catch (err) {
     return next(err);
+  }
+};
+
+export const updateEventStatus = async (req, res, next) => {
+  const { eventId } = req.params;
+  const { status } = req.body;
+  const { userId } = req;
+
+  try {
+    const updatedEvent = await eventService.updateEventStatusService(
+      eventId,
+      userId,
+      status
+    );
+    return res.status(200).json({ data: { event: updatedEvent } });
+  } catch (error) {
+    return next(error);
   }
 };
 

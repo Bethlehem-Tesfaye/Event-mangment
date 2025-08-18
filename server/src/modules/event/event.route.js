@@ -8,7 +8,10 @@ import { validate } from "../../middleware/validate.js";
 import {
   createCategorySchema,
   createEventSchema,
-  updateEventSchema
+  createSpeakerSchema,
+  createTicketSchema,
+  updateEventSchema,
+  updateSpeakerSchema
 } from "./event.schema.js";
 import isEventOwner from "../../middleware/isEventOwner.js";
 import { ticketRoutes } from "../ticket/ticket.routes.js";
@@ -18,11 +21,8 @@ export const eventRoutes = express.Router();
 
 eventRoutes.get("/", eventController.listEvents);
 eventRoutes.get("/:eventId", eventController.getEventDetails);
-eventRoutes.get(
-  "/:eventId/speakers",
-  speakeController.getPublicSpealersForEvent
-);
-eventRoutes.get("/:eventId/tickets", ticketController.getPublicTicketsForEvent);
+eventRoutes.get("/:eventId/speakers", eventController.getEventSpeakers);
+eventRoutes.get("/:eventId/tickets", eventController.getEventTickets);
 eventRoutes.post(
   "/:eventId/tickets/purchase",
   optionalAuthMiddleware,
@@ -46,6 +46,43 @@ organizerRoutes.put(
 );
 organizerRoutes.delete("/:eventId", eventController.deleteEvent);
 organizerRoutes.get("/:eventId", eventController.getEventDetailById);
+organizerRoutes.get("/:eventId/tickets", eventController.getTicketsForEvent);
+organizerRoutes.get("/:eventId/speakers", eventController.getSpeakersForEvent);
+
+organizerRoutes.post(
+  "/:eventId/tickets",
+  validate(createTicketSchema),
+  isEventOwner,
+  eventController.createTicket
+);
+organizerRoutes.put(
+  "/:eventId/tickets/:ticketId",
+  isEventOwner,
+  eventController.updateTicket
+);
+organizerRoutes.delete(
+  "/:eventId/tickets/:ticketId",
+  isEventOwner,
+  eventController.deleteTicket
+);
+
+organizerRoutes.post(
+  "/:eventId/speakers",
+  validate(createSpeakerSchema),
+  isEventOwner,
+  eventController.createSpeaker
+);
+organizerRoutes.put(
+  "/:eventId/speakers/:speakerId",
+  validate(updateSpeakerSchema),
+  isEventOwner,
+  eventController.updateSpeaker
+);
+organizerRoutes.delete(
+  "/:eventId/speakers/:speakerId",
+  isEventOwner,
+  eventController.deleteSpeaker
+);
 
 organizerRoutes.post(
   "/:eventId/categories",

@@ -311,6 +311,90 @@ export const deleteEvent = async (eventId) => {
   });
   return event;
 };
+// Create ticket for event
+export const createTicket = async ({
+  eventId,
+  type,
+  price,
+  totalQuantity,
+  maxPerUser
+}) => {
+  const ticket = await prisma.ticket.create({
+    data: {
+      eventId: parseInt(eventId, 10),
+      type,
+      price,
+      totalQuantity,
+      remainingQuantity: totalQuantity,
+      maxPerUser
+    }
+  });
+  return ticket;
+};
+// GET ALL TICKETS FOR AN EVENT
+export const getTicketsForEvent = async (eventId) => {
+  const tickets = await prisma.ticket.findMany({
+    where: { eventId: parseInt(eventId, 10), deletedAt: null }
+  });
+
+  if (tickets.length === 0)
+    throw new CustomError("No tickets found for this event", 404);
+
+  return tickets;
+};
+
+// Update ticket
+export const updateTicket = async (ticketId, data) => {
+  const ticket = await prisma.ticket.update({
+    where: { id: parseInt(ticketId, 10) },
+    data: { ...data, updatedAt: new Date() }
+  });
+  return ticket;
+};
+
+// Soft delete ticket
+export const deleteTicket = async (ticketId) => {
+  return prisma.ticket.update({
+    where: { id: parseInt(ticketId, 10) },
+    data: { deletedAt: new Date() }
+  });
+};
+
+// Create speaker for event
+export const createSpeaker = async ({ eventId, name, bio, photoUrl }) => {
+  const speaker = await prisma.eventSpeaker.create({
+    data: { eventId: parseInt(eventId, 10), name, bio, photoUrl }
+  });
+  return speaker;
+};
+
+// Update speaker
+export const updateSpeaker = async (speakerId, data) => {
+  const speaker = await prisma.eventSpeaker.update({
+    where: { id: parseInt(speakerId, 10) },
+    data: { ...data, updatedAt: new Date() }
+  });
+  return speaker;
+};
+
+export const getSpeakersForEvent = async (eventId) => {
+  const speakers = await prisma.eventSpeaker.findMany({
+    where: { eventId: parseInt(eventId, 10), deletedAt: null },
+    select: { id: true, name: true, bio: true, photoUrl: true }
+  });
+
+  if (speakers.length === 0)
+    throw new CustomError("No speakers found for this event", 404);
+
+  return speakers;
+};
+
+export const deleteSpeaker = async (speakerId) => {
+  return prisma.eventSpeaker.update({
+    where: { id: parseInt(speakerId, 10) },
+    data: { deletedAt: new Date() }
+  });
+};
 
 export const addCategoryToEvent = async ({ eventId, categoryId }) => {
   return prisma.eventCategory.create({
