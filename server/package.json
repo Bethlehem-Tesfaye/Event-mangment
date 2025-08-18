@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs",
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
     "migrate:create": "prisma migrate dev --name",
     "migrate:dev": "prisma migrate dev",
     "migrate:deploy": "prisma migrate deploy",
@@ -15,25 +15,26 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "seed": "node seeds/seed.js"
+    "seed": "node src/seeds/seed.js"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "description": "",
   "dependencies": {
-    "@prisma/client": "^6.13.0",
-    "@prisma/client": "^6.13.0",
+    "@prisma/client": "^6.14.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
-    "dotenv": "^17.2.1",
     "express": "^5.1.0",
+    "json2csv": "^6.0.0-alpha.2",
     "jsonwebtoken": "^9.0.2",
     "node-pg-migrate": "^8.0.3",
+    "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
     "pg": "^8.16.3",
+    "qrcode": "^1.5.4",
     "zod": "^4.0.10"
   },
   "devDependencies": {
@@ -43,6 +44,6 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^5.5.1",
     "prettier": "^3.6.2",
-    "prisma": "^6.13.0"
+    "prisma": "^6.14.0"
   }
 }
