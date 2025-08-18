@@ -6,7 +6,7 @@ import { eventRoutes, organizerRoutes } from "./modules/event/event.route.js";
 const router = express.Router();
 
 router.use("/auth", userRoutes);
-router.use("/profile", profileRoutes);
+router.use("/users", profileRoutes);
 router.use("/events", eventRoutes);
 router.use("/organizer/events", organizerRoutes);
 

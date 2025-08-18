@@ -19,3 +19,20 @@ export const updateUserProfile = async (userId, profileData) => {
     throw error;
   }
 };
+
+export const getUserTicketHistory = async (userId) => {
+  const registrations = await prisma.registration.findMany({
+    where: {
+      userId,
+      deletedAt: null
+    },
+    include: {
+      event: true,
+      ticket: true
+    },
+    orderBy: {
+      registeredAt: "desc"
+    }
+  });
+  return registrations;
+};

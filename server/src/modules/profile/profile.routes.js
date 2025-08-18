@@ -6,13 +6,17 @@ import authMiddleware from "../../middleware/authMiddleware.js";
 
 const profileRoutes = express.Router();
 
-profileRoutes.get("/", authMiddleware, profileController.getProfile);
+profileRoutes.get("/profile", authMiddleware, profileController.getProfile);
 
 profileRoutes.put(
-  "/",
+  "/profile",
   authMiddleware,
   validate(profileSchema),
   profileController.setProfile
 );
-
+profileRoutes.get(
+  "/tickets",
+  authMiddleware,
+  profileController.getUserTicketHistory
+);
 export default profileRoutes;
