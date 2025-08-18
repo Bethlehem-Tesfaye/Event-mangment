@@ -24,7 +24,7 @@ export const updateEventSchema = z.object({
   endDatetime: z.string().datetime({ message: "Invalid end date" }).optional(),
   duration: z.number().int().positive().optional(),
   eventBannerUrl: z.string().url("Invalid URL").optional(),
-  status: z.enum(["draft", "published", "canceled"]).optional()
+  status: z.enum(["draft", "published", "cancelled"]).optional()
 });
 export const createTicketSchema = z.object({
   type: z.string(),
@@ -51,6 +51,7 @@ export const updateSpeakerSchema = z.object({
   photoUrl: z.string().url("Invalid photo URL").optional()
 });
 
-export const createCategorySchema = z.object({
+
+ export const createCategorySchema = z.object({
   categoryId: z.number().int()
-});
+}); 
