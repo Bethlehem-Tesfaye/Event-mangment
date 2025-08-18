@@ -14,5 +14,9 @@ profileRoutes.put(
   validate(profileSchema),
   profileController.setProfile
 );
-
+profileRoutes.get(
+  "/tickets",
+  authMiddleware,
+  profileController.getUserTicketHistory
+);
 export default profileRoutes;
