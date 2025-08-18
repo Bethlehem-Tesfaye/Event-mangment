@@ -52,6 +52,7 @@ export const updateSpeakerSchema = z.object({
   photoUrl: z.string().url("Invalid photo URL").optional()
 });
 
-export const createCategorySchema = z.object({
+
+ export const createCategorySchema = z.object({
   categoryId: z.number().int()
-});
+}); 

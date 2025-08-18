@@ -74,14 +74,11 @@ export const purchaseTicket = async (req, res, next) => {
   }
 };
 
-//
+// 
 export const createEvent = async (req, res, next) => {
   try {
     const { userId } = req;
-    const eventCreated = await eventService.createEvent({
-      userId,
-      ...req.body
-    });
+    const eventCreated = await eventService.createEvent({ userId, ...req.body });
     return res.status(201).json({ data: eventCreated });
   } catch (err) {
     return next(err);
@@ -103,15 +100,17 @@ export const updateEvent = async (req, res, next) => {
     const { eventId } = req.params;
     const { userId } = req;
     const { status } = req.query;
-    const updatedEvent = await eventService.updateEvent(eventId, userId, {
-      ...req.body,
-      status
-    });
+    const updatedEvent = await eventService.updateEvent(
+      eventId,
+      userId,
+      { ...req.body, status }
+    );
     return res.status(200).json({ data: { event: updatedEvent } });
   } catch (err) {
     return next(err);
   }
 };
+
 
 export const deleteEvent = async (req, res, next) => {
   try {
@@ -233,25 +232,8 @@ export const removeCategoryFromEvent = async (req, res, next) => {
   }
 };
 
-export const updateEventStatus = async (req, res, next) => {
-  const { eventId } = req.params;
-  const { status } = req.body;
-  const { userId } = req;
-
-  try {
-    const updatedEvent = await eventService.updateEventStatusService(
-      eventId,
-      userId,
-      status
-    );
-    return res.status(200).json({ data: { event: updatedEvent } });
-  } catch (error) {
-    return next(error);
-  }
-};
-
 export const getEventAttendees = async (req, res, next) => {
-  const { eventId } = req.params;
+  const {eventId} = req.params;
   const { format } = req.query;
 
   try {
@@ -280,7 +262,7 @@ export const getEventAttendees = async (req, res, next) => {
 };
 
 export const getEventAnalytics = async (req, res, next) => {
-  const { eventId } = req.params;
+  const {eventId} = req.params;
   const { userId } = req;
 
   try {
@@ -290,3 +272,4 @@ export const getEventAnalytics = async (req, res, next) => {
     return next(err);
   }
 };
+ 
