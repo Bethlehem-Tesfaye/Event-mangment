@@ -46,25 +46,7 @@ organizerRoutes.put(
 );
 organizerRoutes.delete("/:eventId", eventController.deleteEvent);
 organizerRoutes.get("/:eventId", eventController.getEventDetailById);
-organizerRoutes.get("/:eventId/tickets", eventController.getTicketsForEvent);
 organizerRoutes.get("/:eventId/speakers", eventController.getSpeakersForEvent);
-
-organizerRoutes.post(
-  "/:eventId/tickets",
-  validate(createTicketSchema),
-  isEventOwner,
-  eventController.createTicket
-);
-organizerRoutes.put(
-  "/:eventId/tickets/:ticketId",
-  isEventOwner,
-  eventController.updateTicket
-);
-organizerRoutes.delete(
-  "/:eventId/tickets/:ticketId",
-  isEventOwner,
-  eventController.deleteTicket
-);
 
 organizerRoutes.post(
   "/:eventId/speakers",
@@ -83,7 +65,6 @@ organizerRoutes.delete(
   isEventOwner,
   eventController.deleteSpeaker
 );
-
 organizerRoutes.post(
   "/:eventId/categories",
   validate(createCategorySchema),

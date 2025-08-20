@@ -1,6 +1,7 @@
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
 
+
 // Create speaker for event
 export const createSpeaker = async ({ eventId, name, bio, photoUrl }) => {
   const speaker = await prisma.eventSpeaker.create({
