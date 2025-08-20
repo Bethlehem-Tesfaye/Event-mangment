@@ -1,4 +1,3 @@
-// For createEvent
 import { z } from "zod";
 
 export const createEventSchema = z.object({
@@ -25,30 +24,6 @@ export const updateEventSchema = z.object({
   duration: z.number().int().positive().optional(),
   eventBannerUrl: z.string().url("Invalid URL").optional(),
   status: z.enum(["draft", "published", "cancelled"]).optional()
-});
-export const createTicketSchema = z.object({
-  type: z.string(),
-  price: z.number().nonnegative(),
-  totalQuantity: z.number().int().positive(),
-  maxPerUser: z.number().int().positive().optional()
-});
-
-export const UpdateTicketSchema = z.object({
-  type: z.string().optional(),
-  price: z.number().nonnegative().optional(),
-  totalQuantity: z.number().int().positive().optional(),
-  maxPerUser: z.number().int().positive().optional()
-});
-
-export const createSpeakerSchema = z.object({
-  name: z.string(),
-  bio: z.string().optional(),
-  photoUrl: z.string().url("Invalid photo URL").optional()
-});
-export const updateSpeakerSchema = z.object({
-  name: z.string().optional(),
-  bio: z.string().optional(),
-  photoUrl: z.string().url("Invalid photo URL").optional()
 });
 
 export const createCategorySchema = z.object({
