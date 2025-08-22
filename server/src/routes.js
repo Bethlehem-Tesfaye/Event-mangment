@@ -1,7 +1,7 @@
 import express from "express";
 import userRoutes from "./modules/user/user.routes.js";
 import profileRoutes from "./modules/profile/profile.routes.js";
-import { eventRoutes, organizerRoutes } from "./modules/event/event.route.js";
+import { eventRoutes, organizerRoutes } from "./modules/event/event.route.js"; 
 
 const router = express.Router();
 

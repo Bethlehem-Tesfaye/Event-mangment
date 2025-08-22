@@ -29,28 +29,6 @@ export const getEventDetails = async (req, res, next) => {
   }
 };
 
-export const getEventSpeakers = async (req, res, next) => {
-  const { eventId } = req.params;
-
-  try {
-    const speakers = await eventService.getEventSpeakers(eventId);
-    return res.status(200).json({ data: speakers });
-  } catch (err) {
-    return next(err);
-  }
-};
-
-export const getEventTickets = async (req, res, next) => {
-  const { eventId } = req.params;
-
-  try {
-    const tickets = await eventService.getEventTickets(eventId);
-    return res.status(200).json({ data: tickets });
-  } catch (err) {
-    return next(err);
-  }
-};
-
 export const purchaseTicket = async (req, res, next) => {
   const { eventId } = req.params;
   const { ticketId, attendeeName, attendeeEmail, quantity } = req.body;
