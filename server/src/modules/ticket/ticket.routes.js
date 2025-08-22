@@ -10,7 +10,7 @@ export const ticketRoutes = express.Router()
 ticketRoutes.use(authMiddleware)
 ticketRoutes.use(isEventOwner)
 
-ticketRoutes.get(/:eventId/tickets, ticketController.getTicketsForEvent)
+ticketRoutes.get('/:eventId/tickets', ticketController.getTicketsForEvent)
 ticketRoutes.post('/:eventId/tickets', validate(createTicketSchema), ticketController.createTicket)
 ticketRoutes.put('/:eventId/tickets/:ticketId', validate(UpdateTicketSchema), ticketController.updateTicket)
 ticketRoutes.delete('/:eventId/tickets/:ticketId', ticketController.deleteTicket)

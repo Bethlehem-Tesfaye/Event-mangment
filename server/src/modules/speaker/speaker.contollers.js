@@ -1,9 +1,12 @@
-import * as speakerService from './speaker.service'
+import * as speakerService from "./speaker.service";
 
 export const createSpeaker = async (req, res, next) => {
   try {
     const { eventId } = req.params;
-    const speaker = await speakerService.createSpeaker({ eventId, ...req.body });
+    const speaker = await speakerService.createSpeaker({
+      eventId,
+      ...req.body
+    });
     return res.status(201).json({ data: speaker });
   } catch (err) {
     return next(err);
@@ -13,6 +16,17 @@ export const createSpeaker = async (req, res, next) => {
 export const getSpeakersForEvent = async (req, res, next) => {
   try {
     const { eventId } = req.params;
+    const speakers = await speakerService.getSpeakersForEvent(eventId);
+    return res.status(200).json({ data: speakers });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getPublicSpealersForEvent = async (req, res, next) => {
+  const { eventId } = req.params;
+
+  try {
     const speakers = await speakerService.getSpeakersForEvent(eventId);
     return res.status(200).json({ data: speakers });
   } catch (err) {

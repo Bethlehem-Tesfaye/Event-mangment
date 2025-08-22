@@ -20,6 +20,17 @@ export const getTicketsForEvent = async (req, res, next) => {
   }
 };
 
+export const getPublicTicketsForEvent = async (req, res, next) => {
+  const { eventId } = req.params;
+
+  try {
+    const tickets = await ticketService.getTicketsForEvent(eventId);
+    return res.status(200).json({ data: tickets });
+  } catch (err) {
+    return next(err);
+  }
+};
+
 export const updateTicket = async (req, res, next) => {
   try {
     const { ticketId } = req.params;
