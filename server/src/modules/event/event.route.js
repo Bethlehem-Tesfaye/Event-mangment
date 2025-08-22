@@ -21,8 +21,8 @@ export const eventRoutes = express.Router();
 
 eventRoutes.get("/", eventController.listEvents);
 eventRoutes.get("/:eventId", eventController.getEventDetails);
-eventRoutes.get("/:eventId/speakers", eventController.getEventSpeakers);
-eventRoutes.get("/:eventId/tickets", eventController.getEventTickets);
+eventRoutes.get("/:eventId/speakers", speakeController.getPublicSpealersForEvent);
+eventRoutes.get("/:eventId/tickets", ticketController.getPublicTicketsForEvent);
 eventRoutes.post(
   "/:eventId/tickets/purchase",
   optionalAuthMiddleware,
