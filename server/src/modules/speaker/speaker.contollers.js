@@ -1,4 +1,4 @@
-import * as speakerService from "./speaker.service";
+import * as speakerService from "./speaker.service.js";
 
 export const createSpeaker = async (req, res, next) => {
   try {

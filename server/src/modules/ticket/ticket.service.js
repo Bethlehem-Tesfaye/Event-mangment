@@ -47,4 +47,21 @@ export const deleteTicket = async (ticketId) => {
     where: { id: parseInt(ticketId, 10) },
     data: { deletedAt: new Date() }
   });
-};S
+};
+
+export const getUserTicketHistory = async (userId) => {
+  const registrations = await prisma.registration.findMany({
+    where: {
+      userId,
+      deletedAt: null
+    },
+    include: {
+      event: true,
+      ticket: true
+    },
+    orderBy: {
+      registeredAt: "desc"
+    }
+  });
+  return registrations;
+};

@@ -62,7 +62,7 @@ export const registerUser = async ({ email, password }) => {
 export const loginUser = async ({ email, password }) => {
   const user = await prisma.user.findUnique({
     where: { email },
-    select: { id: true, email: true, password: true, tokenVersion: true } 
+    select: { id: true, email: true, password: true, tokenVersion: true }
   });
 
   if (!user) throw new CustomError("Login failed, Please try again", 401);
@@ -83,7 +83,8 @@ export const loginUser = async ({ email, password }) => {
 };
 
 export const refreshTokens = async (incomingRefreshToken) => {
-  if (!incomingRefreshToken) throw new CustomError("Unauthorized: No refresh token provided", 401);
+  if (!incomingRefreshToken)
+    throw new CustomError("Unauthorized: No refresh token provided", 401);
 
   let payload;
   try {
@@ -91,7 +92,7 @@ export const refreshTokens = async (incomingRefreshToken) => {
       incomingRefreshToken,
       process.env.REFRESH_TOKEN_SECRET
     );
-  } catch(error) {
+  } catch (error) {
     throw new CustomError(`Unauthorized:${error}`, 401);
   }
 
