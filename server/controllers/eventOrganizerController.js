@@ -1,5 +1,4 @@
 import prisma from "../lib/prisma.js";
-import prisma from "../lib/prisma.js";
 import CustomError from "../utils/customError.js";
 
 // create only the title and category
