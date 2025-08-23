@@ -20,5 +20,3 @@ export const setProfile = async (req, res, next) => {
     return next(error);
   }
 };
-
-

@@ -19,5 +19,3 @@ export const updateUserProfile = async (userId, profileData) => {
     throw error;
   }
 };
-
-
