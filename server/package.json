@@ -4,7 +4,7 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs",
     "start": "node server.js",
     "dev": "node --watch server.js",
     "migrate:create": "prisma migrate dev --name",
@@ -23,9 +23,11 @@
   "description": "",
   "dependencies": {
     "@prisma/client": "^6.13.0",
+    "@prisma/client": "^6.13.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
+    "dotenv": "^17.2.1",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "jsonwebtoken": "^9.0.2",
@@ -40,6 +42,8 @@
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^5.5.1",
+    "prettier": "^3.6.2",
+    "prisma": "^6.13.0"
     "prettier": "^3.6.2",
     "prisma": "^6.13.0"
   }

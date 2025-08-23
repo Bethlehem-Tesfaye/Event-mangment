@@ -1,4 +1,5 @@
 import prisma from "../lib/prisma.js";
+import prisma from "../lib/prisma.js";
 import CustomError from "../utils/customError.js";
 
 // create only the title and category
@@ -194,7 +195,7 @@ export const updateEvent = async (req, res, next) => {
     return res.status(200).json({
       data: {
         event: updatedEvent,
-        speaker: updatedSpeakers,
+        speakers: updatedSpeakers,
         tickets: updatedTickets
       }
     });
