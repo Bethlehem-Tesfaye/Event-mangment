@@ -1,4 +1,4 @@
-import * as ticketService from './ticket.service.js'
+import * as ticketService from "./ticket.service.js";
 
 export const createTicket = async (req, res, next) => {
   try {
@@ -46,6 +46,16 @@ export const deleteTicket = async (req, res, next) => {
     const { ticketId } = req.params;
     const deletedTicket = await ticketService.deleteTicket(ticketId);
     return res.status(200).json({ data: deletedTicket });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getUserTicketHistory = async (req, res, next) => {
+  try {
+    const { userId } = req;
+    const history = await ticketService.getUserTicketHistory(userId);
+    return res.status(200).json({ data: history });
   } catch (err) {
     return next(err);
   }
