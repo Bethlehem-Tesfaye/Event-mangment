@@ -21,12 +21,4 @@ export const setProfile = async (req, res, next) => {
   }
 };
 
-export const getUserTicketHistory = async (req, res, next) => {
-  try {
-    const { userId } = req;
-    const history = await profileService.getUserTicketHistory(userId);
-    return res.status(200).json({ data: history });
-  } catch (err) {
-    return next(err);
-  }
-};
+
