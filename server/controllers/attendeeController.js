@@ -1,67 +1,77 @@
-import conn from "../db/db.js";
+import prisma from "../lib/prisma.js";
 import CustomError from "../utils/customError.js";
 
 export const eventRegister = async (req, res, next) => {
   const { userId } = req;
   const { ticketId, id: eventId } = req.params;
+
   const { registeredQuantity } = req.body;
 
-  const client = await conn.connect();
   try {
-    await client.query("BEGIN");
-
-    const ticketQuery = `SELECT * FROM tickets WHERE id = $1 AND event_id = $2 AND deleted_at IS NULL`;
-    const ticketResult = await client.query(ticketQuery, [ticketId, eventId]);
-    const ticket = ticketResult.rows[0];
+    const ticket = await prisma.ticket.findFirst({
+      where: {
+        id: parseInt(ticketId, 10),
+        eventId: parseInt(eventId, 10),
+        deletedAt: null
+      }
+    });
 
     if (!ticket) {
       return next(new CustomError("Ticket not found", 404));
     }
 
-    if (registeredQuantity > ticket.remaining_quantity) {
+    if (registeredQuantity > ticket.remainingQuantity) {
       return next(new CustomError("Not enough tickets available", 400));
     }
 
-    const countQuery = `
-      SELECT COALESCE(SUM(registered_quantity), 0) AS total 
-      FROM registrations 
-      WHERE user_id = $1 AND ticket_type = $2 AND deleted_at IS NULL`;
-    const countResult = await client.query(countQuery, [userId, ticketId]);
-    const alreadyRegistered = parseInt(countResult.rows[0].total, 10);
+    const existingCount = await prisma.registration.aggregate({
+      _sum: {
+        registeredQuantity: true
+      },
+      where: {
+        userId,
+        ticketType: parseInt(ticketId, 10),
+        deletedAt: null
+      }
+    });
 
-    if (alreadyRegistered + registeredQuantity > ticket.max_per_user) {
+    const alreadyRegistered = existingCount._sum.registeredQuantity || 0;
+
+    if (alreadyRegistered + registeredQuantity > ticket.maxPerUser) {
       return next(
         new CustomError(
-          `You can only register up to ${ticket.max_per_user} tickets.`,
+          `You can only register up to ${ticket.maxPerUser} tickets.`,
           400
         )
       );
     }
 
-    // Update remaining quantity
-    await client.query(
-      `UPDATE tickets 
-       SET remaining_quantity = remaining_quantity - $1, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $2`,
-      [registeredQuantity, ticketId]
-    );
+    // Prisma transaction: update ticket + create registration
+    const [, newRegistration] = await prisma.$transaction([
+      prisma.ticket.update({
+        where: { id: parseInt(ticketId, 10) },
+        data: {
+          remainingQuantity: {
+            decrement: registeredQuantity
+          },
+          updatedAt: new Date()
+        }
+      }),
+      prisma.registration.create({
+        data: {
+          userId,
+          ticketType: parseInt(ticketId, 10),
+          registeredQuantity,
+          eventId: parseInt(eventId, 10)
+        }
+      })
+    ]);
 
-    // Insert registration
-    const insertResult = await client.query(
-      `INSERT INTO registrations (user_id, ticket_type, registered_quantity, event_id)
-       VALUES ($1, $2, $3, $4) RETURNING *`,
-      [userId, ticketId, registeredQuantity, eventId]
-    );
-
-    await client.query("COMMIT");
     return res.status(200).json({
-      data: { registration: insertResult.rows[0] }
+      data: { registration: newRegistration }
     });
   } catch (error) {
-    await client.query("ROLLBACK");
     return next(error);
-  } finally {
-    client.release();
   }
 };
 
@@ -69,17 +79,35 @@ export const viewMyTickets = async (req, res, next) => {
   const { userId } = req;
 
   try {
-    const query =
-      "SELECT e.title, t.type, r.* FROM registrations r JOIN tickets t ON r.ticket_type = t.id JOIN events e ON t.event_id = e.id WHERE r.user_id = $1 AND r.deleted_at IS NULL AND t.deleted_at IS NULL AND e.deleted_at IS NULL";
+    const myTickets = await prisma.registration.findMany({
+      where: {
+        userId,
+        deletedAt: null,
+        ticket: {
+          deletedAt: null,
+          event: { deletedAt: null }
+        }
+      },
+      include: {
+        ticket: {
+          select: {
+            type: true,
+            event: {
+              select: {
+                title: true
+              }
+            }
+          }
+        }
+      }
+    });
 
-    const result = await conn.query(query, [userId]);
-
-    if (result.rows.length === 0) {
+    if (myTickets.length === 0) {
       return next(new CustomError("No tickets purchased", 404));
     }
 
     return res.status(200).json({
-      data: { myTickets: result.rows }
+      data: { myTickets }
     });
   } catch (error) {
     return next(error);
@@ -87,39 +115,36 @@ export const viewMyTickets = async (req, res, next) => {
 };
 
 export const cancelRegistration = async (req, res, next) => {
-  const { userId } = req; // logged-in user
+  const { userId } = req;
   const { registrationId } = req.params;
 
-  const client = await conn.connect();
   try {
-    await client.query("BEGIN");
-
-    // Fetch registration with ticket and event info
-    const regRes = await client.query(
-      `SELECT r.registered_quantity, r.user_id, t.id AS ticket_id, t.event_id, e.start_datetime
-       FROM registrations r
-       JOIN tickets t ON r.ticket_type = t.id
-       JOIN events e ON t.event_id = e.id
-       WHERE r.id = $1 AND r.deleted_at IS NULL`,
-      [registrationId]
-    );
-
-    const registration = regRes.rows[0];
+    const registration = await prisma.registration.findFirst({
+      where: {
+        id: parseInt(registrationId, 10),
+        deletedAt: null
+      },
+      include: {
+        ticket: {
+          include: {
+            event: true
+          }
+        }
+      }
+    });
 
     if (!registration) {
       return next(new CustomError("Registration not found", 404));
     }
 
-    // Check if the user owns this registration
-    if (registration.user_id !== userId) {
+    if (registration.userId !== userId) {
       return next(
         new CustomError("Unauthorized to cancel this registration", 403)
       );
     }
 
-    // Check event hasn't started
     const now = new Date();
-    if (new Date(registration.start_datetime) <= now) {
+    if (registration.ticket.event.startDatetime <= now) {
       return next(
         new CustomError(
           "Cannot cancel registration after event has started",
@@ -128,60 +153,83 @@ export const cancelRegistration = async (req, res, next) => {
       );
     }
 
-    //  Soft delete registration
-    await client.query(
-      `UPDATE registrations 
-       SET deleted_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $1`,
-      [registrationId]
-    );
-
-    // Increase ticket remaining_quantity
-    await client.query(
-      `UPDATE tickets 
-       SET remaining_quantity = remaining_quantity + $1, updated_at = CURRENT_TIMESTAMP 
-       WHERE id = $2`,
-      [registration.registered_quantity, registration.ticket_id]
-    );
-
-    await client.query("COMMIT");
+    await prisma.$transaction([
+      prisma.registration.update({
+        where: { id: parseInt(registrationId, 10) },
+        data: {
+          deletedAt: new Date(),
+          updatedAt: new Date()
+        }
+      }),
+      prisma.ticket.update({
+        where: { id: registration.ticket.id },
+        data: {
+          remainingQuantity: {
+            increment: registration.registeredQuantity
+          },
+          updatedAt: new Date()
+        }
+      })
+    ]);
 
     return res.status(200).json();
   } catch (error) {
-    await client.query("ROLLBACK");
     return next(error);
-  } finally {
-    client.release();
   }
 };
 
 export const getEventAttendees = async (req, res, next) => {
-  const { eventId } = req.params;
+  const eventId = parseInt(req.params.id, 10);
 
   try {
-    // Fetch attendees for the event
-    const result = await conn.query(
-      `SELECT 
-        p.first_name || ' ' || p.last_name AS full_name,
-        u.email,
-        t.type AS ticket_type,
-        r.registered_quantity,
-        r.registered_at
-      FROM registrations r
-      JOIN users u ON r.user_id = u.id AND u.deleted_at IS NULL
-      JOIN profiles p ON p.user_id = u.id AND p.deleted_at IS NULL
-      JOIN tickets t ON r.ticket_type = t.id AND t.deleted_at IS NULL
-      WHERE r.event_id = $1 AND r.deleted_at IS NULL`,
-      [eventId]
-    );
+    const attendees = await prisma.registration.findMany({
+      where: {
+        eventId,
+        deletedAt: null,
+        user: {
+          deletedAt: null
+        },
+        ticket: {
+          deletedAt: null
+        }
+      },
+      select: {
+        registeredQuantity: true,
+        registeredAt: true,
+        ticket: {
+          select: {
+            type: true
+          }
+        },
+        user: {
+          select: {
+            email: true,
+            profile: {
+              select: {
+                firstName: true,
+                lastName: true
+              }
+            }
+          }
+        }
+      }
+    });
 
-    if (result.rows.length === 0) {
+    if (attendees.length === 0) {
       return next(new CustomError("no attendees", 404));
     }
 
+    const formatted = attendees.map((a) => ({
+      full_name: `${a.user.profile.firstName} ${a.user.profile.lastName}`,
+      email: a.user.email,
+      ticket_type: a.ticket.type,
+      registered_quantity: a.registeredQuantity,
+      registered_at: a.registeredAt
+    }));
+
     return res.status(200).json({
       data: {
-        attendees: result.rows
+        attendees: formatted
       }
     });
   } catch (err) {

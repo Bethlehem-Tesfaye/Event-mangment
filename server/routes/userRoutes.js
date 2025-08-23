@@ -3,7 +3,6 @@ import { getProfile, setProfile } from "../controllers/userControllers.js";
 import authMiddleware from "../middleware/authMiddleware.js";
 import { validate } from "../middleware/validate.js";
 import { profileSchema } from "../schemas/userSchema.js";
-import { getEvents } from "../controllers/eventOrganizerController.js";
 import {
   getEventAttendees,
   viewMyTickets
@@ -14,7 +13,6 @@ const userRouter = express.Router();
 
 userRouter.get("/profile", authMiddleware, getProfile);
 userRouter.put("/profile", authMiddleware, validate(profileSchema), setProfile);
-userRouter.get("/organizer/events", authMiddleware, getEvents);
 userRouter.get("/events/my", authMiddleware, viewMyTickets);
 userRouter.get(
   "/events/:id/attendees",
