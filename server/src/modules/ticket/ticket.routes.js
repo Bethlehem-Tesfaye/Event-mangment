@@ -8,6 +8,7 @@ import { createTicketSchema, UpdateTicketSchema } from "./ticket.schema.js";
 export const ticketRoutes = express.Router({ mergeParams: true });
 ticketRoutes.use(authMiddleware);
 ticketRoutes.use(isEventOwner);
+
 ticketRoutes.get("/tickets", ticketController.getTicketsForEvent);
 ticketRoutes.post(
   "/tickets",
@@ -20,6 +21,7 @@ ticketRoutes.put(
   ticketController.updateTicket
 );
 ticketRoutes.delete("/tickets/:ticketId", ticketController.deleteTicket);
+
 // user tickets
 export const userTicketRoutes = express.Router();
 userTicketRoutes.use(authMiddleware);

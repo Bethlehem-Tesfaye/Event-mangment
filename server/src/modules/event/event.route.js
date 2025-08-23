@@ -8,10 +8,7 @@ import { validate } from "../../middleware/validate.js";
 import {
   createCategorySchema,
   createEventSchema,
-  createSpeakerSchema,
-  createTicketSchema,
-  updateEventSchema,
-  updateSpeakerSchema
+  updateEventSchema
 } from "./event.schema.js";
 import isEventOwner from "../../middleware/isEventOwner.js";
 import { ticketRoutes } from "../ticket/ticket.routes.js";
@@ -21,7 +18,10 @@ export const eventRoutes = express.Router();
 
 eventRoutes.get("/", eventController.listEvents);
 eventRoutes.get("/:eventId", eventController.getEventDetails);
-eventRoutes.get("/:eventId/speakers", speakeController.getPublicSpealersForEvent);
+eventRoutes.get(
+  "/:eventId/speakers",
+  speakeController.getPublicSpealersForEvent
+);
 eventRoutes.get("/:eventId/tickets", ticketController.getPublicTicketsForEvent);
 eventRoutes.post(
   "/:eventId/tickets/purchase",
@@ -46,25 +46,7 @@ organizerRoutes.put(
 );
 organizerRoutes.delete("/:eventId", eventController.deleteEvent);
 organizerRoutes.get("/:eventId", eventController.getEventDetailById);
-organizerRoutes.get("/:eventId/speakers", eventController.getSpeakersForEvent);
 
-organizerRoutes.post(
-  "/:eventId/speakers",
-  validate(createSpeakerSchema),
-  isEventOwner,
-  eventController.createSpeaker
-);
-organizerRoutes.put(
-  "/:eventId/speakers/:speakerId",
-  validate(updateSpeakerSchema),
-  isEventOwner,
-  eventController.updateSpeaker
-);
-organizerRoutes.delete(
-  "/:eventId/speakers/:speakerId",
-  isEventOwner,
-  eventController.deleteSpeaker
-);
 organizerRoutes.post(
   "/:eventId/categories",
   validate(createCategorySchema),
