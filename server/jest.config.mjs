@@ -3,9 +3,15 @@ export default {
   transform: {},
   clearMocks: true,
   coverageDirectory: "coverage",
+
+  extensionsToTreatAsEsm: [".js"],
+
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
+
+  transformIgnorePatterns: ["node_modules/(?!(@prisma/client))"],
+
   testMatch: [
     "**/__tests__/**/*.?([mc])[jt]s?(x)",
     "**/?(*.)+(spec|test).?([mc])[jt]s?(x)"
