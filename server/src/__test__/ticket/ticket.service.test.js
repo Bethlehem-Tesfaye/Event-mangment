@@ -1,16 +1,16 @@
-import { jest, describe, it, beforeEach, afterEach, expect } from "@jest/globals";
+import { jest, describe, it, beforeEach, expect } from "@jest/globals";
 
 jest.unstable_mockModule("../../lib/prisma.js", () => ({
   default: {
     ticket: {
       create: jest.fn(),
       findMany: jest.fn(),
-      update: jest.fn(),
+      update: jest.fn()
     },
     registration: {
-      findMany: jest.fn(),
-    },
-  },
+      findMany: jest.fn()
+    }
+  }
 }));
 
 jest.unstable_mockModule("../../utils/customError.js", () => ({
@@ -19,7 +19,7 @@ jest.unstable_mockModule("../../utils/customError.js", () => ({
       super(message);
       this.status = status;
     }
-  },
+  }
 }));
 const prismaModule = await import("../../lib/prisma.js");
 const CustomErrorModule = await import("../../utils/customError.js");
@@ -35,14 +35,20 @@ describe("Ticket Service", () => {
   // createTicket
   describe("createTicket", () => {
     it("should create a ticket", async () => {
-      const input = { eventId: 1, type: "VIP", price: 100, totalQuantity: 50, maxPerUser: 5 };
+      const input = {
+        eventId: 1,
+        type: "VIP",
+        price: 100,
+        totalQuantity: 50,
+        maxPerUser: 5
+      };
       const mockTicket = { id: 1, ...input, remainingQuantity: 50 };
       prisma.ticket.create.mockResolvedValue(mockTicket);
 
       const result = await ticketService.createTicket(input);
 
       expect(prisma.ticket.create).toHaveBeenCalledWith({
-        data: { ...input, eventId: 1, remainingQuantity: 50 },
+        data: { ...input, eventId: 1, remainingQuantity: 50 }
       });
       expect(result).toEqual(mockTicket);
     });
@@ -57,7 +63,7 @@ describe("Ticket Service", () => {
       const result = await ticketService.getTicketsForEvent(1);
 
       expect(prisma.ticket.findMany).toHaveBeenCalledWith({
-        where: { eventId: 1, deletedAt: null },
+        where: { eventId: 1, deletedAt: null }
       });
       expect(result).toEqual(mockTickets);
     });
@@ -65,10 +71,12 @@ describe("Ticket Service", () => {
     it("should throw CustomError if no tickets found", async () => {
       prisma.ticket.findMany.mockResolvedValue([]);
 
-      await expect(ticketService.getTicketsForEvent(1)).rejects.toThrow(CustomError);
+      await expect(ticketService.getTicketsForEvent(1)).rejects.toThrow(
+        CustomError
+      );
       await expect(ticketService.getTicketsForEvent(1)).rejects.toMatchObject({
         message: "No tickets found for this event",
-        status: 404,
+        status: 404
       });
     });
   });
@@ -96,18 +104,18 @@ describe("Ticket Service", () => {
 
       expect(prisma.ticket.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { deletedAt: expect.any(Date) },
+        data: { deletedAt: expect.any(Date) }
       });
       expect(result).toEqual(mockTicket);
     });
   });
 
   // getUserTicketHistory
- 
+
   describe("getUserTicketHistory", () => {
     it("should return registration history", async () => {
       const mockRegistrations = [
-        { id: 1, event: {}, ticket: {}, registeredAt: new Date() },
+        { id: 1, event: {}, ticket: {}, registeredAt: new Date() }
       ];
       prisma.registration.findMany.mockResolvedValue(mockRegistrations);
 
@@ -116,7 +124,7 @@ describe("Ticket Service", () => {
       expect(prisma.registration.findMany).toHaveBeenCalledWith({
         where: { userId: 1, deletedAt: null },
         include: { event: true, ticket: true },
-        orderBy: { registeredAt: "desc" },
+        orderBy: { registeredAt: "desc" }
       });
       expect(result).toEqual(mockRegistrations);
     });

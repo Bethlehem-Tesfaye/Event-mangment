@@ -3,7 +3,7 @@ import {
   createSpeaker,
   updateSpeaker,
   getSpeakersForEvent,
-  deleteSpeaker,
+  deleteSpeaker
 } from "../../modules/speaker/speaker.service.js";
 
 import prisma from "../../lib/prisma.js";
@@ -13,7 +13,7 @@ import CustomError from "../../utils/customError.js";
 prisma.eventSpeaker = {
   create: jest.fn(),
   update: jest.fn(),
-  findMany: jest.fn(),
+  findMany: jest.fn()
 };
 
 jest.mock("../../lib/prisma.js");
@@ -31,7 +31,7 @@ describe("speakerService", () => {
         eventId: 10,
         name: "John Doe",
         bio: "Bio",
-        photoUrl: "url",
+        photoUrl: "url"
       };
 
       prisma.eventSpeaker.create.mockResolvedValue(mockSpeaker);
@@ -40,7 +40,7 @@ describe("speakerService", () => {
         eventId: 10,
         name: "John Doe",
         bio: "Bio",
-        photoUrl: "url",
+        photoUrl: "url"
       });
 
       expect(prisma.eventSpeaker.create).toHaveBeenCalledWith({
@@ -48,8 +48,8 @@ describe("speakerService", () => {
           eventId: 10,
           name: "John Doe",
           bio: "Bio",
-          photoUrl: "url",
-        },
+          photoUrl: "url"
+        }
       });
       expect(result).toEqual(mockSpeaker);
     });
@@ -73,7 +73,7 @@ describe("speakerService", () => {
 
       expect(prisma.eventSpeaker.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: expect.objectContaining({ name: "Jane Doe" }),
+        data: expect.objectContaining({ name: "Jane Doe" })
       });
       expect(result).toEqual(updatedSpeaker);
     });
@@ -89,7 +89,7 @@ describe("speakerService", () => {
   describe("getSpeakersForEvent", () => {
     it("returns speakers if found", async () => {
       const speakers = [
-        { id: 1, name: "Speaker1", bio: "Bio1", photoUrl: "url1" },
+        { id: 1, name: "Speaker1", bio: "Bio1", photoUrl: "url1" }
       ];
       prisma.eventSpeaker.findMany.mockResolvedValue(speakers);
 
@@ -97,7 +97,7 @@ describe("speakerService", () => {
 
       expect(prisma.eventSpeaker.findMany).toHaveBeenCalledWith({
         where: { eventId: 10, deletedAt: null },
-        select: { id: true, name: true, bio: true, photoUrl: true },
+        select: { id: true, name: true, bio: true, photoUrl: true }
       });
       expect(result).toEqual(speakers);
     });
@@ -119,7 +119,7 @@ describe("speakerService", () => {
 
       expect(prisma.eventSpeaker.update).toHaveBeenCalledWith({
         where: { id: 1 },
-        data: { deletedAt: expect.any(Date) },
+        data: { deletedAt: expect.any(Date) }
       });
       expect(result).toEqual(deleted);
     });
