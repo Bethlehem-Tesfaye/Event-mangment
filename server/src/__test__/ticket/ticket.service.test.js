@@ -1,5 +1,6 @@
 import { jest, describe, it, beforeEach, expect } from "@jest/globals";
 
+// mock
 jest.unstable_mockModule("../../lib/prisma.js", () => ({
   default: {
     ticket: {
