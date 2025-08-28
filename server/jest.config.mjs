@@ -4,8 +4,6 @@ export default {
   clearMocks: true,
   coverageDirectory: "coverage",
 
-  extensionsToTreatAsEsm: [".js"],
-
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
