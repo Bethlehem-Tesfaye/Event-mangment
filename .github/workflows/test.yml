@@ -23,8 +23,12 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./server
-        run: npm install
+        run: npm ci
 
-      - name: Run Test
+      - name: Generate Prisma Client
         working-directory: ./server
-        run: npm test
+        run: npx prisma generate
+
+      - name: Run Tests
+        working-directory: ./server
+        run: NODE_OPTIONS=--experimental-vm-modules npm test
