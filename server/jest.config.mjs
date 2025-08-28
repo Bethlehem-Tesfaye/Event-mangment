@@ -4,6 +4,11 @@ export default {
   clearMocks: true,
   collectCoverage: true,
   coverageDirectory: "coverage",
+  extensionsToTreatAsEsm: [".js"],
+  moduleNameMapper: {
+    "^(\\.{1,2}/.*)\\.js$": "$1"
+  },
+  testEnvironment: "node",
   moduleFileExtensions: [
     "js",
     "mjs",
@@ -20,4 +25,4 @@ export default {
     "**/__tests__/**/*.?([mc])[jt]s?(x)",
     "**/?(*.)+(spec|test).?([mc])[jt]s?(x)"
   ]
-};
+}; 
