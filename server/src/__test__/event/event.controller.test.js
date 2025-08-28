@@ -1,4 +1,11 @@
-import { jest, describe, it, beforeEach, afterEach, expect } from "@jest/globals";
+import {
+  jest,
+  describe,
+  it,
+  beforeEach,
+  afterEach,
+  expect
+} from "@jest/globals";
 
 jest.unstable_mockModule("../../modules/event/event.service.js", () => ({
   getEvents: jest.fn(),
@@ -11,13 +18,13 @@ jest.unstable_mockModule("../../modules/event/event.service.js", () => ({
   deleteEvent: jest.fn(),
   addCategoryToEvent: jest.fn(),
   removeCategoryFromEvent: jest.fn(),
-  getEventAnalytics: jest.fn(),
+  getEventAnalytics: jest.fn()
 }));
 
 jest.unstable_mockModule("json2csv", () => ({
   Parser: jest.fn().mockImplementation(() => ({
-    parse: jest.fn().mockReturnValue("csv-data"),
-  })),
+    parse: jest.fn().mockReturnValue("csv-data")
+  }))
 }));
 
 const eventService = await import("../../modules/event/event.service.js");
@@ -34,7 +41,9 @@ const createResponse = () => {
   return res;
 };
 
-let req, res, next;
+let req;
+let res;
+let next;
 
 describe("Event Controller", () => {
   beforeEach(() => {
@@ -86,7 +95,12 @@ describe("Event Controller", () => {
     it("should purchase a ticket", async () => {
       const mockReg = { id: 1, qrCodeUrl: "/mock.png" };
       req.params.eventId = 1;
-      req.body = { ticketId: 1, attendeeName: "A", attendeeEmail: "a@test.com", quantity: 2 };
+      req.body = {
+        ticketId: 1,
+        attendeeName: "A",
+        attendeeEmail: "a@test.com",
+        quantity: 2
+      };
       eventService.purchaseTicket.mockResolvedValue(mockReg);
 
       await eventController.purchaseTicket(req, res, next);
@@ -106,7 +120,9 @@ describe("Event Controller", () => {
       await eventController.getEventAttendees(req, res, next);
 
       expect(res.status).toHaveBeenCalledWith(200);
-      expect(res.json).toHaveBeenCalledWith({ data: { attendees: mockAttendees } });
+      expect(res.json).toHaveBeenCalledWith({
+        data: { attendees: mockAttendees }
+      });
     });
 
     it("should return attendees as CSV", async () => {

@@ -23,24 +23,26 @@ describe("profile.service", () => {
 
       const result = await profileService.getUserProfile(1);
 
-      expect(prisma.profile.findUnique).toHaveBeenCalledWith({ where: { userId: 1 } });
+      expect(prisma.profile.findUnique).toHaveBeenCalledWith({
+        where: { userId: 1 }
+      });
       expect(result).toEqual(mockProfile);
     });
 
     it("throws CustomError if profile not found", async () => {
       prisma.profile.findUnique.mockResolvedValue(null);
 
-      await expect(profileService.getUserProfile(1))
-        .rejects
-        .toThrow(CustomError);
+      await expect(profileService.getUserProfile(1)).rejects.toThrow(
+        CustomError
+      );
     });
 
     it("throws other errors if prisma fails", async () => {
       prisma.profile.findUnique.mockRejectedValue(new Error("DB failure"));
 
-      await expect(profileService.getUserProfile(1))
-        .rejects
-        .toThrow("DB failure");
+      await expect(profileService.getUserProfile(1)).rejects.toThrow(
+        "DB failure"
+      );
     });
   });
 
@@ -49,7 +51,10 @@ describe("profile.service", () => {
       const updatedProfile = { userId: 1, firstName: "Beth", lastName: "T" };
       prisma.profile.update.mockResolvedValue(updatedProfile);
 
-      const result = await profileService.updateUserProfile(1, { firstName: "Beth", lastName: "T" });
+      const result = await profileService.updateUserProfile(1, {
+        firstName: "Beth",
+        lastName: "T"
+      });
 
       expect(prisma.profile.update).toHaveBeenCalledWith({
         where: { userId: 1 },
@@ -63,17 +68,17 @@ describe("profile.service", () => {
       error.code = "P2025";
       prisma.profile.update.mockRejectedValue(error);
 
-      await expect(profileService.updateUserProfile(1, {}))
-        .rejects
-        .toThrow(CustomError);
+      await expect(profileService.updateUserProfile(1, {})).rejects.toThrow(
+        CustomError
+      );
     });
 
     it("throws other errors on failure", async () => {
       prisma.profile.update.mockRejectedValue(new Error("DB failure"));
 
-      await expect(profileService.updateUserProfile(1, {}))
-        .rejects
-        .toThrow("DB failure");
+      await expect(profileService.updateUserProfile(1, {})).rejects.toThrow(
+        "DB failure"
+      );
     });
   });
 });
