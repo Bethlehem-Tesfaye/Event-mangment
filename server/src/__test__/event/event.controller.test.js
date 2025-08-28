@@ -1,6 +1,5 @@
 import { jest, describe, it, beforeEach, afterEach, expect } from "@jest/globals";
 
-// 1️⃣ Mock modules using unstable_mockModule
 jest.unstable_mockModule("../../modules/event/event.service.js", () => ({
   getEvents: jest.fn(),
   getEventById: jest.fn(),
@@ -21,12 +20,10 @@ jest.unstable_mockModule("json2csv", () => ({
   })),
 }));
 
-// 2️⃣ Dynamic imports after mocking
 const eventService = await import("../../modules/event/event.service.js");
 const eventController = await import("../../modules/event/event.controller.js");
 const { Parser } = await import("json2csv");
 
-// 3️⃣ Helper to create mock response
 const createResponse = () => {
   const res = {};
   res.status = jest.fn().mockReturnValue(res);
@@ -51,9 +48,7 @@ describe("Event Controller", () => {
     jest.clearAllMocks();
   });
 
-  // ------------------------------
   // listEvents
-  // ------------------------------
   describe("listEvents", () => {
     it("should return events", async () => {
       const mockEvents = [{ id: 1, title: "Event 1" }];
@@ -72,9 +67,7 @@ describe("Event Controller", () => {
     });
   });
 
-  // ------------------------------
   // getEventDetails
-  // ------------------------------
   describe("getEventDetails", () => {
     it("should return event", async () => {
       const mockEvent = { id: 1, title: "Event 1" };
@@ -88,9 +81,7 @@ describe("Event Controller", () => {
     });
   });
 
-  // ------------------------------
   // purchaseTicket
-  // ------------------------------
   describe("purchaseTicket", () => {
     it("should purchase a ticket", async () => {
       const mockReg = { id: 1, qrCodeUrl: "/mock.png" };
@@ -105,9 +96,7 @@ describe("Event Controller", () => {
     });
   });
 
-  // ------------------------------
   // getEventAttendees
-  // ------------------------------
   describe("getEventAttendees", () => {
     it("should return attendees as JSON", async () => {
       const mockAttendees = [{ full_name: "A B" }];
@@ -135,9 +124,7 @@ describe("Event Controller", () => {
     });
   });
 
-  // ------------------------------
   // createEvent
-  // ------------------------------
   describe("createEvent", () => {
     it("should create an event", async () => {
       const mockEvent = { id: 1, title: "Test" };

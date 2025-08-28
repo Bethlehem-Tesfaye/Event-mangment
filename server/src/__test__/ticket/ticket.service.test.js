@@ -1,6 +1,5 @@
 import { jest, describe, it, beforeEach, afterEach, expect } from "@jest/globals";
 
-// 1️⃣ Mock Prisma
 jest.unstable_mockModule("../../lib/prisma.js", () => ({
   default: {
     ticket: {
@@ -14,7 +13,6 @@ jest.unstable_mockModule("../../lib/prisma.js", () => ({
   },
 }));
 
-// 2️⃣ Mock CustomError
 jest.unstable_mockModule("../../utils/customError.js", () => ({
   default: class CustomError extends Error {
     constructor(message, status) {
@@ -23,8 +21,6 @@ jest.unstable_mockModule("../../utils/customError.js", () => ({
     }
   },
 }));
-
-// 3️⃣ Dynamic imports after mocks
 const prismaModule = await import("../../lib/prisma.js");
 const CustomErrorModule = await import("../../utils/customError.js");
 const ticketService = await import("../../modules/ticket/ticket.service.js");
@@ -36,10 +32,7 @@ describe("Ticket Service", () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-
-  // --------------------------
   // createTicket
-  // --------------------------
   describe("createTicket", () => {
     it("should create a ticket", async () => {
       const input = { eventId: 1, type: "VIP", price: 100, totalQuantity: 50, maxPerUser: 5 };
@@ -55,9 +48,7 @@ describe("Ticket Service", () => {
     });
   });
 
-  // --------------------------
   // getTicketsForEvent
-  // --------------------------
   describe("getTicketsForEvent", () => {
     it("should return tickets if found", async () => {
       const mockTickets = [{ id: 1 }, { id: 2 }];
@@ -82,9 +73,7 @@ describe("Ticket Service", () => {
     });
   });
 
-  // --------------------------
   // updateTicket
-  // --------------------------
   describe("updateTicket", () => {
     it("should update a ticket", async () => {
       const mockTicket = { id: 1, type: "VIP" };
@@ -97,9 +86,7 @@ describe("Ticket Service", () => {
     });
   });
 
-  // --------------------------
   // deleteTicket (soft delete)
-  // --------------------------
   describe("deleteTicket", () => {
     it("should soft delete a ticket", async () => {
       const mockTicket = { id: 1, deletedAt: new Date() };
@@ -115,9 +102,8 @@ describe("Ticket Service", () => {
     });
   });
 
-  // --------------------------
   // getUserTicketHistory
-  // --------------------------
+ 
   describe("getUserTicketHistory", () => {
     it("should return registration history", async () => {
       const mockRegistrations = [

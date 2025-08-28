@@ -3,9 +3,7 @@ import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
 import * as eventService from "../../modules/event/event.service.js";
 
-jest.setTimeout(20000); // give async stuff more room
-
-
+jest.setTimeout(20000);
 // Mock prisma client
 prisma.event = {
   create: jest.fn(),
@@ -18,7 +16,7 @@ prisma.event = {
 prisma.ticket = {
   findMany: jest.fn(),
   findFirst: jest.fn(),
-  findUnique: jest.fn(), // ✅ added
+  findUnique: jest.fn(),
   update: jest.fn(),
 };
 
@@ -34,12 +32,11 @@ prisma.eventCategory = {
 
 prisma.registration = {
   findMany: jest.fn(),
-  create: jest.fn().mockImplementation(async () => ({ id: 1 })), // ✅ always resolves
+  create: jest.fn().mockImplementation(async () => ({ id: 1 })), 
   update: jest.fn(),
   groupBy: jest.fn(),
 };
 
-// ✅ $transaction always works
 prisma.$transaction = jest.fn().mockImplementation(async (cb) => cb(prisma));
 
 describe("Event Service", () => {
@@ -47,7 +44,7 @@ describe("Event Service", () => {
     jest.clearAllMocks();
   });
 
-  // ----- createEvent -----
+  // createEvent
   describe("createEvent", () => {
     it("should create an event", async () => {
       const mockEvent = { id: 1, title: "Test Event" };
@@ -69,7 +66,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- getEventById -----
+  // getEventById
   describe("getEventById", () => {
     it("should return event if found", async () => {
       const mockEvent = { id: 1, title: "Sample Event" };
@@ -86,7 +83,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- getEvents -----
+  // getEvents 
   describe("getEvents", () => {
     it("should return list of events", async () => {
       const mockEvents = [{ id: 1, title: "Event 1" }];
@@ -102,7 +99,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- getEventSpeakers -----
+  // getEventSpeakers
   describe("getEventSpeakers", () => {
     it("should return speakers", async () => {
       const mockSpeakers = [{ id: 1, name: "Speaker 1" }];
@@ -120,7 +117,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- getEventTickets -----
+  // getEventTickets 
   describe("getEventTickets", () => {
     it("should return tickets", async () => {
       const mockTickets = [{ id: 1, type: "VIP" }];
@@ -138,7 +135,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- getEventDetailById -----
+  // getEventDetailById
   describe("getEventDetailById", () => {
     it("should return event detail", async () => {
       const mockEvent = { id: 1, title: "Event Detail" };
@@ -154,7 +151,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- addCategoryToEvent -----
+  // addCategoryToEvent
   describe("addCategoryToEvent", () => {
     it("should add category", async () => {
       const mockCat = { eventId: 1, categoryId: 2 };
@@ -165,7 +162,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- removeCategoryFromEvent -----
+  // removeCategoryFromEvent
   describe("removeCategoryFromEvent", () => {
     it("should soft delete category", async () => {
       const mockCat = { eventId: 1, categoryId: 2, deletedAt: new Date() };
@@ -176,7 +173,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- getEventAnalytics -----
+  // getEventAnalytics
   describe("getEventAnalytics", () => {
     it("should return analytics", async () => {
       prisma.event.findUnique.mockResolvedValue({ id: 1, userId: 10, deletedAt: null });
@@ -191,7 +188,7 @@ describe("Event Service", () => {
     });
   });
 
-  // ----- getEventAttendeesService -----
+  // getEventAttendeesService
   describe("getEventAttendeesService", () => {
     it("should return attendees", async () => {
       const mockRegs = [
