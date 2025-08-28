@@ -1,23 +1,34 @@
-import { jest, describe, it, expect, afterEach, beforeEach } from "@jest/globals";
+import {
+  jest,
+  describe,
+  it,
+  expect,
+  afterEach,
+  beforeEach
+} from "@jest/globals";
 
 jest.unstable_mockModule("../../modules/speaker/speaker.service.js", () => ({
   createSpeaker: jest.fn(),
   getSpeakersForEvent: jest.fn(),
   updateSpeaker: jest.fn(),
-  deleteSpeaker: jest.fn(),
+  deleteSpeaker: jest.fn()
 }));
 
 const speakerService = await import("../../modules/speaker/speaker.service.js");
-const speakerController = await import("../../modules/speaker/speaker.contollers.js");
+const speakerController = await import(
+  "../../modules/speaker/speaker.contollers.js"
+);
 
 describe("speakerController", () => {
-  let req, res, next;
+  let req;
+  let res;
+  let next;
 
   beforeEach(() => {
     req = { params: {}, body: {} };
     res = {
       status: jest.fn().mockReturnThis(),
-      json: jest.fn(),
+      json: jest.fn()
     };
     next = jest.fn();
   });
@@ -26,7 +37,7 @@ describe("speakerController", () => {
     jest.clearAllMocks();
   });
 
-  // createSpeaker 
+  // createSpeaker
   describe("createSpeaker", () => {
     it("creates a speaker and returns 201", async () => {
       const mockSpeaker = { id: 1, name: "John Doe" };
@@ -38,7 +49,7 @@ describe("speakerController", () => {
 
       expect(speakerService.createSpeaker).toHaveBeenCalledWith({
         eventId: "10",
-        name: "John Doe",
+        name: "John Doe"
       });
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({ data: mockSpeaker });
@@ -54,7 +65,7 @@ describe("speakerController", () => {
     });
   });
 
-  // getSpeakersForEvent 
+  // getSpeakersForEvent
   describe("getSpeakersForEvent", () => {
     it("returns speakers with 200", async () => {
       const speakers = [{ id: 1, name: "S1" }];
@@ -78,7 +89,7 @@ describe("speakerController", () => {
     });
   });
 
-  // getPublicSpealersForEvent 
+  // getPublicSpealersForEvent
   describe("getPublicSpealersForEvent", () => {
     it("returns speakers with 200", async () => {
       const speakers = [{ id: 1, name: "Public S1" }];
@@ -102,7 +113,7 @@ describe("speakerController", () => {
     });
   });
 
-  // updateSpeaker 
+  // updateSpeaker
   describe("updateSpeaker", () => {
     it("updates a speaker and returns 200", async () => {
       const updated = { id: 1, name: "Updated" };
@@ -113,7 +124,7 @@ describe("speakerController", () => {
       await speakerController.updateSpeaker(req, res, next);
 
       expect(speakerService.updateSpeaker).toHaveBeenCalledWith("5", {
-        name: "Updated",
+        name: "Updated"
       });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({ data: updated });

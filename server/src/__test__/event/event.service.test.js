@@ -1,6 +1,5 @@
 import { jest, describe, it, beforeEach, expect } from "@jest/globals";
 import prisma from "../../lib/prisma.js";
-import CustomError from "../../utils/customError.js";
 import * as eventService from "../../modules/event/event.service.js";
 
 jest.setTimeout(20000);
@@ -10,31 +9,31 @@ prisma.event = {
   findFirst: jest.fn(),
   findMany: jest.fn(),
   findUnique: jest.fn(),
-  update: jest.fn(),
+  update: jest.fn()
 };
 
 prisma.ticket = {
   findMany: jest.fn(),
   findFirst: jest.fn(),
   findUnique: jest.fn(),
-  update: jest.fn(),
+  update: jest.fn()
 };
 
 prisma.eventSpeaker = {
-  findMany: jest.fn(),
+  findMany: jest.fn()
 };
 
 prisma.eventCategory = {
   findFirst: jest.fn(),
   create: jest.fn(),
-  update: jest.fn(),
+  update: jest.fn()
 };
 
 prisma.registration = {
   findMany: jest.fn(),
-  create: jest.fn().mockImplementation(async () => ({ id: 1 })), 
+  create: jest.fn().mockImplementation(async () => ({ id: 1 })),
   update: jest.fn(),
-  groupBy: jest.fn(),
+  groupBy: jest.fn()
 };
 
 prisma.$transaction = jest.fn().mockImplementation(async (cb) => cb(prisma));
@@ -59,7 +58,7 @@ describe("Event Service", () => {
         startDatetime: new Date(),
         endDatetime: new Date(),
         duration: 60,
-        eventBannerUrl: "url",
+        eventBannerUrl: "url"
       });
 
       expect(result).toEqual(mockEvent);
@@ -79,11 +78,13 @@ describe("Event Service", () => {
 
     it("should throw CustomError if not found", async () => {
       prisma.event.findFirst.mockResolvedValue(null);
-      await expect(eventService.getEventById(1)).rejects.toThrow("Event not found");
+      await expect(eventService.getEventById(1)).rejects.toThrow(
+        "Event not found"
+      );
     });
   });
 
-  // getEvents 
+  // getEvents
   describe("getEvents", () => {
     it("should return list of events", async () => {
       const mockEvents = [{ id: 1, title: "Event 1" }];
@@ -95,7 +96,9 @@ describe("Event Service", () => {
 
     it("should throw CustomError if no events", async () => {
       prisma.event.findMany.mockResolvedValue([]);
-      await expect(eventService.getEvents({})).rejects.toThrow("No published events found");
+      await expect(eventService.getEvents({})).rejects.toThrow(
+        "No published events found"
+      );
     });
   });
 
@@ -117,7 +120,7 @@ describe("Event Service", () => {
     });
   });
 
-  // getEventTickets 
+  // getEventTickets
   describe("getEventTickets", () => {
     it("should return tickets", async () => {
       const mockTickets = [{ id: 1, type: "VIP" }];
@@ -147,7 +150,9 @@ describe("Event Service", () => {
 
     it("should throw CustomError if not found", async () => {
       prisma.event.findUnique.mockResolvedValue(null);
-      await expect(eventService.getEventDetailById(1)).rejects.toThrow("Event not found");
+      await expect(eventService.getEventDetailById(1)).rejects.toThrow(
+        "Event not found"
+      );
     });
   });
 
@@ -157,7 +162,10 @@ describe("Event Service", () => {
       const mockCat = { eventId: 1, categoryId: 2 };
       prisma.eventCategory.create.mockResolvedValue(mockCat);
 
-      const result = await eventService.addCategoryToEvent({ eventId: 1, categoryId: 2 });
+      const result = await eventService.addCategoryToEvent({
+        eventId: 1,
+        categoryId: 2
+      });
       expect(result).toEqual(mockCat);
     });
   });
@@ -168,7 +176,10 @@ describe("Event Service", () => {
       const mockCat = { eventId: 1, categoryId: 2, deletedAt: new Date() };
       prisma.eventCategory.update.mockResolvedValue(mockCat);
 
-      const result = await eventService.removeCategoryFromEvent({ eventId: 1, categoryId: 2 });
+      const result = await eventService.removeCategoryFromEvent({
+        eventId: 1,
+        categoryId: 2
+      });
       expect(result).toEqual(mockCat);
     });
   });
@@ -176,11 +187,19 @@ describe("Event Service", () => {
   // getEventAnalytics
   describe("getEventAnalytics", () => {
     it("should return analytics", async () => {
-      prisma.event.findUnique.mockResolvedValue({ id: 1, userId: 10, deletedAt: null });
+      prisma.event.findUnique.mockResolvedValue({
+        id: 1,
+        userId: 10,
+        deletedAt: null
+      });
       prisma.registration.groupBy.mockResolvedValue([
-        { ticketType: 1, _sum: { registeredQuantity: 2 }, _count: { id: 1 } },
+        { ticketType: 1, _sum: { registeredQuantity: 2 }, _count: { id: 1 } }
       ]);
-      prisma.ticket.findUnique.mockResolvedValue({ id: 1, type: "VIP", price: 50 });
+      prisma.ticket.findUnique.mockResolvedValue({
+        id: 1,
+        type: "VIP",
+        price: 50
+      });
 
       const result = await eventService.getEventAnalytics(1, 10);
       expect(result.totalRevenue).toBe(100);
@@ -196,10 +215,13 @@ describe("Event Service", () => {
           registeredQuantity: 1,
           registeredAt: new Date(),
           ticket: { type: "VIP" },
-          user: { email: "a@test.com", profile: { firstName: "A", lastName: "B" } },
+          user: {
+            email: "a@test.com",
+            profile: { firstName: "A", lastName: "B" }
+          },
           attendeeName: "N/A",
-          attendeeEmail: "N/A",
-        },
+          attendeeEmail: "N/A"
+        }
       ];
       prisma.registration.findMany.mockResolvedValue(mockRegs);
 
@@ -209,7 +231,9 @@ describe("Event Service", () => {
 
     it("should throw CustomError if no attendees", async () => {
       prisma.registration.findMany.mockResolvedValue([]);
-      await expect(eventService.getEventAttendeesService(1)).rejects.toThrow("No attendees found");
+      await expect(eventService.getEventAttendeesService(1)).rejects.toThrow(
+        "No attendees found"
+      );
     });
   });
 });

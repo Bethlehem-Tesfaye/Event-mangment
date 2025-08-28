@@ -6,11 +6,13 @@ jest.unstable_mockModule("../../modules/ticket/ticket.service.js", () => ({
   getTicketsForEvent: jest.fn(),
   updateTicket: jest.fn(),
   deleteTicket: jest.fn(),
-  getUserTicketHistory: jest.fn(),
+  getUserTicketHistory: jest.fn()
 }));
 
 const ticketService = await import("../../modules/ticket/ticket.service.js");
-const ticketController = await import("../../modules/ticket/ticket.controller.js");
+const ticketController = await import(
+  "../../modules/ticket/ticket.controller.js"
+);
 
 const createResponse = () => {
   const res = {};
@@ -40,11 +42,11 @@ describe("ticketController", () => {
 
       expect(ticketService.createTicket).toHaveBeenCalledWith({
         eventId: "1",
-        title: "VIP",
+        title: "VIP"
       });
       expect(res.status).toHaveBeenCalledWith(201);
       expect(res.json).toHaveBeenCalledWith({
-        data: { id: 1, title: "VIP" },
+        data: { id: 1, title: "VIP" }
       });
       expect(next).not.toHaveBeenCalled();
     });
@@ -102,11 +104,11 @@ describe("ticketController", () => {
       await ticketController.updateTicket(req, res, next);
 
       expect(ticketService.updateTicket).toHaveBeenCalledWith("1", {
-        title: "Updated",
+        title: "Updated"
       });
       expect(res.status).toHaveBeenCalledWith(200);
       expect(res.json).toHaveBeenCalledWith({
-        data: { id: 1, title: "Updated" },
+        data: { id: 1, title: "Updated" }
       });
       expect(next).not.toHaveBeenCalled();
     });

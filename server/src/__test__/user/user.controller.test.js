@@ -5,7 +5,7 @@ jest.unstable_mockModule("../../modules/user/user.service.js", () => ({
   registerUser: jest.fn(),
   loginUser: jest.fn(),
   refreshTokens: jest.fn(),
-  logoutUser: jest.fn(),
+  logoutUser: jest.fn()
 }));
 
 const userService = await import("../../modules/user/user.service.js");
@@ -36,7 +36,7 @@ describe("userController", () => {
       userService.registerUser.mockResolvedValue({
         user: { id: 1, email: "test@example.com" },
         accessToken: "access123",
-        refreshToken: "refresh123",
+        refreshToken: "refresh123"
       });
 
       await userController.register(req, res, next);
@@ -52,8 +52,8 @@ describe("userController", () => {
         expect.objectContaining({
           data: {
             user: { id: 1, email: "test@example.com" },
-            accessToken: "access123",
-          },
+            accessToken: "access123"
+          }
         })
       );
       expect(next).not.toHaveBeenCalled();
@@ -78,7 +78,7 @@ describe("userController", () => {
       userService.loginUser.mockResolvedValue({
         user: { id: 1, email: "test@example.com" },
         accessToken: "access123",
-        refreshToken: "refresh123",
+        refreshToken: "refresh123"
       });
 
       await userController.login(req, res, next);
@@ -94,8 +94,8 @@ describe("userController", () => {
         expect.objectContaining({
           data: {
             user: { id: 1, email: "test@example.com" },
-            accessToken: "access123",
-          },
+            accessToken: "access123"
+          }
         })
       );
       expect(next).not.toHaveBeenCalled();
@@ -120,7 +120,7 @@ describe("userController", () => {
       userService.refreshTokens.mockResolvedValue({
         user: { id: 1, email: "test@example.com" },
         accessToken: "access123",
-        refreshToken: "refresh456",
+        refreshToken: "refresh456"
       });
 
       await userController.refresh(req, res, next);
@@ -136,8 +136,8 @@ describe("userController", () => {
         expect.objectContaining({
           data: {
             user: { id: 1, email: "test@example.com" },
-            accessToken: "access123",
-          },
+            accessToken: "access123"
+          }
         })
       );
       expect(next).not.toHaveBeenCalled();
