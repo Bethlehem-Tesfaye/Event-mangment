@@ -1,7 +1,7 @@
 export default {
   testEnvironment: "node",
-  transform: {}, 
-  clearMocks: true, 
+  transform: {},
+  clearMocks: true,
   coverageDirectory: "coverage",
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1"
