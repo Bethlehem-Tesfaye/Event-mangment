@@ -4,11 +4,11 @@ export default {
   clearMocks: true,
   coverageDirectory: "coverage",
 
+  transformIgnorePatterns: ["/node_modules/(?!@prisma/client)"],
+
   moduleNameMapper: {
     "^(\\.{1,2}/.*)\\.js$": "$1"
   },
-
-  transformIgnorePatterns: ["node_modules/(?!(@prisma/client))"],
 
   testMatch: [
     "**/__tests__/**/*.?([mc])[jt]s?(x)",
