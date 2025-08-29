@@ -1,9 +1,7 @@
 name: Prettier Format Check
 
 on: 
-    pull_request:
-        branches:
-            - '**'
+    pull_request: 
     push: 
         branches:
             - main 
