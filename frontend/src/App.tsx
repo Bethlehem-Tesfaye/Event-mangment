@@ -1,15 +1,22 @@
-import { Button } from "@/components/ui/button"
-import { Toaster, toast } from "sonner"
+import { useState } from "react";
+import Loader from "./components/custom/Loader";
+import Login from "./pages/Login";
+
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4">
-      <Button onClick={() => toast.success("Hello! This is a test toast")}>
-        Click me
-      </Button>
-      <Toaster />
+    <div>
+       {loading ? (
+        <Loader auto onFinish={() => setLoading(false)} />
+      ) : (
+        <Login />
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
+
+
