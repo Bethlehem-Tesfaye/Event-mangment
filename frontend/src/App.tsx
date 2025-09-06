@@ -1,22 +1,16 @@
-import { useState } from "react";
 import Loader from "./components/custom/Loader";
-import Login from "./pages/Login";
+import { useFirstLoad } from "./lib/useFirstLoad";
+import { Toaster } from "sonner";
 
-
-function App() {
-  const [loading, setLoading] = useState(true);
+function App({ children }: { children: React.ReactNode }) {
+  const [loading, finishLoading] = useFirstLoad();
 
   return (
-    <div>
-       {loading ? (
-        <Loader auto onFinish={() => setLoading(false)} />
-      ) : (
-        <Login />
-      )}
-    </div>
+    <>
+      <div>{loading ? <Loader auto onFinish={finishLoading} /> : children}</div>
+      <Toaster richColors position="top-right" />
+    </>
   );
 }
 
 export default App;
-
-
