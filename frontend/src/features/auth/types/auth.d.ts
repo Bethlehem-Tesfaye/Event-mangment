@@ -4,10 +4,12 @@ export interface AuthLayoutProps {
 }
 
 export interface LoginFormProps {
-  onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
+  onSubmit: (values: { email: string; password: string }) => void | Promise<void>;
   onSocialClick: (provider: string) => void;
   toggleRegister: () => void;
+  isLoading: boolean;
 }
+
 
 export interface RegisterFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;

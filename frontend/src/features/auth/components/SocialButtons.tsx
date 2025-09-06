@@ -8,17 +8,17 @@ export const SocialButtons = ({ onClick }: SocialButtonsProps) => {
       <button
         type="button"
         onClick={() => onClick("Google")}
-        className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition"
+        className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 transition"
       >
-        <FcGoogle size={22} />
+        <FcGoogle size={20} />
       </button>
 
       <button
         type="button"
         onClick={() => onClick("Facebook")}
-        className="p-3 rounded-full border border-gray-300 hover:bg-gray-100 transition text-blue-600"
+        className="p-2 rounded-full border border-gray-300 hover:bg-gray-100 transition text-blue-600"
       >
-        <FaFacebook size={22} />
+        <FaFacebook size={20} />
       </button>
     </div>
   );
