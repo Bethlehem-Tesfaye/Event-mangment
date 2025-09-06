@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Logo from "@/components/custom/Logo";
 import type { AuthLayoutProps } from "../types/auth";
 import { Link } from "react-router-dom";
+import { Link } from "react-router-dom";
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, children }) => {
   return (
