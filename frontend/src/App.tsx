@@ -1,11 +1,22 @@
-import { Button } from "@/components/ui/button"
+import { useState } from "react";
+import Loader from "./components/custom/Loader";
+import Login from "./pages/Login";
+
 
 function App() {
+  const [loading, setLoading] = useState(true);
+
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center">
-      <Button>Click me</Button>
+    <div>
+       {loading ? (
+        <Loader auto onFinish={() => setLoading(false)} />
+      ) : (
+        <Login />
+      )}
     </div>
-  )
+  );
 }
 
-export default App
+export default App;
+
+
