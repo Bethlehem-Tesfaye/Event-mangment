@@ -13,6 +13,7 @@ export interface LoginFormProps {
   isLoading: boolean;
 }
 
+
 export interface RegisterFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onSocialClick: (provider: string) => void;
