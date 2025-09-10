@@ -35,7 +35,7 @@ export const LoginPage = () => {
         onSocialClick={(provider) =>
           toast.info(`${provider} login coming soon`)
         }
-        toggleRegister={() => setIsRegister(true)}
+        onRegister={() => setIsRegister(true)}
         isLoading={loginMutation.isPending}
       />
       {loginMutation.isPending && <PulseLoader show />}
