@@ -8,14 +8,14 @@ import { SocialButtons } from "./SocialButtons";
 export interface RegisterFormProps {
   onSubmit: (values: { email: string; password: string }) => void;
   onSocialClick: (provider: string) => void;
-  toggleLogin: () => void;
+  onLogin: () => void;
   isLoading?: boolean;
 }
 
 export const RegisterForm: React.FC<RegisterFormProps> = ({
   onSubmit,
   onSocialClick,
-  toggleLogin,
+  onLogin,
   isLoading = false,
 }) => {
   const [email, setEmail] = useState("");
@@ -61,7 +61,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       <div className="text-center">
         <CardDescription
           className="hover:text-blue-900 hover:cursor-pointer"
-          onClick={toggleLogin}
+          onClick={onLogin}
         >
           Already have an account? Login
         </CardDescription>

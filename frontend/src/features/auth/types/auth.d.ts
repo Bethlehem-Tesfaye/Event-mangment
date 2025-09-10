@@ -6,7 +6,7 @@ export interface AuthLayoutProps {
 export interface LoginFormProps {
   onSubmit: (values: { email: string; password: string }) => void | Promise<void>;
   onSocialClick: (provider: string) => void;
-  toggleRegister: () => void;
+  onRegister: () => void;
   isLoading: boolean;
 }
 
@@ -14,7 +14,7 @@ export interface LoginFormProps {
 export interface RegisterFormProps {
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void;
   onSocialClick: (provider: string) => void;
-  toggleLogin: () => void;
+  onLogin: () => void;
 }
 
 export interface SocialButtonsProps {
