@@ -1,60 +1,84 @@
 import { useEffect, useState } from "react";
+import {
+  lightning,
+  calander,
+  presentation,
+  ticket,
+  street,
+  confetti,
+  banner,
+} from "../../assets";
+
+const logos = [
+  lightning,
+  calander,
+  presentation,
+  ticket,
+  street,
+  confetti,
+  banner,
+];
 
 interface LoaderProps {
-  auto?: boolean;         
-  fill?: boolean;          
-  onFinish?: () => void;   
+  durationPerLogo?: number;
+  iterations?: number;
+  onFinish?: () => void;
 }
 
-const Loader: React.FC<LoaderProps> = ({ auto = true, fill = false, onFinish }) => {
-  const [progress, setProgress] = useState<number>(0);
+const Loader: React.FC<LoaderProps> = ({
+  durationPerLogo = 1000,
+  iterations = 1,
+  onFinish,
+}) => {
+  const extendedLogos = Array(iterations).fill(logos).flat();
+  const totalDuration = durationPerLogo * extendedLogos.length;
+
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [prevIndex, setPrevIndex] = useState<number | null>(null);
 
   useEffect(() => {
-    if (fill) {
-      setProgress(100);
-      return;
-    }
+    const interval = setInterval(() => {
+      setPrevIndex(currentIndex);
+      setCurrentIndex((prev) => (prev + 1) % extendedLogos.length);
+    }, durationPerLogo);
 
-    if (auto) {
-      const interval = setInterval(() => {
-        setProgress((prev) => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            return 100;
-          }
-          return prev + 1;
-        });
-      }, 20);
+    const timeout = setTimeout(() => {
+      onFinish?.();
+    }, totalDuration);
 
-      return () => clearInterval(interval);
-    }
-  }, [auto, fill]);
-
-  useEffect(() => {
-    if (progress === 100 && onFinish) {
-      const timeout = setTimeout(onFinish, 3000); 
-      return () => clearTimeout(timeout);
-    }
-  }, [progress, onFinish]);
+    return () => {
+      clearInterval(interval);
+      clearTimeout(timeout);
+    };
+  }, [currentIndex, durationPerLogo, extendedLogos.length, onFinish]);
 
   return (
-    <div className="flex flex-col items-center justify-center h-screen bg-gray-200 text-black">
-      <svg
-        className={`${progress === 100 ? "animate-pulse" : ""}`}
-        xmlns="http://www.w3.org/2000/svg"
-        viewBox="0 0 256 512"
-        width="200"
-        height="200"
-      >
-        <path
-          d="M216 160h-92l36-128-120 192h92l-36 160 120-224h-92z"
-          fill="rgb(0, 0, 0)"
-          style={{
-            clipPath: `inset(${100 - progress}% 0 0 0)`,
-            transition: "clip-path 0.2s linear",
-          }}
-        />
-      </svg>
+    <div className="flex flex-col items-center justify-center h-screen relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-r from-purple-100 via-pink-100 to-blue-100 animate-gradient-x"></div>
+      <div className="relative w-48 h-48 ml-16">
+        {extendedLogos.map((logo, index) => {
+          let className =
+            "absolute top-1/2 -translate-y-1/2 w-12 h-12 object-contain transition-all duration-700 ease-in-out pl-2";
+
+          if (index === currentIndex) {
+            className +=
+              " translate-x-0 opacity-100 scale-110 rotate-0 animate-bounce-slow";
+          } else if (index === prevIndex) {
+            className += " -translate-x-full opacity-0 scale-100 rotate-0";
+          } else {
+            className += " translate-x-full opacity-0 scale-100 rotate-0";
+          }
+
+          return (
+            <img
+              key={index}
+              src={logo}
+              alt={`logo-${index}`}
+              className={className}
+            />
+          );
+        })}
+      </div>
     </div>
   );
 };

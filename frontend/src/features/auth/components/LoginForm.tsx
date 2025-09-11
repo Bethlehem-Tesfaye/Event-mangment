@@ -6,7 +6,11 @@ import { CardDescription, CardFooter } from "@/components/ui/card";
 import { SocialButtons } from "./SocialButtons";
 import type { LoginFormProps } from "../types/auth";
 
-export const LoginForm = ({ onSubmit, onSocialClick, onRegister }: LoginFormProps) => {
+export const LoginForm = ({
+  onSubmit,
+  onSocialClick,
+  onRegister,
+}: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -16,7 +20,10 @@ export const LoginForm = ({ onSubmit, onSocialClick, onRegister }: LoginFormProp
   };
 
   return (
-    <form onSubmit={handleFormSubmit} className="flex flex-col gap-3 h-full justify-between">
+    <form
+      onSubmit={handleFormSubmit}
+      className="flex flex-col gap-3 h-full justify-between"
+    >
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -60,7 +67,7 @@ export const LoginForm = ({ onSubmit, onSocialClick, onRegister }: LoginFormProp
         <Button type="submit" className="w-full h-10">
           Login
         </Button>
-      <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center gap-2 w-full">
           <div className="flex-1 h-px bg-gray-300" />
           <span className="text-sm text-gray-500 whitespace-nowrap">
             Or continue with
@@ -68,7 +75,8 @@ export const LoginForm = ({ onSubmit, onSocialClick, onRegister }: LoginFormProp
           <div className="flex-1 h-px bg-gray-300" />
         </div>
         <CardDescription className="text-center text-sm">
-          By clicking continue, you agree to our Terms of Service and Privacy Policy.
+          By clicking continue, you agree to our Terms of Service and Privacy
+          Policy.
         </CardDescription>
         <SocialButtons onClick={onSocialClick} />
       </CardFooter>
