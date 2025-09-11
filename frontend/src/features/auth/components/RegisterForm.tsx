@@ -21,7 +21,6 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit({ email, password });
@@ -79,7 +78,8 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
         </div>
 
         <CardDescription className="text-center text-sm">
-          By clicking Continue on Google or Facebook, you agree to EventLight's Terms of Service and Privacy Policy.
+          By clicking Continue on Google or Facebook, you agree to EventLight's
+          Terms of Service and Privacy Policy.
         </CardDescription>
 
         <SocialButtons onClick={onSocialClick} />
