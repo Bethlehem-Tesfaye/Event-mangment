@@ -1,16 +1,12 @@
-import Loader from "./components/custom/Loader";
-import { useFirstLoad } from "./lib/useFirstLoad";
+import { RouterProvider } from "react-router-dom";
+import { router } from "@/app/router";
 import { Toaster } from "sonner";
 
-function App({ children }: { children: React.ReactNode }) {
-  const [loading, finishLoading] = useFirstLoad();
-
+export default function App() {
   return (
     <>
-      <div>{loading ? <Loader auto onFinish={finishLoading} /> : children}</div>
+      <RouterProvider router={router} />
       <Toaster richColors position="top-right" />
     </>
   );
 }
-
-export default App;
