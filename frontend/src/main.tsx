@@ -6,6 +6,7 @@ import { queryClient } from "@/app/queryClient";
 import { AuthProvider } from "./context/AuthContext";
 import App from "./App.tsx";
 import { AuthProvider } from "./context/AuthContext";
+import App from "./App.tsx";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
