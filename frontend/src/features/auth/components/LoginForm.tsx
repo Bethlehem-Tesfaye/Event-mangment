@@ -67,7 +67,7 @@ export const LoginForm = ({
         <Button type="submit" className="w-full h-10">
           Login
         </Button>
-      <div className="flex items-center gap-2 w-full">
+        <div className="flex items-center gap-2 w-full">
           <div className="flex-1 h-px bg-gray-300" />
           <span className="text-sm text-gray-500 whitespace-nowrap">
             Or continue with
