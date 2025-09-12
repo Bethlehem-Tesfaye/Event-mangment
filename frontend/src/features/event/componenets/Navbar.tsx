@@ -107,7 +107,6 @@ export function Navbar({
             </NavigationMenuList>
           </NavigationMenu>
         </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer">
@@ -140,7 +139,6 @@ export function Navbar({
             )}
           </DropdownMenuContent>
         </DropdownMenu>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="md:hidden p-2">
