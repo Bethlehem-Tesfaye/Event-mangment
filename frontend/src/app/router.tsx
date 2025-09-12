@@ -50,4 +50,12 @@ export const router = createBrowserRouter([
     path: "/events/:id",
     element: <EventPreview/>,
   },
+  {
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
+  },
 ]);
