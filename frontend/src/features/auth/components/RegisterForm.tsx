@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { CardDescription } from "@/components/ui/card";
 import { SocialButtons } from "./SocialButtons";
+import { PasswordRequirements } from "./PasswordRequirements";
+import { validatePassword } from "../validation/password";
 
 export interface RegisterFormProps {
   onSubmit: (values: { email: string; password: string }) => void;
@@ -20,9 +22,19 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
 }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showError, setShowError] = useState(false);
+
+  const passwordValidation = validatePassword(password);
+  const isPasswordValid = passwordValidation.every((rule) => rule.valid);
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    if (!isPasswordValid) {
+      setShowError(true);
+      return;
+    }
+
     onSubmit({ email, password });
   };
 
@@ -53,10 +65,15 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           placeholder="********"
           required
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => {
+            setPassword(e.target.value);
+            if (showError) setShowError(false);
+          }}
         />
+        {password.length > 0 && (
+          <PasswordRequirements password={password} highlightError={showError} />
+        )}
       </div>
-
       <div className="text-center">
         <CardDescription
           className="hover:text-blue-900 hover:cursor-pointer"
@@ -67,7 +84,11 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       </div>
 
       <div className="flex flex-col gap-4 w-full">
-        <Button type="submit" className="w-full" disabled={isLoading}>
+        <Button
+          type="submit"
+          className="w-full"
+          disabled={isLoading}
+        >
           {isLoading ? "Registering..." : "Register"}
         </Button>
 
