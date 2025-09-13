@@ -17,6 +17,8 @@ import { speakerRoutes } from "../speaker/speaker.routes.js";
 export const eventRoutes = express.Router();
 
 eventRoutes.get("/", eventController.listEvents);
+eventRoutes.get("/categories", eventController.getAllCategoriesController);
+
 eventRoutes.get("/:eventId", eventController.getEventDetails);
 eventRoutes.get(
   "/:eventId/speakers",

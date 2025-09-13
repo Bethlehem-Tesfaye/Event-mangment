@@ -14,30 +14,49 @@ export const getEvents = async ({
   const whereMatch = {
     status: "published",
     deletedAt: null,
-    title: search ? { contains: search } : undefined
+    title: search ? { contains: search, mode: "insensitive" } : undefined
   };
 
-  const events = await prisma.event.findMany({
-    where: whereMatch,
-    skip: parseInt(offset, 10),
-    take: parseInt(limit, 10),
-    include: {
-      user: { include: { profile: true } },
-      eventCategories: {
-        where: { deletedAt: null },
-        include: {
-          category: categoryName ? { where: { name: categoryName } } : true
+  const [events, totalCount] = await Promise.all([
+    prisma.event.findMany({
+      where: {
+        ...whereMatch,
+        eventCategories: categoryName
+          ? {
+              some: {
+                deletedAt: null,
+                category: { name: categoryName }
+              }
+            }
+          : { some: { deletedAt: null } }
+      },
+      skip: Number(offset) || 0,
+      take: Number(limit) || 20,
+      include: {
+        user: { include: { profile: true } },
+        eventCategories: {
+          where: { deletedAt: null },
+          include: { category: true }
         }
       }
-    }
-  });
+    }),
+    prisma.event.count({
+      where: {
+        ...whereMatch,
+        eventCategories: categoryName
+          ? {
+              some: {
+                deletedAt: null,
+                category: { name: categoryName }
+              }
+            }
+          : { some: { deletedAt: null } }
+      }
+    })
+  ]);
 
-  if (events.length === 0)
-    throw new CustomError("No published events found", 404);
-
-  return events;
+  return { events, totalCount };
 };
-
 export const getEventById = async (eventId) => {
   const event = await prisma.event.findFirst({
     where: { id: parseInt(eventId, 10), status: "published", deletedAt: null },
@@ -67,6 +86,7 @@ export const getEventSpeakers = async (eventId) => {
     throw new CustomError("No speakers found for this event", 404);
 
   return speakers;
+  // ??
 };
 
 export const getEventTickets = async (eventId) => {
@@ -101,9 +121,16 @@ export const purchaseTicket = async ({
     throw new CustomError("Not enough tickets available", 409);
   }
 
-  if (userId) {
+  if (userId || attendeeEmail) {
     const userRegistrations = await prisma.registration.findMany({
-      where: { userId, ticketType: ticket.id, deletedAt: null }
+      where: {
+        ticketType: ticket.id,
+        deletedAt: null,
+        OR: [
+          userId ? { userId } : undefined,
+          attendeeEmail ? { attendeeEmail } : undefined
+        ].filter(Boolean)
+      }
     });
 
     const totalQuantity =
@@ -112,7 +139,7 @@ export const purchaseTicket = async ({
 
     if (totalQuantity > ticket.maxPerUser) {
       throw new CustomError(
-        `Max ${ticket.maxPerUser} tickets allowed per user`,
+        `Max ${ticket.maxPerUser} tickets allowed per user/email`,
         400
       );
     }
@@ -415,4 +442,14 @@ export const getEventAttendeesService = async (eventId) => {
   });
 
   return attendees;
+};
+
+// retrun the all categories listed in the db
+export const getAllCategories = async () => {
+  const categories = await prisma.category.findMany({
+    where: { deletedAt: null },
+    orderBy: { name: "asc" }
+  });
+
+  return categories;
 };
