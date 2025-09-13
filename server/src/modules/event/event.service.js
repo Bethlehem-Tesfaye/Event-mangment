@@ -18,16 +18,26 @@ export const getEvents = async ({
   };
 
   const events = await prisma.event.findMany({
-    where: whereMatch,
+    where: {
+      status: "published",
+      deletedAt: null,
+      title: search ? { contains: search } : undefined,
+      eventCategories: categoryName
+        ? {
+            some: {
+              deletedAt: null,
+              category: { name: categoryName }
+            }
+          }
+        : { some: { deletedAt: null } }
+    },
     skip: parseInt(offset, 10),
     take: parseInt(limit, 10),
     include: {
       user: { include: { profile: true } },
       eventCategories: {
         where: { deletedAt: null },
-        include: {
-          category: categoryName ? { where: { name: categoryName } } : true
-        }
+        include: { category: true }
       }
     }
   });
@@ -37,7 +47,6 @@ export const getEvents = async ({
 
   return events;
 };
-
 export const getEventById = async (eventId) => {
   const event = await prisma.event.findFirst({
     where: { id: parseInt(eventId, 10), status: "published", deletedAt: null },
@@ -415,4 +424,14 @@ export const getEventAttendeesService = async (eventId) => {
   });
 
   return attendees;
+};
+
+// retrun the all categories listed in the db
+export const getAllCategories = async () => {
+  const categories = await prisma.category.findMany({
+    where: { deletedAt: null },
+    orderBy: { name: "asc" }
+  });
+
+  return categories;
 };
