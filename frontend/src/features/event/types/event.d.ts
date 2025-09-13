@@ -132,3 +132,30 @@ export interface EventTabsProps {
   speakers: Speaker[];
   loading?: boolean;
 }
+
+export interface InputFieldProps  {
+  label: string;
+  value: string | number;
+  onChange: (v: any) => void;
+  type?: string;
+  min?: number;
+  max?: number;
+  required?: boolean;
+};
+
+export interface PurchaseModalProps {
+  ticket: Ticket | null;
+  open: boolean;
+  onClose: () => void;
+  onPurchase: (attendeeName: string, attendeeEmail: string, quantity: number) => void;
+}
+
+export interface InputFieldProps{
+  label: string;
+  value: string | number;
+  onChange: (v: any) => void;
+  type?: string;
+  min?: number;
+  max?: number;
+  required?: boolean;
+};
