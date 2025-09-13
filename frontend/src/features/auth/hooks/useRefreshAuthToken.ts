@@ -1,7 +1,9 @@
-import { useMutation } from "@tanstack/react-query";
-import { refreshTokens} from "../api/refreshToken";
+import { useQuery } from "@tanstack/react-query";
+import { refreshTokens, type RefreshResponse } from "../api/refreshToken";
 
 export const useRefresh = () =>
-  useMutation({
-    mutationFn: refreshTokens,
+  useQuery<RefreshResponse, Error>({
+    queryKey: ["auth", "refresh"],
+    queryFn: refreshTokens,
+    retry: false,
   });
