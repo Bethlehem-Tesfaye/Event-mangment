@@ -14,38 +14,48 @@ export const getEvents = async ({
   const whereMatch = {
     status: "published",
     deletedAt: null,
-    title: search ? { contains: search } : undefined
+    title: search ? { contains: search , mode: "insensitive" } : undefined
   };
 
-  const events = await prisma.event.findMany({
-    where: {
-      status: "published",
-      deletedAt: null,
-      title: search ? { contains: search } : undefined,
-      eventCategories: categoryName
-        ? {
-            some: {
-              deletedAt: null,
-              category: { name: categoryName }
+  const [events, totalCount] = await Promise.all([
+    prisma.event.findMany({
+      where: {
+        ...whereMatch,
+        eventCategories: categoryName
+          ? {
+              some: {
+                deletedAt: null,
+                category: { name: categoryName }
+              }
             }
-          }
-        : { some: { deletedAt: null } }
-    },
-    skip: parseInt(offset, 10),
-    take: parseInt(limit, 10),
-    include: {
-      user: { include: { profile: true } },
-      eventCategories: {
-        where: { deletedAt: null },
-        include: { category: true }
+          : { some: { deletedAt: null } }
+      },
+      skip: Number(offset) || 0,
+      take: Number(limit) || 20,
+      include: {
+        user: { include: { profile: true } },
+        eventCategories: {
+          where: { deletedAt: null },
+          include: { category: true }
+        }
       }
-    }
-  });
+    }),
+    prisma.event.count({
+      where: {
+        ...whereMatch,
+        eventCategories: categoryName
+          ? {
+              some: {
+                deletedAt: null,
+                category: { name: categoryName }
+              }
+            }
+          : { some: { deletedAt: null } }
+      }
+    })
+  ]);
 
-  if (events.length === 0)
-    throw new CustomError("No published events found", 404);
-
-  return events;
+  return { events, totalCount };
 };
 export const getEventById = async (eventId) => {
   const event = await prisma.event.findFirst({
@@ -76,6 +86,7 @@ export const getEventSpeakers = async (eventId) => {
     throw new CustomError("No speakers found for this event", 404);
 
   return speakers;
+// ??
 };
 
 export const getEventTickets = async (eventId) => {

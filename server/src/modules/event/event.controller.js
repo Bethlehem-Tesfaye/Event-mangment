@@ -2,17 +2,16 @@ import { Parser } from "json2csv";
 import * as eventService from "./event.service.js";
 
 export const listEvents = async (req, res, next) => {
-  const { limit, offset, search, category } = req.query;
-
   try {
-    const events = await eventService.getEvents({
-      limit,
-      offset,
+    const { limit = 20, offset = 0, search, category } = req.query;
+    const { events, totalCount } = await eventService.getEvents({
+      limit: Number(limit) || 20,
+      offset: Number(offset) || 0,
       search,
       categoryName: category
     });
 
-    return res.status(200).json({ data: events });
+    return res.status(200).json({ data: events, totalCount });
   } catch (err) {
     return next(err);
   }
@@ -29,6 +28,7 @@ export const getEventDetails = async (req, res, next) => {
   }
 };
 
+// ??
 export const purchaseTicket = async (req, res, next) => {
   const { eventId } = req.params;
   const { ticketId, attendeeName, attendeeEmail, quantity } = req.body;
