@@ -1,3 +1,8 @@
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Search, Plus, Globe, Menu, Calendar, User } from "lucide-react";
+import Logo from "@/components/custom/Logo";
+import { Link } from "react-router-dom";
 import {
   NavigationMenu,
   NavigationMenuList,
@@ -5,8 +10,6 @@ import {
   NavigationMenuLink,
 } from "@/components/ui/navigation-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,13 +17,17 @@ import {
   DropdownMenuTrigger,
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
-import { Search, Plus, Globe, Menu, Calendar, User } from "lucide-react";
-import Logo from "@/components/custom/Logo";
-import { Link } from "react-router-dom";
+import type { NavbarProps } from "../types/event";
 
-export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
+export function Navbar({
+  isLoggedIn,
+  searchValue = "",
+  onSearchChange,
+  onSearchSubmit,
+  onLogout,
+}: NavbarProps) {
   return (
-    <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6  bg-gray-100">
+    <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6 bg-gray-100">
       <div className="flex items-center gap-24">
         <div className="flex items-center gap-0 font-bold text-xl">
           <Logo />
@@ -29,14 +36,30 @@ export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
           </span>
         </div>
         <div className="relative hidden md:block">
-          <Input
-            type="text"
-            placeholder="Search events..."
-            className="pl-9 pr-0 h-9 w-110 rounded-3xl bg-white"
-          />
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              onSearchSubmit?.();
+            }}
+          >
+            <Input
+              value={searchValue}
+              onChange={(e) => onSearchChange?.(e.target.value)}
+              type="text"
+              placeholder="Search events..."
+              className="pl-9 pr-0 h-9 w-110 rounded-3xl bg-white"
+              aria-label="Search events"
+            />
+          </form>
+
           <Search className="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
 
-          <div className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 bg-red-600 rounded-3xl flex items-center justify-center">
+          <div
+            role="button"
+            onClick={() => onSearchSubmit?.()}
+            className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 bg-red-600 rounded-3xl flex items-center justify-center cursor-pointer"
+            aria-label="Submit search"
+          >
             <Search className="w-4 h-4 text-white" />
           </div>
         </div>
@@ -84,6 +107,7 @@ export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
             </NavigationMenuList>
           </NavigationMenu>
         </div>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Avatar className="cursor-pointer">
@@ -99,18 +123,24 @@ export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
                 <DropdownMenuItem>Profile</DropdownMenuItem>
                 <DropdownMenuItem>My Events</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
-                <DropdownMenuItem className="text-red-500">
+                <DropdownMenuItem className="text-red-500" onClick={onLogout}>
                   Logout
                 </DropdownMenuItem>
               </>
             ) : (
               <>
-                <DropdownMenuItem>Login</DropdownMenuItem>
-                <DropdownMenuItem>Register</DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link to="/login">Login</Link>
+                </DropdownMenuItem>
+
+                <DropdownMenuItem asChild>
+                  <Link to="/register">Register</Link>
+                </DropdownMenuItem>
               </>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
+
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="md:hidden p-2">
@@ -129,7 +159,6 @@ export function Navbar({ isLoggedIn }: { isLoggedIn: boolean }) {
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
-
             <DropdownMenuItem asChild>
               <Link to="/myevents" className="flex items-center gap-2">
                 <Calendar className="h-4 w-4" /> My Events
