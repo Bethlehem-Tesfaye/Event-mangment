@@ -1,10 +1,5 @@
-import {
-  createContext,
-  useContext,
-  useState,
-  useEffect,
-} from "react";
-import { useRefresh } from "@/features/auth/hooks/useRefresh";
+import { createContext, useContext, useState, useEffect } from "react";
+import { useRefresh } from "@/features/auth/hooks/useRefreshAuthToken";
 
 type User = { id: string; email: string };
 

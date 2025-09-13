@@ -7,7 +7,7 @@ import { Link } from "react-router-dom";
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, children }) => {
   return (
     <div className="flex justify-center items-start min-h-screen bg-gray-100 py-4 px-2">
-      <Card className="flex flex-col w-[450px] max-w-lg h-full max-h-[600px] mt-20 shadow-lg p-5 gap-6">
+      <Card className="flex flex-col w-[400px] max-w-lg h-full max-h-[600px] mt-14 shadow-lg p-5 gap-6">
         <CardHeader className="flex flex-col gap-4">
           <CardTitle className="flex justify-center items-center text-sm sm:text-base md:text-md font-bold">
             <Logo /> EventLight
