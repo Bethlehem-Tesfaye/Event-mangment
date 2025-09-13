@@ -13,7 +13,7 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, children }) => {
             <Logo /> EventLight
           </CardTitle>
           <Link
-            to="/dashboard"
+            to="/browse-event"
             className="absolute top-5 right-5 text-[14px] text-blue-600 hover:text-blue-800 transition"
           >
             Skip
