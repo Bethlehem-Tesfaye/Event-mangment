@@ -18,7 +18,7 @@ export const useLogin = (options?: UseLoginOptions) => {
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);
       toast.success(`Welcome back, ${data.user.email}!`);
-      navigate("/dashboard");
+      navigate("/browse-event");
       options?.onSuccess?.(data);
     },
     onError: (error) => {
