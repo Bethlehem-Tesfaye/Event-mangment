@@ -172,7 +172,7 @@ export const getEventAnalytics = async (req, res, next) => {
 export const getAllCategoriesController = async (req, res, next) => {
   try {
     const categories = await eventService.getAllCategories();
-    res.status(200).json({ data: categories });
+    return res.status(200).json({ data: categories });
   } catch (err) {
     return next(err);
   }

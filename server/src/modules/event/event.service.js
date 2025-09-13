@@ -14,7 +14,7 @@ export const getEvents = async ({
   const whereMatch = {
     status: "published",
     deletedAt: null,
-    title: search ? { contains: search , mode: "insensitive" } : undefined
+    title: search ? { contains: search, mode: "insensitive" } : undefined
   };
 
   const [events, totalCount] = await Promise.all([
@@ -86,7 +86,7 @@ export const getEventSpeakers = async (eventId) => {
     throw new CustomError("No speakers found for this event", 404);
 
   return speakers;
-// ??
+  // ??
 };
 
 export const getEventTickets = async (eventId) => {
@@ -121,30 +121,29 @@ export const purchaseTicket = async ({
     throw new CustomError("Not enough tickets available", 409);
   }
 
-if (userId || attendeeEmail) {
-  const userRegistrations = await prisma.registration.findMany({
-    where: {
-      ticketType: ticket.id,
-      deletedAt: null,
-      OR: [
-        userId ? { userId } : undefined,
-        attendeeEmail ? { attendeeEmail } : undefined,
-      ].filter(Boolean),
-    },
-  });
+  if (userId || attendeeEmail) {
+    const userRegistrations = await prisma.registration.findMany({
+      where: {
+        ticketType: ticket.id,
+        deletedAt: null,
+        OR: [
+          userId ? { userId } : undefined,
+          attendeeEmail ? { attendeeEmail } : undefined
+        ].filter(Boolean)
+      }
+    });
 
-  const totalQuantity =
-    userRegistrations.reduce((sum, r) => sum + r.registeredQuantity, 0) +
-    quantity;
+    const totalQuantity =
+      userRegistrations.reduce((sum, r) => sum + r.registeredQuantity, 0) +
+      quantity;
 
-  if (totalQuantity > ticket.maxPerUser) {
-    throw new CustomError(
-      `Max ${ticket.maxPerUser} tickets allowed per user/email`,
-      400
-    );
+    if (totalQuantity > ticket.maxPerUser) {
+      throw new CustomError(
+        `Max ${ticket.maxPerUser} tickets allowed per user/email`,
+        400
+      );
+    }
   }
-}
-
 
   const reg = await prisma.$transaction(async (prismaTx) => {
     // create registration
