@@ -1,4 +1,5 @@
-import * as speakerService from "./speaker.service.js";
+// eslint-disable-next-line import/extensions
+import * as speakerService from "./speaker.service";
 
 export const createSpeaker = async (req, res, next) => {
   try {
