@@ -35,4 +35,4 @@ build/
 # Optional: temporary files
 *.tmp
 
-/generated/prisma
+# /generated/prisma
