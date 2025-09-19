@@ -16,12 +16,8 @@ export const usePurchaseTicket = () => {
     onSuccess: () => {
       toast.success("Ticket purchased — check your email for the QR code!");
     },
-    onError: (err: unknown) => {
-      const serverMsg =
-        (err && typeof err === "object" && "response" in err && (err as any).response?.data?.message) ||
-        (err && typeof err === "object" && (err as any).message) ||
-        "Purchase failed";
-      toast.error(String(serverMsg));
+    onError: () => {
+      toast.error("Purchase failed, Please try again");
     },
   });
 };
