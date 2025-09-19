@@ -190,7 +190,7 @@ export const purchaseTicket = async ({
   });
 
   await transporter.sendMail({
-    from: `"Event App" <${process.env.SMTP_USER}>`,
+    from: `"EventLight" <${process.env.SMTP_USER}>`,
     to: attendeeEmail,
     subject: `🎟 Your Ticket for Event #${eventId}`,
     html: `

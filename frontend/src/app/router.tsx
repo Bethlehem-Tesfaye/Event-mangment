@@ -8,7 +8,7 @@ import { EventPreview } from "@/features/event/pages/EventPreview";
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Dashboard />,
+    element: <Events />,
   },
   {
     path: "/login",
