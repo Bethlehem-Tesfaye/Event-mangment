@@ -56,3 +56,15 @@ export const logout = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const me = async (req, res, next) => {
+  try {
+    const refreshToken = req.cookies?.refreshToken;
+    if (!refreshToken) return res.status(200).json({ data: { user: null } });
+
+    const { user } = await userService.refreshTokens(refreshToken); 
+    return res.status(200).json({ data: { user } });
+  } catch {
+    return res.status(200).json({ data: { user: null } });
+  }
+};
