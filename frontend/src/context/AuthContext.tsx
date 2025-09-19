@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import { useRefresh } from "@/features/auth/hooks/useRefreshAuthToken";
+import { useMe } from "../features/auth/hooks/useMe.ts";
 
 type User = { id: string; email: string };
 
@@ -19,12 +19,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  const { data, isSuccess, isLoading } = useRefresh();
+  const { data, isSuccess, isLoading } = useMe();
 
-  useEffect(() => {
-    if (isSuccess && data) {
-      setUser(data.user);
-      setAccessToken(data.accessToken);
+useEffect(() => {
+    if (isSuccess) {
+      setUser(data?.user ?? null);
     }
   }, [isSuccess, data]);
 
