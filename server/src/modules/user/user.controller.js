@@ -62,9 +62,9 @@ export const me = async (req, res, next) => {
     const refreshToken = req.cookies?.refreshToken;
     if (!refreshToken) return res.status(200).json({ data: { user: null } });
 
-    const { user } = await userService.refreshTokens(refreshToken); 
+    const { user } = await userService.refreshTokens(refreshToken);
     return res.status(200).json({ data: { user } });
-  } catch {
-    return res.status(200).json({ data: { user: null } });
+  } catch (error) {
+    return next(error);
   }
 };
