@@ -18,14 +18,16 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import type { NavbarProps } from "../types/event";
+import { useAuth } from "@/context/AuthContext";
 
-export function Navbar({
-  isLoggedIn,
+export function Navbar({  
   searchValue = "",
   onSearchChange,
   onSearchSubmit,
   onLogout,
 }: NavbarProps) {
+  const { accessToken } = useAuth();
+  const isLoggedIn = !!accessToken;
   return (
     <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6 bg-gray-100">
       <div className="flex items-center gap-24">

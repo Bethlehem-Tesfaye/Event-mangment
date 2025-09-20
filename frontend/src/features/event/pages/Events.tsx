@@ -12,7 +12,7 @@ function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState<string>("");
-  const { user, clearAuth } = useAuth();
+  const { clearAuth } = useAuth();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
 
@@ -50,7 +50,7 @@ function Events() {
   return (
     <div>
       <Navbar
-        isLoggedIn={user ? true : false}
+        // isLoggedIn={user ? true : false}
         searchValue={search}
         onSearchChange={handleSearchChange}
         onLogout={handleLogout}
