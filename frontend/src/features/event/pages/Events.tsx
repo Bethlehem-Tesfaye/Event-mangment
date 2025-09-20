@@ -7,14 +7,14 @@ import { useFilteredEvents } from "../hooks/useFilteredEvents";
 import { useCategoryList } from "../hooks/useCategoryList";
 import { useAuth } from "@/context/AuthContext";
 import { useLogout } from "@/features/auth/hooks/useLogout";
-import { useNavigate } from "react-router-dom";
+// import { useNavigate } from "react-router-dom";
 function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState<string>("");
   const { clearAuth } = useAuth();
-  const { mutate: logout } = useLogout();
-  const navigate = useNavigate();
+  const { mutate: logout, isPending: logoutLoading } = useLogout();
+  // const navigate = useNavigate();
 
   const limit = 1;
 
@@ -40,7 +40,7 @@ function Events() {
     logout(undefined, {
       onSuccess: () => {
         clearAuth();
-        navigate("/login");
+        // navigate("/login");
       },
       onError: (err) => {
         console.error("Logout failed:", err);
@@ -50,10 +50,10 @@ function Events() {
   return (
     <div>
       <Navbar
-        // isLoggedIn={user ? true : false}
         searchValue={search}
         onSearchChange={handleSearchChange}
         onLogout={handleLogout}
+        logoutLoading={logoutLoading}
       />
       <div className="md:mx-[70px] md:mt-5">
         <Hero />
