@@ -42,6 +42,7 @@ export interface NavbarProps {
   onSearchChange?: (q: string) => void;
   onSearchSubmit?: () => void;
   onLogout:() => void;
+  logoutLoading:boolean
 }
 
 export interface EventDetail {

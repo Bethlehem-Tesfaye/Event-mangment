@@ -19,16 +19,20 @@ import {
 } from "@/components/ui/dropdown-menu";
 import type { NavbarProps } from "../types/event";
 import { useAuth } from "@/context/AuthContext";
+import PulseLoader from "@/components/custom/PulseLoader";
 
 export function Navbar({  
   searchValue = "",
   onSearchChange,
   onSearchSubmit,
   onLogout,
+  logoutLoading
 }: NavbarProps) {
   const { accessToken } = useAuth();
   const isLoggedIn = !!accessToken;
   return (
+    <>
+    {logoutLoading? <PulseLoader show/>:"" }
     <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6 bg-gray-100">
       <div className="flex items-center gap-24">
         <div className="flex items-center gap-0 font-bold text-xl">
@@ -170,5 +174,6 @@ export function Navbar({
         </DropdownMenu>
       </div>
     </nav>
+    </>
   );
 }
