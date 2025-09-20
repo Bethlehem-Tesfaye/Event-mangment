@@ -8,24 +8,12 @@ import {
 import { Button } from "@/components/ui/button";
 import { Facebook, Twitter, Github, Linkedin, Instagram } from "lucide-react";
 
-const categories = [
-  "Tech",
-  "Business",
-  "Education",
-  "Health",
-  "Entertainment",
-  "Art",
-  "Science",
-  "Sports",
-  "Music",
-  "Finance",
-  "Technology",
-  "Food",
-  "Travel",
-  "Lifestyle",
-];
+type FooterProps = {
+  categories: string[];
+  onSelectCategory: (cat: string | null) => void;
+};
 
-export function Footer() {
+export function Footer({ categories, onSelectCategory }: FooterProps) {
   return (
     <footer className="w-full bg-gray-900 text-gray-300">
       <div className="max-w-7xl mx-auto px-6 py-12">
@@ -73,9 +61,12 @@ export function Footer() {
             <ul className="grid grid-cols-2 gap-2 text-sm">
               {categories.slice(0, 8).map((cat) => (
                 <li key={cat}>
-                  <a href="#" className="hover:text-white transition-colors">
+                  <button
+                    onClick={() => onSelectCategory(cat)}
+                    className="hover:text-white transition-colors"
+                  >
                     {cat}
-                  </a>
+                  </button>
                 </li>
               ))}
             </ul>
@@ -163,14 +154,14 @@ export function Footer() {
               </AccordionTrigger>
               <AccordionContent>
                 <ul className="grid grid-cols-2 gap-2 text-sm">
-                  {categories.map((cat) => (
+                  {categories.slice(0, 8).map((cat) => (
                     <li key={cat}>
-                      <a
-                        href="#"
+                      <button
+                        onClick={() => onSelectCategory(cat)}
                         className="hover:text-white transition-colors"
                       >
                         {cat}
-                      </a>
+                      </button>
                     </li>
                   ))}
                 </ul>
