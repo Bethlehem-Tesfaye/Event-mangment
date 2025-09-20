@@ -3,6 +3,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import Logo from "@/components/custom/Logo";
 import type { AuthLayoutProps } from "../types/auth";
 import { Link } from "react-router-dom";
+import { ChevronLeft } from "lucide-react";
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, children }) => {
   return (
@@ -13,10 +14,10 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ title, children }) => {
             <Logo /> EventLight
           </CardTitle>
           <Link
-            to="/dashboard"
-            className="absolute top-5 right-5 text-[14px] text-blue-600 hover:text-blue-800 transition"
+            to="/browse-event"
+            className="absolute top-5 left-5 text-[14px] text-blue-600 hover:text-blue-800 transition flex items-center justify-center"
           >
-            Skip
+            <ChevronLeft size={17}/>Back to browsing page
           </Link>
           <CardTitle className="font-bold text-xl sm:text-2xl md:text-2xl lg:text-2xl leading-snug">
             {title}

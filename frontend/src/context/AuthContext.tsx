@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
   const [accessToken, setAccessToken] = useState<string | null>(null);
 
-  const { data, isSuccess, isLoading } = useMe();
+  const { data, isSuccess} = useMe();
 
 useEffect(() => {
     if (isSuccess) {
@@ -43,10 +43,6 @@ useEffect(() => {
       externalSetAuth = null;
     };
   }, []);
-
-  if (isLoading) {
-    return <div>Loading...</div>;
-  }
 
   return (
     <AuthContext.Provider value={{ user, accessToken, setAuth, clearAuth }}>
