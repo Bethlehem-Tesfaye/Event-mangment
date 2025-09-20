@@ -18,15 +18,21 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import type { NavbarProps } from "../types/event";
+import { useAuth } from "@/context/AuthContext";
+import PulseLoader from "@/components/custom/PulseLoader";
 
-export function Navbar({
-  isLoggedIn,
+export function Navbar({  
   searchValue = "",
   onSearchChange,
   onSearchSubmit,
   onLogout,
+  logoutLoading
 }: NavbarProps) {
+  const { accessToken } = useAuth();
+  const isLoggedIn = !!accessToken;
   return (
+    <>
+    {logoutLoading? <PulseLoader show/>:"" }
     <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6 bg-gray-100">
       <div className="flex items-center gap-24">
         <div className="flex items-center gap-0 font-bold text-xl">
@@ -120,7 +126,7 @@ export function Navbar({
           <DropdownMenuContent align="end">
             {isLoggedIn ? (
               <>
-                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <Link to="/profile"><DropdownMenuItem>Profile</DropdownMenuItem></Link>
                 <DropdownMenuItem>My Events</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuItem className="text-red-500" onClick={onLogout}>
@@ -168,5 +174,6 @@ export function Navbar({
         </DropdownMenu>
       </div>
     </nav>
+    </>
   );
 }

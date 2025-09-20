@@ -38,11 +38,11 @@ export interface BrowsePageProps {
 }
 
 export interface NavbarProps {
-  isLoggedIn: boolean;
   searchValue?: string;
   onSearchChange?: (q: string) => void;
   onSearchSubmit?: () => void;
   onLogout:() => void;
+  logoutLoading:boolean
 }
 
 export interface EventDetail {
