@@ -11,7 +11,7 @@ profileRoutes.get("/profile", authMiddleware, profileController.getProfile);
 
 profileRoutes.put(
   "/profile",
-  authMiddleware,  
+  authMiddleware,
   profileUpload.single("picture"),
   validate(profileSchema),
   profileController.setProfile
