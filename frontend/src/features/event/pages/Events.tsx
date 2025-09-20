@@ -12,18 +12,17 @@ function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState<string>("");
-    const { user, clearAuth } = useAuth();
-   const { mutate: logout } = useLogout();
-   const navigate= useNavigate()
+  const { user, clearAuth } = useAuth();
+  const { mutate: logout } = useLogout();
+  const navigate = useNavigate();
 
   const limit = 1;
 
-  const { events, totalCount, isLoading: eventsLoading } = useFilteredEvents(
-    selectedCategory,
-    currentPage,
-    limit,
-    search
-  );
+  const {
+    events,
+    totalCount,
+    isLoading: eventsLoading,
+  } = useFilteredEvents(selectedCategory, currentPage, limit, search);
 
   const { categories, isLoading: categoriesLoading } = useCategoryList();
 
@@ -34,14 +33,14 @@ function Events() {
 
   const handleSearchChange = useCallback((q: string) => {
     setSearch(q);
-    setCurrentPage(1); 
+    setCurrentPage(1);
   }, []);
 
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => {
-        clearAuth(); 
-        navigate("/login")
+        clearAuth();
+        navigate("/login");
       },
       onError: (err) => {
         console.error("Logout failed:", err);
@@ -51,10 +50,10 @@ function Events() {
   return (
     <div>
       <Navbar
-        isLoggedIn={user?true:false}
+        isLoggedIn={user ? true : false}
         searchValue={search}
         onSearchChange={handleSearchChange}
-         onLogout={handleLogout}
+        onLogout={handleLogout}
       />
       <div className="md:mx-[70px] md:mt-5">
         <Hero />
@@ -71,7 +70,10 @@ function Events() {
           limit={limit}
         />
       </div>
-      <Footer />
+      <Footer
+        categories={categories.map((c: any) => c.name)}
+        onSelectCategory={handleCategoryChange}
+      />
     </div>
   );
 }
