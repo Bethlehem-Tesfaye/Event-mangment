@@ -8,6 +8,7 @@ interface AuthContextType {
   accessToken: string | null;
   setAuth: (user: User, token: string) => void;
   clearAuth: () => void;
+  loading:boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -17,24 +18,33 @@ let externalSetAuth: ((user: User, token: string) => void) | null = null;
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
+  const [accessToken, setAccessToken] = useState<string | null>(
+    localStorage.getItem("accessToken")
+  );
 
   const { data, isSuccess} = useMe();
 
-useEffect(() => {
-    if (isSuccess) {
-      setUser(data?.user ?? null);
-    }
-  }, [isSuccess, data]);
+const [loading, setLoading] = useState(true);
 
-  const setAuth = (u: User, token: string) => {
+useEffect(() => {
+  if (isSuccess) {
+    setUser(data?.user ?? null);
+    setLoading(false);
+  } else if (!accessToken) {
+    setLoading(false);
+  }
+}, [isSuccess, data, accessToken]);
+
+   const setAuth = (u: User, token: string) => {
     setUser(u);
     setAccessToken(token);
+    localStorage.setItem("accessToken", token);
   };
 
-  const clearAuth = () => {
+   const clearAuth = () => {
     setUser(null);
     setAccessToken(null);
+    localStorage.removeItem("accessToken");
   };
 
   useEffect(() => {
@@ -45,7 +55,7 @@ useEffect(() => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, setAuth, clearAuth }}>
+    <AuthContext.Provider value={{ user, accessToken, setAuth, clearAuth , loading}}>
       {children}
     </AuthContext.Provider>
   );

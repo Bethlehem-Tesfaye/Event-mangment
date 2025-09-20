@@ -120,7 +120,7 @@ export function Navbar({
           <DropdownMenuContent align="end">
             {isLoggedIn ? (
               <>
-                <DropdownMenuItem>Profile</DropdownMenuItem>
+                <Link to="/profile"><DropdownMenuItem>Profile</DropdownMenuItem></Link>
                 <DropdownMenuItem>My Events</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuItem className="text-red-500" onClick={onLogout}>
