@@ -8,7 +8,7 @@ interface AuthContextType {
   accessToken: string | null;
   setAuth: (user: User, token: string) => void;
   clearAuth: () => void;
-  loading:boolean;
+  loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,27 +21,28 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [accessToken, setAccessToken] = useState<string | null>(
     localStorage.getItem("accessToken")
   );
+  const [loading, setLoading] = useState(true);
 
-  const { data, isSuccess} = useMe();
+  const { data, isSuccess, isFetching } = useMe();
 
-const [loading, setLoading] = useState(true);
+  useEffect(() => {
+    if (isSuccess && data?.user) {
+      setUser(data.user);
+      setLoading(false);
+    } else if (!accessToken) {
+      setLoading(false);
+    } else if (isFetching) {
+      setLoading(true);
+    }
+  }, [isSuccess, data, accessToken, isFetching]);
 
-useEffect(() => {
-  if (isSuccess) {
-    setUser(data?.user ?? null);
-    setLoading(false);
-  } else if (!accessToken) {
-    setLoading(false);
-  }
-}, [isSuccess, data, accessToken]);
-
-   const setAuth = (u: User, token: string) => {
+  const setAuth = (u: User, token: string) => {
     setUser(u);
     setAccessToken(token);
     localStorage.setItem("accessToken", token);
   };
 
-   const clearAuth = () => {
+  const clearAuth = () => {
     setUser(null);
     setAccessToken(null);
     localStorage.removeItem("accessToken");
@@ -55,7 +56,7 @@ useEffect(() => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, setAuth, clearAuth , loading}}>
+    <AuthContext.Provider value={{ user, accessToken, setAuth, clearAuth, loading }}>
       {children}
     </AuthContext.Provider>
   );
