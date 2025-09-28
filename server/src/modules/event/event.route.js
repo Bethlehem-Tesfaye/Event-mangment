@@ -35,6 +35,9 @@ export const organizerRoutes = express.Router({ mergeParams: true });
 
 organizerRoutes.use(authMiddleware);
 
+organizerRoutes.get("/", eventController.listOrganizerEvents);
+organizerRoutes.get("/stats", eventController.getDashboardStatsController);
+
 organizerRoutes.post(
   "",
   validate(createEventSchema),

@@ -24,7 +24,7 @@ export default function Sidebar({
 
   const content = (
     <aside className="w-64 min-h-screen bg-background border-r flex flex-col">
-      <div className="p-4 flex flex-col gap-2">
+      <div className="p-4 flex  gap-2">
         <Logo />
         <div className="text-sm text-muted-foreground mt-1">Organizer</div>
       </div>
