@@ -1,15 +1,12 @@
-import { Button } from "@/components/ui/button"
-import { Toaster, toast } from "sonner"
+import { RouterProvider } from "react-router-dom";
+import { router } from "@/app/router";
+import { Toaster } from "sonner";
 
-function App() {
+export default function App() {
   return (
-    <div className="flex min-h-svh flex-col items-center justify-center gap-4">
-      <Button onClick={() => toast.success("Hello! This is a test toast")}>
-        Click me
-      </Button>
-      <Toaster />
-    </div>
-  )
+    <>
+      <RouterProvider router={router} />
+      <Toaster richColors position="top-right" />
+    </>
+  );
 }
-
-export default App
