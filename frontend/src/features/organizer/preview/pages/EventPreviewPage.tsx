@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useState } from "react";
-import { useParams, Link } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
-import type { OrganizerEvent, Ticket, Speaker } from "../types/organizer";
+import type { OrganizerEvent, Ticket, Speaker } from "../../types/organizer";
 import {
   useOrganizerEvent,
   useCreateTicket,
@@ -11,7 +11,7 @@ import {
   useCreateSpeaker,
   useUpdateSpeaker,
   useDeleteSpeaker,
-} from "../hooks/useEvents";
+} from "../../Dashboard/hooks/useEvents";
 import EventPreviewLayout from "../components/EventPreviewLayout";
 import EventInfo from "../components/EventInfo";
 import TicketsList from "../components/Tickets/TicketsList";
@@ -41,7 +41,7 @@ function getBannerFromEvent(ev: any): string | null {
 
 export default function EventPreviewPage() {
   const { eventId } = useParams<{ eventId: string }>();
-  const [route, setRoute] = useState("dashboard");
+  const [route, setRoute] = useState("events");
   const [editable, setEditable] = useState(false);
   const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();

@@ -1,7 +1,8 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import SpeakerRow from "./SpeakerRow";
-import type { Speaker } from "../../types/organizer";
+import type { Speaker } from "../../../types/organizer";
+
 
 export default function SpeakersList({
   speakers,

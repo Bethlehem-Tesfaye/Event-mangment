@@ -1,6 +1,6 @@
 import React from "react";
-import Sidebar from "./SideBar";
-import Topbar from "./Topbar";
+import Topbar from "../../Dashboard/components/Topbar";
+import Sidebar from "../../Dashboard/components/SideBar";
 
 export default function EventPreviewLayout({
   route,

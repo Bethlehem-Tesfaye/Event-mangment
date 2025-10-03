@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import TicketRow from "./TicketRow";
-import type { Ticket } from "../../types/organizer";
+import type { Ticket } from "../../../types/organizer";
 
 export default function TicketsList({
   tickets,

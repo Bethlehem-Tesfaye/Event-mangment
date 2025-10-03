@@ -1,14 +1,16 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
-import type { OrganizerEvent, Analytics } from "../types/organizer";
+import type { OrganizerEvent, Analytics } from "../../types/organizer";
 
 
-export function useOrganizerEvents() {
+export function useOrganizerEvents(status?: string) {
   return useQuery({
-    queryKey: ["organizer-events"],
+    queryKey: ["organizer-events", status],
     queryFn: async () => {
-      const res = await api.get<{ data: OrganizerEvent[] }>("/organizer/events");
+      const res = await api.get<{ data: OrganizerEvent[] }>(
+        `/organizer/events${status && status !== "all" ? `?status=${status}` : ""}`
+      );
       return res.data.data;
     },
   });

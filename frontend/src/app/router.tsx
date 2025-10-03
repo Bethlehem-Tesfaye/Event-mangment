@@ -3,8 +3,9 @@ import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import Events from "@/features/event/pages/Events";
 import { EventPreview } from "@/features/event/pages/EventPreview";
-import DashboardPage from "@/features/organizer/pages/DashboardPage";
-import EventPreviewPage from "@/features/organizer/pages/EventPreviewPage";
+import DashboardPage from "@/features/organizer/Dashboard/pages/DashboardPage";
+import EventPreviewPage from "@/features/organizer/preview/pages/EventPreviewPage";
+import OrganizerEventsListPage from "@/features/organizer/events/pages/OrganizerEventsListPage"
 
 export const router = createBrowserRouter([
   {
@@ -34,5 +35,9 @@ export const router = createBrowserRouter([
    {
     path: "organizer/events/:eventId",
     element: <EventPreviewPage/>,
+  },
+  {
+    path: "organizer/events",
+    element: <OrganizerEventsListPage/>,
   },
 ]);

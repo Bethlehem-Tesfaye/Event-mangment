@@ -1,4 +1,5 @@
-import  { useState } from "react";
+import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import Logo from "@/components/custom/Logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -12,14 +13,15 @@ export default function Sidebar({
   onNavigate: (key: string) => void;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navigate = useNavigate();
 
   const items = [
-    { key: "dashboard", label: "Dashboard", icon: "📊" },
-    { key: "events", label: "Events", icon: "🎫" },
-    { key: "create", label: "Create event", icon: "✍️" },
-    { key: "analytics", label: "Analytics", icon: "📈" },
-    { key: "attendees", label: "Attendees", icon: "🧑‍🤝‍🧑" },
-    { key: "settings", label: "Settings", icon: "⚙️" },
+    { key: "dashboard", label: "Dashboard", icon: "📊", path: "/organizer/dashboard" },
+    { key: "events", label: "Events", icon: "🎫", path: "/organizer/events" },
+    { key: "create", label: "Create event", icon: "✍️", path: "/organizer/create-event" },
+    { key: "analytics", label: "Analytics", icon: "📈", path: "/organizer/analytics" },
+    { key: "attendees", label: "Attendees", icon: "🧑‍🤝‍🧑", path: "/organizer/attendees" },
+    { key: "settings", label: "Settings", icon: "⚙️", path: "/organizer/settings" },
   ];
 
   const content = (
@@ -37,6 +39,7 @@ export default function Sidebar({
               variant={active === it.key ? "secondary" : "ghost"}
               onClick={() => {
                 onNavigate(it.key);
+                navigate(it.path);
                 setMobileOpen(false);
               }}
               className={`justify-start w-full

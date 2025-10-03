@@ -32,7 +32,7 @@ export default function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-4">
               <div className="text-lg font-bold">Your events</div>
-              <Link to="/events" className="text-md text-primary hover:underline">
+              <Link to="/organizer/events" className="text-md text-primary hover:underline">
                 See more →
               </Link>
             </div>
@@ -56,9 +56,6 @@ export default function DashboardPage() {
             ) : (
               <EventsList
                 events={events}
-                onEdit={(id) => console.log("Edit event", id)}
-                onPublish={(id) => console.log("Publish event", id)}
-                onDelete={(id) => console.log("Delete event", id)}
               />
             )}
           </div>

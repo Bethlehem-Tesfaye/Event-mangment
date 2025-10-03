@@ -1,6 +1,6 @@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import type { Speaker } from "../../types/organizer";
+import type { Speaker } from "../../../types/organizer";
 
 export default function SpeakerRow({
   speaker,

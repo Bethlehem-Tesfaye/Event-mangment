@@ -1,4 +1,3 @@
-// types/organizer.ts
 export interface Ticket {
   id: number | string;
   type: string;
@@ -17,7 +16,16 @@ export interface Speaker {
   isTemp?: boolean;
 }
 
-/** Full event shape used in organizer pages */
+export interface Category {
+  id: number;
+  name: string;
+}
+
+export interface EventCategory {
+  id: number;
+  category: Category;
+}
+
 export interface OrganizerEvent {
   id: number;
   title: string;
@@ -32,7 +40,6 @@ export interface OrganizerEvent {
   [key: string]: any;
 }
 
-/** Summary row used in lists (avoid colliding with DOM Event) */
 export interface OrganizerSummary {
   id: number;
   title: string;
@@ -42,13 +49,16 @@ export interface OrganizerSummary {
   attendees?: number;
   revenue?: number;
   banner?: string;
+  eventBannerUrl?: string;
+  createdAt?: string;
+  location?: string;
+  locationType?: string;
+  description?: string;
+  eventCategories?: EventCategory[];
 }
 
 export interface EventsListProps {
   events: OrganizerSummary[];
-  onEdit: (id: number) => void;
-  onPublish: (id: number) => void;
-  onDelete: (id: number) => void;
 }
 
 export interface Analytics {
