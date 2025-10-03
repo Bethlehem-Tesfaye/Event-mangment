@@ -23,7 +23,7 @@ export default function Sidebar({
   ];
 
   const content = (
-    <aside className="w-64 min-h-screen bg-background border-r flex flex-col">
+    <aside className="w-64 min-h-screen bg-pink-100 border-r flex flex-col">
       <div className="p-4 flex  gap-2">
         <Logo />
         <div className="text-sm text-muted-foreground mt-1">Organizer</div>
@@ -39,7 +39,11 @@ export default function Sidebar({
                 onNavigate(it.key);
                 setMobileOpen(false);
               }}
-              className="justify-start w-full"
+              className={`justify-start w-full
+                ${active === it.key
+                  ? "bg-red-300 text-white hover:bg-red-300"
+                  : "hover:bg-red-300 hover:text-white"}
+              `}
             >
               <span className="mr-3">{it.icon}</span>
               {it.label}

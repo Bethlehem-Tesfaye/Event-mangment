@@ -15,7 +15,7 @@ export function useOrganizerEvents() {
 }
 
 export function useOrganizerEvent(eventId: number) {
-  return useQuery({
+  return useQuery<OrganizerEvent>({
     queryKey: ["organizer-event", eventId],
     queryFn: async () => {
       const res = await api.get<{ data: OrganizerEvent }>(`/organizer/events/${eventId}`);
@@ -56,7 +56,7 @@ export function useCreateTicket(eventId: number) {
       const res = await api.post(`/organizer/events/${eventId}/tickets`, ticketData);
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries(["organizer-event", eventId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
   });
 }
 
@@ -67,7 +67,7 @@ export function useUpdateTicket(eventId: number) {
       const res = await api.put(`/organizer/events/${eventId}/tickets/${ticketId}`, data);
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries(["organizer-event", eventId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
   });
 }
 
@@ -78,7 +78,7 @@ export function useDeleteTicket(eventId: number) {
       const res = await api.delete(`/organizer/events/${eventId}/tickets/${ticketId}`);
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries(["organizer-event", eventId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
   });
 }
 
@@ -90,7 +90,7 @@ export function useCreateSpeaker(eventId: number) {
       const res = await api.post(`/organizer/events/${eventId}/speakers`, speakerData);
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries(["organizer-event", eventId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
   });
 }
 
@@ -101,7 +101,7 @@ export function useUpdateSpeaker(eventId: number) {
       const res = await api.put(`/organizer/events/${eventId}/speakers/${speakerId}`, data);
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries(["organizer-event", eventId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
   });
 }
 
@@ -112,6 +112,6 @@ export function useDeleteSpeaker(eventId: number) {
       const res = await api.delete(`/organizer/events/${eventId}/speakers/${speakerId}`);
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries(["organizer-event", eventId])
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
   });
 }

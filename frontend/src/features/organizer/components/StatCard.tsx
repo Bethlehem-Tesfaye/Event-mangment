@@ -1,18 +1,37 @@
-import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
-type Stat = { title: string; value: string | number; hint?: string };
+export default function StatCard({
+  stats,
+  loading,
+  error,
+}: {
+  stats: { title: string; value: string | number; hint?: string }[];
+  loading?: boolean;
+  error?: unknown;
+}) {
+  if (loading) {
+    return (
+      <div className="grid grid-cols-3 gap-4">
+        <Skeleton className="h-24 w-full rounded-md" />
+        <Skeleton className="h-24 w-full rounded-md" />
+        <Skeleton className="h-24 w-full rounded-md" />
+      </div>
+    );
+  }
 
-export default function StatCard({ stats }: { stats: Stat[] }) {
+  if (error) {
+    return <p className="text-red-500">Failed to load stats.</p>;
+  }
+
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {stats.map((s, i) => (
-        <Card key={i} className="rounded-2xl shadow-sm hover:shadow-md transition">
-          <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">{s.title}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold tracking-tight">{s.value}</div>
-            {s.hint && <div className="text-xs text-muted-foreground mt-1">{s.hint}</div>}
+    <div className="grid grid-cols-3 gap-4">
+      {stats.map((s) => (
+        <Card key={s.title}>
+          <CardContent className="flex flex-col">
+            <div className="text-sm text-muted-foreground">{s.title}</div>
+            <div className="text-2xl font-bold">{s.value}</div>
+            {s.hint && <div className="text-xs text-muted-foreground">{s.hint}</div>}
           </CardContent>
         </Card>
       ))}

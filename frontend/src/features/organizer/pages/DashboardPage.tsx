@@ -4,7 +4,8 @@ import Topbar from "../components/Topbar";
 import EventsList from "../components/EventsList";
 import StatCard from "../components/StatCard";
 import { Link } from "react-router-dom";
-import { useOrganizerEvents, useOrganizerDashboardStats } from "../hoooks/useEvents";
+import { useOrganizerEvents, useOrganizerDashboardStats } from "../hooks/useEvents";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function DashboardPage() {
   const [route, setRoute] = useState<string>("dashboard");
@@ -21,18 +22,12 @@ export default function DashboardPage() {
     : [];
 
   return (
-    <div className="flex min-h-screen bg-muted">
+    <div className="flex min-h-screen">
       <Sidebar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col">
         <Topbar />
         <main className="p-6 flex-1 space-y-16">
-          {statsLoading ? (
-            <p>Loading stats...</p>
-          ) : statsError ? (
-            <p className="text-red-500">Failed to load stats.</p>
-          ) : (
-            <StatCard stats={stats} />
-          )}
+          <StatCard stats={stats} loading={statsLoading} error={statsError} />
 
           <div>
             <div className="flex items-center justify-between mb-4">
@@ -43,7 +38,19 @@ export default function DashboardPage() {
             </div>
 
             {eventsLoading ? (
-              <p>Loading events...</p>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="flex items-center justify-between gap-4 p-4 bg-card rounded-md">
+                    <div className="flex-1">
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </div>
+                    <div className="w-40">
+                      <Skeleton className="h-8 w-full rounded-md" />
+                    </div>
+                  </div>
+                ))}
+              </div>
             ) : eventsError ? (
               <p className="text-red-500">Failed to load events.</p>
             ) : (

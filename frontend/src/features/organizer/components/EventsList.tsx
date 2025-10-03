@@ -19,8 +19,8 @@ export default function EventsList({ events }: EventsListProps) {
           <CardContent className="p-4 flex flex-col gap-3">
             <div className="font-semibold text-lg">{event.title}</div>
             <div className="text-sm text-muted-foreground">
-              {new Date(event.startDatetime).toLocaleDateString()} —{" "}
-              {new Date(event.endDatetime).toLocaleDateString()}
+              {event.startDatetime ? new Date(event.startDatetime).toLocaleDateString() : "N/A"} —{" "}
+              {event.endDatetime ? new Date(event.endDatetime).toLocaleDateString() : "N/A"}
             </div>
 
             <Separator />

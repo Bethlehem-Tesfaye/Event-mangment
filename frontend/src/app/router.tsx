@@ -28,7 +28,7 @@ export const router = createBrowserRouter([
     element: <EventPreview/>,
   },
   {
-    path: "/dasboard",
+    path: "/organizer/dashboard",
     element: <DashboardPage/>,
   },
    {
