@@ -20,6 +20,7 @@ import { z } from "zod";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import PulseLoader from "@/components/custom/PulseLoader";
 
 const ticketSchema = z.object({
   type: z.string().min(1),
@@ -42,6 +43,7 @@ export default function EventPreviewPage() {
   const { eventId } = useParams<{ eventId: string }>();
   const [route, setRoute] = useState("dashboard");
   const [editable, setEditable] = useState(false);
+  const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();
 
   const id = useMemo(() => (eventId ? Number(eventId) : NaN), [eventId]);
@@ -228,6 +230,7 @@ export default function EventPreviewPage() {
 
   const handleSave = async () => {
     if (!editableEvent || !Number.isFinite(id)) return;
+    setSaving(true);
     const createdTickets = (editableEvent.tickets ?? []).filter(t => (t as any).isTemp);
     const createdSpeakers = (editableEvent.speakers ?? []).filter(s => (s as any).isTemp);
     try {
@@ -256,7 +259,9 @@ export default function EventPreviewPage() {
       queryClient.invalidateQueries({ queryKey: ["organizer-event", id] });
       setEditable(false);
     } catch {
-      setEditable(false);
+      // handle error if needed
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -284,6 +289,7 @@ export default function EventPreviewPage() {
 
   return (
     <EventPreviewLayout route={route} setRoute={setRoute}>
+      <PulseLoader show={saving} />
       <main className="p-6 flex-1 space-y-6">
         {/* Navigation to Dashboard */}
         <div className="mb-4">
@@ -298,8 +304,12 @@ export default function EventPreviewPage() {
           <h1 className="text-2xl font-bold">Event Preview</h1>
           {editable ? (
             <div className="flex gap-2">
-              <Button onClick={handleSave}>Save</Button>
-              <Button variant="destructive" onClick={handleCancel}>Cancel</Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? "Saving..." : "Save"}
+              </Button>
+              <Button variant="destructive" onClick={handleCancel} disabled={saving}>
+                Cancel
+              </Button>
             </div>
           ) : (
             <Button onClick={() => setEditable(true)}>Edit</Button>
