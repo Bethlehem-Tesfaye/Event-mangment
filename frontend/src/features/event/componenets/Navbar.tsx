@@ -76,13 +76,13 @@ export function Navbar({
           <NavigationMenu>
             <NavigationMenuList className="flex gap-6">
               <NavigationMenuItem>
-                <NavigationMenuLink href="/create">
+                <NavigationMenuLink href="/organizer/dashboard">
                   <Button
                     variant="ghost"
                     className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointers"
                   >
                     <Plus className="h-5 w-5" />
-                    <span className="text-[13px]">Create Events</span>
+                    <span className="text-[13px]">Organizer Panel</span>
                   </Button>
                 </NavigationMenuLink>
               </NavigationMenuItem>
@@ -127,7 +127,6 @@ export function Navbar({
             {isLoggedIn ? (
               <>
                 <Link to="/profile"><DropdownMenuItem>Profile</DropdownMenuItem></Link>
-                <DropdownMenuItem>My Events</DropdownMenuItem>
                 <DropdownMenuItem>Settings</DropdownMenuItem>
                 <DropdownMenuItem className="text-red-500" onClick={onLogout}>
                   Logout
@@ -155,8 +154,8 @@ export function Navbar({
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-48">
             <DropdownMenuItem asChild>
-              <Link to="/create" className="flex items-center gap-2">
-                <Plus className="h-4 w-4" /> Create Event
+              <Link to="/organizer/dashboard" className="flex items-center gap-2">
+                <Plus className="h-4 w-4" />Organizer Panel
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>

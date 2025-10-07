@@ -32,28 +32,17 @@ export const router = createBrowserRouter([
     path: "/events/:id",
     element: <EventPreview/>,
   },
-   // Protected routes
+
+  // Protected routes (profile + organizer)
   {
     path: "/",
     element: <ProtectedLayout />,
     children: [
       { path: "profile", element: <ProfilePage /> },
+      { path: "organizer/dashboard", element: <DashboardPage/> },
+      { path: "organizer/events/:eventId", element: <EventPreviewPage/> },
+      { path: "organizer/events", element: <OrganizerEventsListPage/> },
+      { path: "organizer/create-event", element: <CreateEventPage/> },
     ],
-  },
-  {
-    path: "/organizer/dashboard",
-    element: <DashboardPage/>,
-  },
-   {
-    path: "organizer/events/:eventId",
-    element: <EventPreviewPage/>,
-  },
-  {
-    path: "organizer/events",
-    element: <OrganizerEventsListPage/>,
-  },
-  {
-    path: "organizer/create-event",
-    element: <CreateEventPage/>,
   },
 ]);

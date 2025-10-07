@@ -1,13 +1,25 @@
 import { AuthLayout } from "../components/AuthLayout";
 import { LoginForm } from "../components/LoginForm";
-import { useNavigate } from "react-router-dom";
+import { useEffect } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { useLogin } from "../hooks/useLogin";
 import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
 
-export const LoginPage = () => {
-  const navigate = useNavigate();
+export function LoginPage() {
   const { login, isLoading } = useLogin();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const from = (location.state as any)?.from?.pathname ?? "/";
+
+  useEffect(() => {
+    if (user) {
+      navigate(from, { replace: true });
+    }
+  }, [user, navigate, from]);
 
   const handleSubmit = (values: { email: string; password: string }) => {
     login(values);
@@ -26,4 +38,4 @@ export const LoginPage = () => {
       {isLoading && <PulseLoader show />}
     </AuthLayout>
   );
-};
+}
