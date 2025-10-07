@@ -453,3 +453,51 @@ export const getAllCategories = async () => {
 
   return categories;
 };
+
+export const getOrganizerEvents = async (userId, { limit = 20, offset = 0, status } = {}) => {
+  if (!userId) throw new CustomError("User ID is required", 400);
+
+  const where = { userId, deletedAt: null };
+  if (status) where.status = status;
+
+  const [events, totalCount] = await Promise.all([
+    prisma.event.findMany({
+      where,
+      skip: Number(offset) || 0,
+      take: Number(limit) || 20,
+      orderBy: { createdAt: "desc" },
+      include: {
+        tickets: { where: { deletedAt: null } },
+        eventSpeakers: { where: { deletedAt: null } },
+        eventCategories: {
+          where: { deletedAt: null },
+          include: { category: true },
+        },
+      },
+    }),
+    prisma.event.count({ where }),
+  ]);
+
+  return { events, totalCount };
+};
+
+export const getDashboardStatsService = async (userId) => {
+  if (!userId) throw new Error("User ID is required");
+
+  const { events } = await getOrganizerEvents(userId);
+
+  let totalRevenue = 0;
+  let totalTicketsSold = 0;
+
+  for (const event of events) {
+    const analytics = await getEventAnalytics(event.id, userId);
+    totalRevenue += analytics.totalRevenue;
+    totalTicketsSold += analytics.totalTicketsSold;
+  }
+
+  return {
+    totalEvents: events.length,
+    totalRevenue,
+    totalTicketsSold,
+  };
+};

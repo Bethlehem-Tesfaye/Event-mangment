@@ -177,3 +177,30 @@ export const getAllCategoriesController = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const listOrganizerEvents = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const { limit = 20, offset = 0, status } = req.query;
+
+    const { events, totalCount } = await eventService.getOrganizerEvents(userId, {
+      limit: Number(limit),
+      offset: Number(offset),
+      status,
+    });
+
+    return res.status(200).json({ data: events, totalCount });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getDashboardStatsController = async (req, res, next) => {
+  try {
+    const userId = req.userId;
+    const stats = await eventService.getDashboardStatsService(userId);
+    res.status(200).json({ success: true, data: stats });
+  } catch (err) {
+    return next(err);
+  }
+};
