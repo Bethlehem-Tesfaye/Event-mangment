@@ -12,7 +12,7 @@ import Logo from "@/components/custom/Logo";
 
 export default function Topbar() {
   return (
-    <header className="flex items-center justify-between p-4 bg-card border-b">
+    <header className="flex items-center justify-between p-4 bg-card border-b dark:bg-gray-900">
       <h1 className="text-lg font-bold ml-14">
         <Logo /> <span className="text-red-500">Eventlight</span>
       </h1>

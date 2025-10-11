@@ -1,11 +1,26 @@
 import { useState } from "react";
-import { useCategories, useCreateEvent, useCreateTicket, useCreateSpeaker, usePublishEvent, useDeleteTicket, useDeleteSpeaker, useCreateCategory, useAssignCategoriesToEvent } from "../hooks/useCreateEvent";
+import {
+  useCategories,
+  useCreateEvent,
+  useCreateTicket,
+  useCreateSpeaker,
+  usePublishEvent,
+  useDeleteTicket,
+  useDeleteSpeaker,
+  useCreateCategory,
+  useAssignCategoriesToEvent,
+} from "../hooks/useCreateEvent";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import type { Category, TicketInput, SpeakerInput, CreateEventInput } from "../types/createEvent";
+import type {
+  Category,
+  TicketInput,
+  SpeakerInput,
+  CreateEventInput,
+} from "../types/createEvent";
 import { StepIndicator } from "../components/StepIndicator";
 import { CategoryBadge } from "../components/CategoryBadge";
 import { CongratulationsModal } from "../components/CongratulationsModal";
@@ -14,7 +29,7 @@ import Topbar from "@/features/organizer/Dashboard/components/Topbar";
 
 type Step = 1 | 2 | 3 | 4;
 
-export default function CreateEventPage() { 
+export default function CreateEventPage() {
   const [active, setActive] = useState<string>("create");
 
   const [step, setStep] = useState<Step>(1);
@@ -26,12 +41,22 @@ export default function CreateEventPage() {
   const [startDatetime, setStartDatetime] = useState("");
   const [endDatetime, setEndDatetime] = useState("");
   const [location, setLocation] = useState("");
-  const [locationType, setLocationType] = useState<"online" | "inPerson" | "">("");
+  const [locationType, setLocationType] = useState<"online" | "inPerson" | "">(
+    ""
+  );
   const [banner, setBanner] = useState("");
   const [tickets, setTickets] = useState<TicketInput[]>([]);
-  const [ticketDraft, setTicketDraft] = useState<TicketInput>({ type: "", price: 0, totalQuantity: 1 });
+  const [ticketDraft, setTicketDraft] = useState<TicketInput>({
+    type: "",
+    price: 0,
+    totalQuantity: 1,
+  });
   const [speakers, setSpeakers] = useState<SpeakerInput[]>([]);
-  const [speakerDraft, setSpeakerDraft] = useState<SpeakerInput>({ name: "", bio: "", photoUrl: "" });
+  const [speakerDraft, setSpeakerDraft] = useState<SpeakerInput>({
+    name: "",
+    bio: "",
+    photoUrl: "",
+  });
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
   const [newCategory, setNewCategory] = useState("");
   const [duration, setDuration] = useState<number | undefined>();
@@ -69,12 +94,17 @@ export default function CreateEventPage() {
       },
       onError: (error) => {
         console.error("Error creating event:", error);
-      }
+      },
     });
   };
 
   const handleAddTicket = () => {
-    if (!ticketDraft.type || ticketDraft.price < 0 || ticketDraft.totalQuantity < 1) return;
+    if (
+      !ticketDraft.type ||
+      ticketDraft.price < 0 ||
+      ticketDraft.totalQuantity < 1
+    )
+      return;
     createTicket.mutate(ticketDraft, {
       onSuccess: (data) => {
         console.log("Ticket added:", data);
@@ -83,7 +113,7 @@ export default function CreateEventPage() {
       },
       onError: (error) => {
         console.error("Error adding ticket:", error);
-      }
+      },
     });
   };
 
@@ -96,7 +126,7 @@ export default function CreateEventPage() {
         },
         onError: (error) => {
           console.error("Error deleting ticket:", error);
-        }
+        },
       });
     } else {
       setTickets((prev) => prev.filter((_, i) => i !== idx));
@@ -113,7 +143,7 @@ export default function CreateEventPage() {
       },
       onError: (error) => {
         console.error("Error adding speaker:", error);
-      }
+      },
     });
   };
 
@@ -126,7 +156,7 @@ export default function CreateEventPage() {
         },
         onError: (error) => {
           console.error("Error deleting speaker:", error);
-        }
+        },
       });
     } else {
       setSpeakers((prev) => prev.filter((_, i) => i !== idx));
@@ -136,7 +166,7 @@ export default function CreateEventPage() {
     if (!eventId) return;
     try {
       await Promise.all(
-        selectedCategories.map(categoryId =>
+        selectedCategories.map((categoryId) =>
           assignCategories.mutateAsync(categoryId)
         )
       );
@@ -150,7 +180,7 @@ export default function CreateEventPage() {
     <div className="flex">
       <Sidebar active={active} onNavigate={(key) => setActive(key)} />
 
-      <div className="flex-1 min-h-screen bg-gray-50">
+      <div className="flex-1 min-h-screen bg-gray-50 dark:bg-black">
         <Topbar />
 
         <main className="p-6 max-w-3xl mx-auto py-10">
@@ -164,36 +194,65 @@ export default function CreateEventPage() {
             </div>
 
             {step === 1 && (
-              <Card className="p-6 space-y-4">
+              <Card className="p-6 space-y-4 dark:bg-gray-900">
                 <div>
                   <label className="block font-medium mb-1">Title</label>
-                  <Input value={title} onChange={e => setTitle(e.target.value)} required />
+                  <Input
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                    required
+                  />
                 </div>
                 <div>
                   <label className="block font-medium mb-1">Description</label>
-                  <Textarea value={description} onChange={e => setDescription(e.target.value)} />
+                  <Textarea
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
+                  />
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
-                    <label className="block font-medium mb-1">Start Date & Time</label>
-                    <Input type="datetime-local" value={startDatetime} onChange={e => setStartDatetime(e.target.value)} required />
+                    <label className="block font-medium mb-1">
+                      Start Date & Time
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={startDatetime}
+                      onChange={(e) => setStartDatetime(e.target.value)}
+                      required
+                    />
                   </div>
                   <div className="flex-1">
-                    <label className="block font-medium mb-1">End Date & Time</label>
-                    <Input type="datetime-local" value={endDatetime} onChange={e => setEndDatetime(e.target.value)} />
+                    <label className="block font-medium mb-1">
+                      End Date & Time
+                    </label>
+                    <Input
+                      type="datetime-local"
+                      value={endDatetime}
+                      onChange={(e) => setEndDatetime(e.target.value)}
+                    />
                   </div>
                 </div>
                 <div className="flex gap-4">
                   <div className="flex-1">
                     <label className="block font-medium mb-1">Location</label>
-                    <Input value={location} onChange={e => setLocation(e.target.value)} />
+                    <Input
+                      value={location}
+                      onChange={(e) => setLocation(e.target.value)}
+                    />
                   </div>
                   <div className="flex-1">
-                    <label className="block font-medium mb-1">Location Type</label>
+                    <label className="block font-medium mb-1">
+                      Location Type
+                    </label>
                     <select
                       className="w-full border rounded px-2 py-2"
                       value={locationType}
-                      onChange={e => setLocationType(e.target.value as "online" | "inPerson" | "")}
+                      onChange={(e) =>
+                        setLocationType(
+                          e.target.value as "online" | "inPerson" | ""
+                        )
+                      }
                     >
                       <option value="">Select</option>
                       <option value="online">Online</option>
@@ -202,24 +261,44 @@ export default function CreateEventPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block font-medium mb-1">Banner Image URL</label>
-                  <Input value={banner} onChange={e => setBanner(e.target.value)} />
+                  <label className="block font-medium mb-1">
+                    Banner Image URL
+                  </label>
+                  <Input
+                    value={banner}
+                    onChange={(e) => setBanner(e.target.value)}
+                  />
                 </div>
                 <div>
-                  <label className="block font-medium mb-1">Duration (minutes)</label>
+                  <label className="block font-medium mb-1">
+                    Duration (minutes)
+                  </label>
                   <Input
                     type="number"
                     value={duration ?? ""}
-                    onChange={e => setDuration(e.target.value ? Number(e.target.value) : undefined)}
+                    onChange={(e) =>
+                      setDuration(
+                        e.target.value ? Number(e.target.value) : undefined
+                      )
+                    }
                     min={1}
                     placeholder="e.g. 60"
                   />
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" variant="secondary" onClick={() => handleEventInfoSubmit(true)} disabled={createEvent.isPending}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => handleEventInfoSubmit(true)}
+                    disabled={createEvent.isPending}
+                  >
                     Save as Draft
                   </Button>
-                  <Button type="button" onClick={() => handleEventInfoSubmit(false)} disabled={createEvent.isPending}>
+                  <Button
+                    type="button"
+                    onClick={() => handleEventInfoSubmit(false)}
+                    disabled={createEvent.isPending}
+                  >
                     Continue
                   </Button>
                 </div>
@@ -227,20 +306,27 @@ export default function CreateEventPage() {
             )}
 
             {step === 2 && eventId && (
-              <Card className="p-6 space-y-4">
+              <Card className="p-6 space-y-4  dark:bg-gray-900">
                 <div className="font-medium mb-2">Tickets</div>
                 <div className="flex gap-2 mb-2">
                   <Input
                     placeholder="Type (e.g. General)"
                     value={ticketDraft.type}
-                    onChange={e => setTicketDraft({ ...ticketDraft, type: e.target.value })}
+                    onChange={(e) =>
+                      setTicketDraft({ ...ticketDraft, type: e.target.value })
+                    }
                     className="w-32"
                   />
                   <Input
                     type="number"
                     placeholder="Price"
                     value={ticketDraft.price}
-                    onChange={e => setTicketDraft({ ...ticketDraft, price: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTicketDraft({
+                        ...ticketDraft,
+                        price: Number(e.target.value),
+                      })
+                    }
                     className="w-24"
                     min={0}
                   />
@@ -248,7 +334,12 @@ export default function CreateEventPage() {
                     type="number"
                     placeholder="Total Qty"
                     value={ticketDraft.totalQuantity}
-                    onChange={e => setTicketDraft({ ...ticketDraft, totalQuantity: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTicketDraft({
+                        ...ticketDraft,
+                        totalQuantity: Number(e.target.value),
+                      })
+                    }
                     className="w-24"
                     min={1}
                   />
@@ -256,11 +347,20 @@ export default function CreateEventPage() {
                     type="number"
                     placeholder="Max/User"
                     value={ticketDraft.maxPerUser ?? ""}
-                    onChange={e => setTicketDraft({ ...ticketDraft, maxPerUser: Number(e.target.value) })}
+                    onChange={(e) =>
+                      setTicketDraft({
+                        ...ticketDraft,
+                        maxPerUser: Number(e.target.value),
+                      })
+                    }
                     className="w-24"
                     min={1}
                   />
-                  <Button type="button" onClick={handleAddTicket} disabled={createTicket.isPending}>
+                  <Button
+                    type="button"
+                    onClick={handleAddTicket}
+                    disabled={createTicket.isPending}
+                  >
                     Add
                   </Button>
                 </div>
@@ -268,22 +368,41 @@ export default function CreateEventPage() {
                   {tickets.map((t, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
                       <span className="font-medium">{t.type}</span>
-                      <span className="text-xs text-muted-foreground">${t.price}</span>
-                      <span className="text-xs text-muted-foreground">Qty: {t.totalQuantity}</span>
+                      <span className="text-xs text-muted-foreground">
+                        ${t.price}
+                      </span>
+                      <span className="text-xs text-muted-foreground">
+                        Qty: {t.totalQuantity}
+                      </span>
                       {t.maxPerUser && (
-                        <span className="text-xs text-muted-foreground">Max/User: {t.maxPerUser}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Max/User: {t.maxPerUser}
+                        </span>
                       )}
-                      <Button type="button" size="sm" variant="destructive" onClick={() => handleRemoveTicket(idx)}>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleRemoveTicket(idx)}
+                      >
                         Remove
                       </Button>
                     </div>
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" variant="secondary" onClick={() => setStep(1)}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setStep(1)}
+                  >
                     Back
                   </Button>
-                  <Button type="button" variant="secondary" onClick={() => window.location.href = "/organizer/events"}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => (window.location.href = "/organizer/events")}
+                  >
                     Save as Draft
                   </Button>
                   <Button type="button" onClick={() => setStep(3)}>
@@ -294,28 +413,41 @@ export default function CreateEventPage() {
             )}
 
             {step === 3 && eventId && (
-              <Card className="p-6 space-y-4">
+              <Card className="p-6 space-y-4  dark:bg-gray-900">
                 <div className="font-medium mb-2">Speakers</div>
                 <div className="flex gap-2 mb-2">
                   <Input
                     placeholder="Name"
                     value={speakerDraft.name}
-                    onChange={e => setSpeakerDraft({ ...speakerDraft, name: e.target.value })}
+                    onChange={(e) =>
+                      setSpeakerDraft({ ...speakerDraft, name: e.target.value })
+                    }
                     className="w-40"
                   />
                   <Input
                     placeholder="Bio"
                     value={speakerDraft.bio}
-                    onChange={e => setSpeakerDraft({ ...speakerDraft, bio: e.target.value })}
+                    onChange={(e) =>
+                      setSpeakerDraft({ ...speakerDraft, bio: e.target.value })
+                    }
                     className="w-40"
                   />
                   <Input
                     placeholder="Photo URL"
                     value={speakerDraft.photoUrl}
-                    onChange={e => setSpeakerDraft({ ...speakerDraft, photoUrl: e.target.value })}
+                    onChange={(e) =>
+                      setSpeakerDraft({
+                        ...speakerDraft,
+                        photoUrl: e.target.value,
+                      })
+                    }
                     className="w-40"
                   />
-                  <Button type="button" onClick={handleAddSpeaker} disabled={createSpeaker.isPending}>
+                  <Button
+                    type="button"
+                    onClick={handleAddSpeaker}
+                    disabled={createSpeaker.isPending}
+                  >
                     Add
                   </Button>
                 </div>
@@ -323,21 +455,42 @@ export default function CreateEventPage() {
                   {speakers.map((s, idx) => (
                     <div key={idx} className="flex gap-2 items-center">
                       <span className="font-medium">{s.name}</span>
-                      {s.bio && <span className="text-xs text-muted-foreground">{s.bio}</span>}
-                      {s.photoUrl && (
-                        <img src={s.photoUrl} alt={s.name} className="w-8 h-8 rounded-full object-cover" />
+                      {s.bio && (
+                        <span className="text-xs text-muted-foreground">
+                          {s.bio}
+                        </span>
                       )}
-                      <Button type="button" size="sm" variant="destructive" onClick={() => handleRemoveSpeaker(idx)}>
+                      {s.photoUrl && (
+                        <img
+                          src={s.photoUrl}
+                          alt={s.name}
+                          className="w-8 h-8 rounded-full object-cover"
+                        />
+                      )}
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="destructive"
+                        onClick={() => handleRemoveSpeaker(idx)}
+                      >
                         Remove
                       </Button>
                     </div>
                   ))}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" variant="secondary" onClick={() => setStep(2)}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setStep(2)}
+                  >
                     Back
                   </Button>
-                  <Button type="button" variant="secondary" onClick={() => window.location.href = "/organizer/events"}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => (window.location.href = "/organizer/events")}
+                  >
                     Save as Draft
                   </Button>
                   <Button type="button" onClick={() => setStep(4)}>
@@ -348,14 +501,14 @@ export default function CreateEventPage() {
             )}
 
             {step === 4 && eventId && (
-              <Card className="p-6 space-y-4">
+              <Card className="p-6 space-y-4 dark:bg-gray-900">
                 <div>
                   <label className="block font-medium mb-1">Categories</label>
                   <div className="flex gap-2 mb-2">
                     <Input
                       placeholder="Add new category"
                       value={newCategory}
-                      onChange={e => setNewCategory(e.target.value)}
+                      onChange={(e) => setNewCategory(e.target.value)}
                       className="w-48"
                     />
                     <Button
@@ -366,7 +519,8 @@ export default function CreateEventPage() {
                           { name: newCategory.trim() },
                           {
                             onSuccess: () => setNewCategory(""),
-                            onError: (error) => console.error("Error creating category:", error)
+                            onError: (error) =>
+                              console.error("Error creating category:", error),
                           }
                         );
                       }}
@@ -384,15 +538,25 @@ export default function CreateEventPage() {
                           key={cat.id}
                           category={cat}
                           selected={selectedCategories.includes(cat.id)}
-                          onSelect={() => setSelectedCategories(prev => [...prev, cat.id])}
-                          onRemove={() => setSelectedCategories(prev => prev.filter(id => id !== cat.id))}
+                          onSelect={() =>
+                            setSelectedCategories((prev) => [...prev, cat.id])
+                          }
+                          onRemove={() =>
+                            setSelectedCategories((prev) =>
+                              prev.filter((id) => id !== cat.id)
+                            )
+                          }
                         />
                       ))}
                     </div>
                   )}
                 </div>
                 <div className="flex gap-2">
-                  <Button type="button" variant="secondary" onClick={() => setStep(3)}>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    onClick={() => setStep(3)}
+                  >
                     Back
                   </Button>
                   <Button
@@ -423,16 +587,19 @@ export default function CreateEventPage() {
                     window.location.href = "/organizer/events";
                   }}
                   onPublish={() => {
-                    publishEvent.mutate({ eventId }, {
-                      onSuccess: () => {
-                        setShowCongrats(false);
-                        window.location.href = "/organizer/events";
-                      },
-                      onError: () => {
-                        setShowCongrats(false);
-                        alert("Error publishing event");
+                    publishEvent.mutate(
+                      { eventId },
+                      {
+                        onSuccess: () => {
+                          setShowCongrats(false);
+                          window.location.href = "/organizer/events";
+                        },
+                        onError: () => {
+                          setShowCongrats(false);
+                          alert("Error publishing event");
+                        },
                       }
-                    });
+                    );
                   }}
                   publishing={publishEvent.isPending}
                 />

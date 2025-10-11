@@ -16,16 +16,41 @@ export default function Sidebar({
   const navigate = useNavigate();
 
   const items = [
-    { key: "dashboard", label: "Dashboard", icon: "📊", path: "/organizer/dashboard" },
+    {
+      key: "dashboard",
+      label: "Dashboard",
+      icon: "📊",
+      path: "/organizer/dashboard",
+    },
     { key: "events", label: "Events", icon: "🎫", path: "/organizer/events" },
-    { key: "create", label: "Create event", icon: "✍️", path: "/organizer/create-event" },
-    { key: "analytics", label: "Analytics", icon: "📈", path: "/organizer/analytics" },
-    { key: "attendees", label: "Attendees", icon: "🧑‍🤝‍🧑", path: "/organizer/attendees" },
-    { key: "settings", label: "Settings", icon: "⚙️", path: "/organizer/settings" },
+    {
+      key: "create",
+      label: "Create event",
+      icon: "✍️",
+      path: "/organizer/create-event",
+    },
+    {
+      key: "analytics",
+      label: "Analytics",
+      icon: "📈",
+      path: "/organizer/analytics",
+    },
+    {
+      key: "attendees",
+      label: "Attendees",
+      icon: "🧑‍🤝‍🧑",
+      path: "/organizer/attendees",
+    },
+    {
+      key: "settings",
+      label: "Settings",
+      icon: "⚙️",
+      path: "/organizer/settings",
+    },
   ];
 
   const content = (
-    <aside className="w-64 min-h-screen bg-pink-100 border-r flex flex-col">
+    <aside className="w-64 min-h-screen bg-pink-100 border-r flex flex-col dark:bg-[#1f0a0f]">
       <div className="p-4 flex  gap-2">
         <Logo />
         <div className="text-sm text-muted-foreground mt-1">Organizer</div>
@@ -43,9 +68,11 @@ export default function Sidebar({
                 setMobileOpen(false);
               }}
               className={`justify-start w-full
-                ${active === it.key
-                  ? "bg-red-300 text-white hover:bg-red-300"
-                  : "hover:bg-red-300 hover:text-white"}
+                ${
+                  active === it.key
+                    ? "bg-red-300 text-white hover:bg-red-300 dark:hover:bg-red-500  dark:bg-red-500"
+                    : "hover:bg-red-300 hover:text-white  dark:hover:bg-red-500"
+                }
               `}
             >
               <span className="mr-3">{it.icon}</span>

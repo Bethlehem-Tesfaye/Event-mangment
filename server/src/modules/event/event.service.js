@@ -454,7 +454,10 @@ export const getAllCategories = async () => {
   return categories;
 };
 
-export const getOrganizerEvents = async (userId, { limit = 20, offset = 0, status } = {}) => {
+export const getOrganizerEvents = async (
+  userId,
+  { limit = 20, offset = 0, status } = {}
+) => {
   if (!userId) throw new CustomError("User ID is required", 400);
 
   const where = { userId, deletedAt: null };
@@ -471,11 +474,11 @@ export const getOrganizerEvents = async (userId, { limit = 20, offset = 0, statu
         eventSpeakers: { where: { deletedAt: null } },
         eventCategories: {
           where: { deletedAt: null },
-          include: { category: true },
-        },
-      },
+          include: { category: true }
+        }
+      }
     }),
-    prisma.event.count({ where }),
+    prisma.event.count({ where })
   ]);
 
   return { events, totalCount };
@@ -498,6 +501,6 @@ export const getDashboardStatsService = async (userId) => {
   return {
     totalEvents: events.length,
     totalRevenue,
-    totalTicketsSold,
+    totalTicketsSold
   };
 };

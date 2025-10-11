@@ -1,6 +1,10 @@
 import express from "express";
 import * as userController from "./user.controller.js";
-import { registerSchema, loginSchema } from "./user.schema.js";
+import {
+  registerSchema,
+  loginSchema,
+  changePasswordSchema
+} from "./user.schema.js";
 import { validate } from "../../middleware/validate.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
 import optionalAuthMiddleware from "../../middleware/optionalAuthMiddleware.js";
@@ -16,5 +20,13 @@ userRoutes.post("/logout", authMiddleware, userController.logout);
 userRoutes.post("/refresh", userController.refresh);
 
 userRoutes.get("/me", optionalAuthMiddleware, userController.me);
+
+// change password
+userRoutes.post(
+  "/change-password",
+  authMiddleware,
+  validate(changePasswordSchema),
+  userController.changePassword
+);
 
 export default userRoutes;

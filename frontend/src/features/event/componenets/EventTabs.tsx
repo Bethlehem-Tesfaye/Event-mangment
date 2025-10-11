@@ -4,45 +4,67 @@ import { format } from "date-fns";
 import { Calendar, Clock, MapPin } from "lucide-react";
 import type { EventTabsProps } from "../types/event";
 
-export default function EventTabs({ event, speakers, loading }: EventTabsProps) {
+export default function EventTabs({
+  event,
+  speakers,
+  loading,
+}: EventTabsProps) {
   return (
-    <Tabs defaultValue="about" className="w-full mt-6">
-     <TabsList className="flex flex-wrap gap-2 bg-gray-100 rounded-lg p-1">
-    <TabsTrigger value="about" className="flex-1 md:min-w-[100px] text-center py-2">
-      About
-    </TabsTrigger>
-    <TabsTrigger value="speakers" className="flex-1 md:min-w-[100px] text-center py-2">
-      Speakers
-    </TabsTrigger>
-    <TabsTrigger value="organizer" className="flex-1 md:min-w-[100px] text-center py-2">
-      Organizer
-    </TabsTrigger>
-  </TabsList>
+    <Tabs defaultValue="about" className="w-full mt-6 ">
+      <TabsList className="flex flex-wrap gap-2 bg-gray-100 rounded-lg p-1 dark:bg-gray-900">
+        <TabsTrigger
+          value="about"
+          className="flex-1 md:min-w-[100px] text-center py-2 dark:text-gray-400"
+        >
+          About
+        </TabsTrigger>
+        <TabsTrigger
+          value="speakers"
+          className="flex-1 md:min-w-[100px] text-center py-2  dark:text-gray-400"
+        >
+          Speakers
+        </TabsTrigger>
+        <TabsTrigger
+          value="organizer"
+          className="flex-1 md:min-w-[100px] text-center py-2 dark:text-gray-400"
+        >
+          Organizer
+        </TabsTrigger>
+      </TabsList>
 
-      <TabsContent value="about" className="p-6 border rounded-b-md bg-white space-y-4">
-        {event.description && <p className="text-gray-700">{event.description}</p>}
+      <TabsContent
+        value="about"
+        className="p-6 border rounded-b-md bg-white space-y-4 dark:bg-gray-900"
+      >
+        {event.description && (
+          <p className="text-gray-700 dark:text-gray-400">
+            {event.description}
+          </p>
+        )}
 
-        <div className="flex flex-col gap-3 text-gray-700">
+        <div className="flex flex-col gap-3 text-gray-700 dark:text-gray-500">
           {event.startDatetime && (
             <div className="flex items-center gap-2">
               <Calendar className="w-5 h-5 text-gray-500" />
-              <span>Start: {format(new Date(event.startDatetime), "PPPp")}</span>
+              <span>
+                Start: {format(new Date(event.startDatetime), "PPPp")}
+              </span>
             </div>
           )}
           {event.endDatetime && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 dark:text-gray-500">
               <Calendar className="w-5 h-5 text-gray-500" />
               <span>End: {format(new Date(event.endDatetime), "PPPp")}</span>
             </div>
           )}
           {event.duration != null && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 dark:text-gray-500">
               <Clock className="w-5 h-5 text-gray-500" />
               <span>Duration: {event.duration} minutes</span>
             </div>
           )}
           {event.locationType && (
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 dark:text-gray-500">
               <MapPin className="w-5 h-5 text-gray-500" />
               <span>Location type: {event.locationType}</span>
             </div>
@@ -50,7 +72,7 @@ export default function EventTabs({ event, speakers, loading }: EventTabsProps) 
         </div>
 
         {event.eventCategories && event.eventCategories.length > 0 && (
-          <div className="flex flex-wrap gap-2 mt-2">
+          <div className="flex flex-wrap gap-2 mt-2 dark:text-gray-500">
             {event.eventCategories.map((ec) => (
               <span
                 key={ec.category.id}
@@ -63,7 +85,10 @@ export default function EventTabs({ event, speakers, loading }: EventTabsProps) 
         )}
       </TabsContent>
 
-      <TabsContent value="speakers" className="p-4 border rounded-b-md bg-white">
+      <TabsContent
+        value="speakers"
+        className="p-4 border rounded-b-md bg-white dark:bg-gray-900"
+      >
         {loading ? (
           <Skeleton className="w-full h-20" />
         ) : speakers.length > 0 ? (
@@ -91,7 +116,10 @@ export default function EventTabs({ event, speakers, loading }: EventTabsProps) 
         )}
       </TabsContent>
 
-      <TabsContent value="organizer" className="p-4 border rounded-b-md bg-white">
+      <TabsContent
+        value="organizer"
+        className="p-4 border rounded-b-md bg-white dark:bg-gray-900"
+      >
         {event.user?.profile?.firstName ? (
           <div className="mt-2">
             <h3 className="font-semibold text-lg">
@@ -102,7 +130,9 @@ export default function EventTabs({ event, speakers, loading }: EventTabsProps) 
             )}
           </div>
         ) : (
-          <p className="text-gray-500 italic">No organizer details available.</p>
+          <p className="text-gray-500 italic">
+            No organizer details available.
+          </p>
         )}
       </TabsContent>
     </Tabs>

@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Edit, Upload } from "lucide-react";
 import type { ProfileCardProps } from "../types/profile";
 
-
 export function ProfileCard({
   profile,
   email,
@@ -16,7 +15,9 @@ export function ProfileCard({
   onAvatarChange,
 }: ProfileCardProps) {
   const fileInputRef = useRef<HTMLInputElement | null>(null);
-  const [preview, setPreview] = useState<string | null>(profile?.picture ?? null);
+  const [preview, setPreview] = useState<string | null>(
+    profile?.picture ?? null
+  );
 
   useEffect(() => {
     setPreview(profile?.picture ?? null);
@@ -29,8 +30,8 @@ export function ProfileCard({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setPreview(URL.createObjectURL(file)); 
-      onAvatarChange?.(file); 
+      setPreview(URL.createObjectURL(file));
+      onAvatarChange?.(file);
     }
   };
 

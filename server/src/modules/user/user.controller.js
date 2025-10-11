@@ -68,3 +68,18 @@ export const me = async (req, res, next) => {
     return next(error);
   }
 };
+
+export async function changePassword(req, res, next) {
+  try {
+    const { userId } = req;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    await userService.changePassword(userId, currentPassword, newPassword);
+    return res.status(200).json({ message: "Password changed" });
+  } catch (err) {
+    return next(err);
+  }
+}
