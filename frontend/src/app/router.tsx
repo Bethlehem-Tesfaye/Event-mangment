@@ -11,6 +11,7 @@ import EventPreviewPage from "@/features/organizer/preview/pages/EventPreviewPag
 import OrganizerEventsListPage from "@/features/organizer/events/pages/OrganizerEventsListPage";
 import CreateEventPage from "@/features/organizer/createEvents/pages/CreateEventPage";
 import Settings from "@/features/settings/pages/Settings";
+import Analytics from "@/features/organizer/analytics/pages/Analytics";
 
 export const router = createBrowserRouter([
   {
@@ -48,6 +49,7 @@ export const router = createBrowserRouter([
       { path: "organizer/events/:eventId", element: <EventPreviewPage /> },
       { path: "organizer/events", element: <OrganizerEventsListPage /> },
       { path: "organizer/create-event", element: <CreateEventPage /> },
+      { path: "organizer/analytics", element: <Analytics /> },
     ],
   },
 ]);
