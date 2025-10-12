@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Logo from "@/components/custom/Logo";
+import { Link } from "react-router-dom";
 
 export default function Topbar() {
   return (
@@ -28,7 +29,9 @@ export default function Topbar() {
           <DropdownMenuContent className="w-48" align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>Browse Events</DropdownMenuItem>
+            <Link to="/browse-event">
+              <DropdownMenuItem>Browse Events</DropdownMenuItem>
+            </Link>
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem className="text-red-500">Logout</DropdownMenuItem>
