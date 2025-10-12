@@ -18,7 +18,7 @@ export const useRegister = (options?: UseRegisterOptions) => {
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);
       toast.success(`Welcome, ${data.user.email}! Your account was created.`);
-      navigate("/dashboard");
+      navigate("/browse-event");
       options?.onSuccess?.(data);
     },
     onError: (error) => {

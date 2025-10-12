@@ -1,12 +1,13 @@
 import { createBrowserRouter } from "react-router-dom";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
-import Dashboard from "@/features/dashboard/Dashboard";
+import Events from "@/features/event/pages/Events";
+import { EventPreview } from "@/features/event/pages/EventPreview";
 
 export const router = createBrowserRouter([
   {
     path: "/",
-    element: <Dashboard />,
+    element: <Events />,
   },
   {
     path: "/login",
@@ -17,7 +18,59 @@ export const router = createBrowserRouter([
     element: <RegisterPage />,
   },
   {
-    path: "/dashboard",
-    element: <Dashboard />,
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
+  },
+  {
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
+  },
+  {
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
+  },
+  {
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
+  },
+  {
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
+  },
+  {
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
+  },
+  {
+    path: "/browse-event",
+    element: <Events/>,
+  },
+  {
+    path: "/events/:id",
+    element: <EventPreview/>,
   },
 ]);
