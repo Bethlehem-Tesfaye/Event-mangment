@@ -12,6 +12,7 @@ import OrganizerEventsListPage from "@/features/organizer/events/pages/Organizer
 import CreateEventPage from "@/features/organizer/createEvents/pages/CreateEventPage";
 import Settings from "@/features/settings/pages/Settings";
 import Analytics from "@/features/organizer/analytics/pages/Analytics";
+import Attendees from "@/features/organizer/attendees/pages/Attendees";
 
 export const router = createBrowserRouter([
   {
@@ -50,6 +51,7 @@ export const router = createBrowserRouter([
       { path: "organizer/events", element: <OrganizerEventsListPage /> },
       { path: "organizer/create-event", element: <CreateEventPage /> },
       { path: "organizer/analytics", element: <Analytics /> },
+      { path: "organizer/attendees", element: <Attendees /> },
     ],
   },
 ]);
