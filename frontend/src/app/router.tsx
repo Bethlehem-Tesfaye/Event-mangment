@@ -13,6 +13,7 @@ import CreateEventPage from "@/features/organizer/createEvents/pages/CreateEvent
 import Settings from "@/features/settings/pages/Settings";
 import Analytics from "@/features/organizer/analytics/pages/Analytics";
 import Attendees from "@/features/organizer/attendees/pages/Attendees";
+import NotFound from "@/components/custom/NotFound";
 
 export const router = createBrowserRouter([
   {
@@ -53,5 +54,10 @@ export const router = createBrowserRouter([
       { path: "organizer/analytics", element: <Analytics /> },
       { path: "organizer/attendees", element: <Attendees /> },
     ],
+    errorElement: <NotFound />,
+  },
+  {
+    path: "*",
+    element: <NotFound />,
   },
 ]);
