@@ -190,16 +190,14 @@ export const purchaseTicket = async ({
   });
 
   await transporter.sendMail({
-    from: `"EventLight" <${process.env.SMTP_USER}>`,
     to: attendeeEmail,
     subject: `🎟 Your Ticket for Event #${eventId}`,
     html: `
-      <h2>Hello ${attendeeName},</h2>
-      <p>Thank you for purchasing a <b>${ticket.type}</b> ticket.</p>
-      <p>Here’s your QR code:</p>
-      <p><img src="cid:ticketqr-${reg.id}" alt="QR Code" /></p>
-      <p>Please present this QR code at the entrance.</p>
-    `,
+    <h2>Hello ${attendeeName},</h2>
+    <p>Thank you for purchasing a <b>${ticket.type}</b> ticket.</p>
+    <p>Here’s your QR code:</p>
+    <p><img src="cid:ticketqr-${reg.id}" alt="QR Code" /></p>
+  `,
     attachments: [
       {
         filename: "ticket-qr.png",
