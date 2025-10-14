@@ -18,7 +18,7 @@ Thumbs.db
 # Optional: database or dump files
 *.sqlite
 *.db
-*.sql
+# *.sql
 
 # Optional: coverage reports (if using tests)
 coverage/
@@ -35,4 +35,4 @@ build/
 # Optional: temporary files
 *.tmp
 
-/generated/prisma
+# /generated/prisma
