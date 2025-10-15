@@ -2,6 +2,7 @@ import { useCallback, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Ticket } from "../types/event";
 import PurchaseModal from "./PurchaseModal";
+import { useAuth } from "@/context/AuthContext";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -9,6 +10,7 @@ interface TicketListProps {
 }
 
 export default function TicketList({ tickets, loading }: TicketListProps) {
+  const { user } = useAuth();
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -76,6 +78,7 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
       </button>
 
       <PurchaseModal
+        key={user?.id ?? "guest"}
         open={modalOpen}
         onClose={handleCloseModal}
         ticket={selectedTicket}

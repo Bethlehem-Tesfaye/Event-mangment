@@ -8,8 +8,9 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
-import type { InputFieldProps, PurchaseModalProps} from "../types/event";
+import type { InputFieldProps, PurchaseModalProps } from "../types/event";
 import { usePurchaseTicket } from "../hooks/usePurchaseTicket";
+import { useAuth } from "@/context/AuthContext";
 
 const InputField = React.memo(function InputField({
   label,
@@ -26,7 +27,9 @@ const InputField = React.memo(function InputField({
       <input
         type={type}
         value={String(value ?? "")}
-        onChange={(e) => onChange(type === "number" ? Number(e.target.value) : e.target.value)}
+        onChange={(e) =>
+          onChange(type === "number" ? Number(e.target.value) : e.target.value)
+        }
         min={min}
         max={max}
         required={required}
@@ -36,7 +39,13 @@ const InputField = React.memo(function InputField({
   );
 });
 
-const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClose, onPurchase }) => {
+const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
+  ticket,
+  open,
+  onClose,
+  onPurchase,
+}) => {
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [attendeeName, setAttendeeName] = useState("");
   const [attendeeEmail, setAttendeeEmail] = useState("");
@@ -59,13 +68,24 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClos
     }
   }, [open, mutation]);
 
+  useEffect(() => {
+    if (user?.email) {
+      setAttendeeEmail(user.email);
+    } else {
+      setAttendeeEmail("");
+    }
+  }, [user?.email, user]);
+
   const numericPrice = useMemo(() => {
     if (!ticket) return 0;
     const n = Number(ticket.price);
     return Number.isFinite(n) ? n : 0;
   }, [ticket]);
 
-  const canContinue = Boolean(attendeeName && attendeeEmail && quantity > 0);
+  // guests must provide email; logged-in users do not
+  const canContinue = Boolean(
+    attendeeName && (user ? true : attendeeEmail) && quantity > 0
+  );
 
   const handleConfirm = useCallback(() => {
     if (!ticket) return;
@@ -76,7 +96,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClos
         eventId: ticket.eventId,
         ticketId: ticket.id,
         attendeeName,
-        attendeeEmail,
+        attendeeEmail: user ? user.email : attendeeEmail,
         quantity,
       },
       {
@@ -86,7 +106,16 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClos
         },
       }
     );
-  }, [ticket, attendeeName, attendeeEmail, quantity, mutation, onPurchase, onClose]);
+  }, [
+    ticket,
+    attendeeName,
+    attendeeEmail,
+    quantity,
+    mutation,
+    onPurchase,
+    onClose,
+    user,
+  ]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -101,18 +130,46 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClos
           <div className="md:col-span-2 flex flex-col gap-4">
             {step === 1 && (
               <>
-                <InputField label="Full Name" value={attendeeName} onChange={setAttendeeName} required />
-                <InputField label="Email" type="email" value={attendeeEmail} onChange={setAttendeeEmail} required />
+                <InputField
+                  label="Full Name"
+                  value={attendeeName}
+                  onChange={setAttendeeName}
+                  required
+                />
+                {!user ? (
+                  <InputField
+                    label="Email"
+                    type="email"
+                    value={attendeeEmail}
+                    onChange={setAttendeeEmail}
+                    required
+                  />
+                ) : (
+                  <div className="sr-only" aria-hidden="true">
+                    <InputField
+                      label="Email"
+                      type="email"
+                      value={attendeeEmail}
+                      onChange={() => {}}
+                      required={false}
+                    />
+                  </div>
+                )}
+
                 <InputField
                   label="Quantity"
                   type="number"
                   value={quantity}
-                  onChange={(v) => setQuantity(typeof v === "number" && !isNaN(v) ? v : 1)}
+                  onChange={(v) =>
+                    setQuantity(typeof v === "number" && !isNaN(v) ? v : 1)
+                  }
                   min={1}
                   max={ticket?.maxPerUser ?? 1}
                   required
                 />
-                <p className="text-xs text-gray-500">Max per user: {ticket?.maxPerUser}</p>
+                <p className="text-xs text-gray-500">
+                  Max per user: {ticket?.maxPerUser}
+                </p>
               </>
             )}
 
@@ -122,18 +179,29 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClos
                   <h3 className="font-semibold text-gray-800">{ticket.type}</h3>
                   <p className="text-sm text-gray-600 mt-1">
                     ${ticket.price} × {quantity} ={" "}
-                    <span className="font-semibold text-red-600">${numericPrice * quantity}</span>
+                    <span className="font-semibold text-red-600">
+                      ${numericPrice * quantity}
+                    </span>
                   </p>
                   <p className="text-sm text-gray-600 mt-1">
-                    Attendee: {attendeeName} ({attendeeEmail})
+                    Attendee: {attendeeName}{" "}
+                    {user ? `(${user.email})` : `(${attendeeEmail})`}
                   </p>
                 </div>
 
                 <div className="flex items-start gap-2">
-                  <Checkbox id="agree" checked={agree} onCheckedChange={(c) => setAgree(Boolean(c))} />
+                  <Checkbox
+                    id="agree"
+                    checked={agree}
+                    onCheckedChange={(c) => setAgree(Boolean(c))}
+                  />
                   <span className="text-sm leading-snug">
-                    I agree to the <span className="underline cursor-pointer">Terms</span> and{" "}
-                    <span className="underline cursor-pointer">Privacy Policy</span>.
+                    I agree to the{" "}
+                    <span className="underline cursor-pointer">Terms</span> and{" "}
+                    <span className="underline cursor-pointer">
+                      Privacy Policy
+                    </span>
+                    .
                   </span>
                 </div>
               </>
@@ -150,7 +218,11 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClos
                 </Button>
               ) : (
                 <>
-                  <Button variant="outline" className="rounded-lg" onClick={() => setStep(1)}>
+                  <Button
+                    variant="outline"
+                    className="rounded-lg"
+                    onClick={() => setStep(1)}
+                  >
                     Back
                   </Button>
                   <Button
@@ -172,7 +244,9 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({ ticket, open, onClos
               <p className="text-sm text-gray-600">
                 ${ticket.price} × {quantity}
               </p>
-              <p className="font-bold text-red-600 mt-2">Total: ${numericPrice * quantity}</p>
+              <p className="font-bold text-red-600 mt-2">
+                Total: ${numericPrice * quantity}
+              </p>
             </div>
           )}
         </div>

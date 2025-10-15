@@ -4,12 +4,11 @@ export const fetchEvents = async (params?: {
   limit?: number;
   offset?: number;
   search?: string;
-  category?: string; 
+  category?: string;
 }) => {
   const { data } = await api.get("/events", { params });
   return data;
 };
-
 
 export const fetchEventById = async (id: string | number) => {
   const { data } = await api.get(`/events/${id}`);
@@ -37,12 +36,11 @@ export const purchaseTicket = async (payload: {
 }) => {
   const { eventId, ticketId, attendeeName, attendeeEmail, quantity } = payload;
 
-  const { data } = await api.post(`/events/${eventId}/tickets/purchase`, {
-    ticketId,
-    attendeeName,
-    attendeeEmail,
-    quantity,
-  });
+  const { data } = await api.post(
+    `/events/${eventId}/tickets/purchase`,
+    { ticketId, attendeeName, attendeeEmail, quantity },
+    { withCredentials: true }
+  );
 
   return data;
 };

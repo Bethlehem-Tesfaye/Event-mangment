@@ -18,17 +18,22 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "../componenets/Navbar";
 import { useState } from "react";
+import { useLogout } from "@/features/auth/hooks/useLogout";
+import { useAuth } from "@/context/AuthContext";
 
 export function EventPreview() {
   const { id } = useParams<{ id: string }>();
 
   const [search, setSearch] = useState("");
-  const [logoutLoading, setLogoutLoading] = useState(false);
+  const { mutate: logout, isPending: logoutLoading } = useLogout();
+  const { clearAuth } = useAuth();
 
   const handleSearchChange = (value: string) => setSearch(value);
   const handleLogout = () => {
-    setLogoutLoading(true);
-    setTimeout(() => setLogoutLoading(false), 1000);
+    logout(undefined, {
+      onSuccess: () => clearAuth(),
+      onError: (err) => console.error("Logout failed:", err),
+    });
   };
 
   const { data: event, isLoading: eventLoading } = useEventDetails(id!);
