@@ -8,7 +8,7 @@ export default function EventsTabBar({
 }: EventsTabBarProps) {
   return (
     <Tabs value={value} onValueChange={onChange} className="w-full mt-6">
-      <TabsList className="flex flex-wrap gap-2 bg-gray-100 rounded-lg p-1 dark:bg-gray-900">
+      <TabsList className="flex flex-wrap gap-2 bg-gray-100 rounded-lg p-1 dark:bg-[#202127]">
         {tabs.map((t) => (
           <TabsTrigger
             key={t.value}

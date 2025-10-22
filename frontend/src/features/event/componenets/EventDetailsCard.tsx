@@ -4,7 +4,7 @@ import type { EventDetailsCardProps } from "../types/event";
 
 export default function EventDetailsCard({ event }: EventDetailsCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden dark:bg-gray-900">
+    <div className="bg-white rounded-2xl shadow-md overflow-hidden dark:bg-[#202127]">
       {event.eventBannerUrl && (
         <img
           src={event.eventBannerUrl}

@@ -42,7 +42,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   return (
     <>
       {logoutLoading ? <PulseLoader show /> : ""}
-      <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6 bg-gray-100 dark:bg-gray-900 border-gray-200 dark:border-slate-600">
+      <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6 bg-gray-100 dark:bg-[#202127] border-gray-200 dark:border-slate-900">
         <div className="flex items-center gap-24">
           <div className="flex items-center gap-0 font-bold text-xl">
             <Logo />
@@ -64,7 +64,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                   onChange={(e) => onSearchChange?.(e.target.value)}
                   type="text"
                   placeholder="Search events..."
-                  className="pl-9 pr-0 h-9 w-110 rounded-3xl bg-white dark:bg-slate-800 dark:text-white"
+                  className="pl-9 pr-0 h-9 w-110 rounded-3xl bg-white dark:bg-[#202127] dark:text-white"
                   aria-label="Search events"
                 />
               </form>

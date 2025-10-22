@@ -34,7 +34,7 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
 
   return (
     <div className="flex flex-col gap-4 ">
-      <div className="border rounded-2xl p-6 bg-gray-50 dark:bg-gray-800">
+      <div className="border rounded-2xl p-6 bg-gray-50 dark:bg-[#202127]">
         <h2 className="text-md mb-2">Select Tickets</h2>
         <div className="flex flex-col gap-3 ">
           {tickets.map((t) => (

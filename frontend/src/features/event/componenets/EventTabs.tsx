@@ -11,7 +11,7 @@ export default function EventTabs({
 }: EventTabsProps) {
   return (
     <Tabs defaultValue="about" className="w-full mt-6 ">
-      <TabsList className="flex flex-wrap gap-2 bg-gray-100 rounded-lg p-1 dark:bg-gray-900">
+      <TabsList className="flex flex-wrap gap-2 bg-gray-100 rounded-lg p-1 dark:bg-[#202127]">
         <TabsTrigger
           value="about"
           className="flex-1 md:min-w-[100px] text-center py-2 dark:text-gray-400"
@@ -34,7 +34,7 @@ export default function EventTabs({
 
       <TabsContent
         value="about"
-        className="p-6 border rounded-b-md bg-white space-y-4 dark:bg-gray-900"
+        className="p-6 border rounded-b-md bg-white space-y-4 dark:bg-[#202127]"
       >
         {event.description && (
           <p className="text-gray-700 dark:text-gray-400">
@@ -87,7 +87,7 @@ export default function EventTabs({
 
       <TabsContent
         value="speakers"
-        className="p-4 border rounded-b-md bg-white dark:bg-gray-900"
+        className="p-4 border rounded-b-md bg-white dark:bg-[#202127]"
       >
         {loading ? (
           <Skeleton className="w-full h-20" />
@@ -118,7 +118,7 @@ export default function EventTabs({
 
       <TabsContent
         value="organizer"
-        className="p-4 border rounded-b-md bg-white dark:bg-gray-900"
+        className="p-4 border rounded-b-md bg-white dark:bg-[#202127]"
       >
         {event.user?.profile?.firstName ? (
           <div className="mt-2">

@@ -4,6 +4,14 @@ import Logo from "@/components/custom/Logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import {
+  LayoutDashboard,
+  SquarePen,
+  ChartColumnIncreasing,
+  ListOrdered,
+  Settings,
+  Calendar,
+} from "lucide-react";
 
 export default function Sidebar({
   active,
@@ -19,45 +27,50 @@ export default function Sidebar({
     {
       key: "dashboard",
       label: "Dashboard",
-      icon: "📊",
+      icon: <LayoutDashboard />,
       path: "/organizer/dashboard",
     },
-    { key: "events", label: "Events", icon: "🎫", path: "/organizer/events" },
+    {
+      key: "events",
+      label: "Events",
+      icon: <Calendar />,
+      path: "/organizer/events",
+    },
     {
       key: "create",
       label: "Create event",
-      icon: "✍️",
+      icon: <SquarePen />,
       path: "/organizer/create-event",
     },
     {
       key: "analytics",
       label: "Analytics",
-      icon: "📈",
+      icon: <ChartColumnIncreasing />,
       path: "/organizer/analytics",
     },
     {
       key: "attendees",
       label: "Attendees",
-      icon: "🧑‍🤝‍🧑",
+      icon: <ListOrdered />,
       path: "/organizer/attendees",
     },
     {
       key: "settings",
       label: "Settings",
-      icon: "⚙️",
+      icon: <Settings />,
       path: "/organizer/settings",
     },
   ];
 
   const content = (
-    <aside className="w-64 min-h-screen bg-pink-100 border-r flex flex-col dark:bg-[#1f0a0f]">
+    <aside className="w-64 min-h-screen bg-[#00030b] border-r flex flex-col dark:bg-[#100f0f]">
       <div className="p-4 flex  gap-2">
         <Logo />
         <div className="text-sm text-muted-foreground mt-1">Organizer</div>
       </div>
 
       <ScrollArea className="flex-1 p-2">
-        <nav className="flex flex-col gap-2">
+        <nav className="flex flex-col gap-2 text-white">
           {items.map((it) => (
             <Button
               key={it.key}
@@ -70,8 +83,8 @@ export default function Sidebar({
               className={`justify-start w-full
                 ${
                   active === it.key
-                    ? "bg-red-300 text-white hover:bg-red-300 dark:hover:bg-red-500  dark:bg-red-500"
-                    : "hover:bg-red-300 hover:text-white  dark:hover:bg-red-500"
+                    ? "bg-red-300 text-black hover:bg-red-300 dark:hover:bg-red-500  dark:bg-red-500"
+                    : "hover:bg-red-300 hover:text-black  dark:hover:bg-red-500"
                 }
               `}
             >

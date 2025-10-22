@@ -28,7 +28,7 @@ function Settings() {
   const currentTheme = mounted ? theme ?? "light" : "light";
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-slate-900">
+    <div className="min-h-screen bg-gray-50 dark:bg-[#202127]">
       <Navbar
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
@@ -37,7 +37,7 @@ function Settings() {
 
       <main className="max-w-4xl mx-auto px-6 py-10 space-y-10">
         {/* General Section */}
-        <section className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8">
+        <section className="bg-white dark:bg-[#202127] border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             General
           </h2>
@@ -65,7 +65,7 @@ function Settings() {
         </section>
 
         {/* Account Section */}
-        <section className="bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8">
+        <section className="bg-white dark:bg-[#202127] border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             Account
           </h2>
@@ -80,7 +80,7 @@ function Settings() {
             />
           </div>
 
-          <div className="pt-5 border-t border-gray-100 dark:border-slate-700 flex justify-end">
+          <div className="pt-5 border-t border-gray-100 dark:bg-[#202127] flex justify-end">
             <button
               onClick={handleLogout}
               disabled={logoutLoading}

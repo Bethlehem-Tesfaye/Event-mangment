@@ -194,7 +194,7 @@ export default function CreateEventPage() {
             </div>
 
             {step === 1 && (
-              <Card className="p-6 space-y-4 dark:bg-gray-900">
+              <Card className="p-6 space-y-4 dark:bg-[#202127]">
                 <div>
                   <label className="block font-medium mb-1">Title</label>
                   <Input
@@ -306,7 +306,7 @@ export default function CreateEventPage() {
             )}
 
             {step === 2 && eventId && (
-              <Card className="p-6 space-y-4  dark:bg-gray-900">
+              <Card className="p-6 space-y-4  dark:bg-[#202127]">
                 <div className="font-medium mb-2">Tickets</div>
                 <div className="flex gap-2 mb-2">
                   <Input
@@ -413,7 +413,7 @@ export default function CreateEventPage() {
             )}
 
             {step === 3 && eventId && (
-              <Card className="p-6 space-y-4  dark:bg-gray-900">
+              <Card className="p-6 space-y-4  dark:bg-[#202127]">
                 <div className="font-medium mb-2">Speakers</div>
                 <div className="flex gap-2 mb-2">
                   <Input
@@ -501,7 +501,7 @@ export default function CreateEventPage() {
             )}
 
             {step === 4 && eventId && (
-              <Card className="p-6 space-y-4 dark:bg-gray-900">
+              <Card className="p-6 space-y-4 dark:bg-[#202127]">
                 <div>
                   <label className="block font-medium mb-1">Categories</label>
                   <div className="flex gap-2 mb-2">

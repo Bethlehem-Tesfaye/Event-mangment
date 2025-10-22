@@ -45,7 +45,7 @@ export function ChangePasswordForm({ changePassword, isLoading }: Props) {
   return (
     <form
       onSubmit={submit}
-      className="w-full max-w-md md:max-w-lg space-y-3 p-4 rounded-lg text-sm bg-gray-100 dark:bg-gray-700"
+      className="w-full max-w-md md:max-w-lg space-y-3 p-4 rounded-lg text-sm bg-gray-100 dark:bg-[#1b1b1f]"
     >
       <div>
         <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
@@ -56,7 +56,7 @@ export function ChangePasswordForm({ changePassword, isLoading }: Props) {
           value={currentPassword}
           onChange={(e) => setCurrentPassword(e.target.value)}
           required
-          className="mt-1 block w-full max-w-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 focus:ring-2 focus:ring-red-500 outline-none transition-all text-sm"
+          className="mt-1 block w-full max-w-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-[#202127] px-3 py-1.5 focus:ring-2 focus:ring-red-500 outline-none transition-all text-sm"
         />
       </div>
 
@@ -70,7 +70,7 @@ export function ChangePasswordForm({ changePassword, isLoading }: Props) {
           onChange={(e) => setNewPassword(e.target.value)}
           required
           minLength={8}
-          className="mt-1 block w-full max-w-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 focus:ring-2 focus:ring-red-500 outline-none transition-all text-sm"
+          className="mt-1 block w-full max-w-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-[#202127] px-3 py-1.5 focus:ring-2 focus:ring-red-500 outline-none transition-all text-sm"
         />
         <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
           At least 8 characters.
@@ -86,7 +86,7 @@ export function ChangePasswordForm({ changePassword, isLoading }: Props) {
           value={confirm}
           onChange={(e) => setConfirm(e.target.value)}
           required
-          className="mt-1 block w-full max-w-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-1.5 focus:ring-2 focus:ring-red-500 outline-none transition-all text-sm"
+          className="mt-1 block w-full max-w-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-[#202127] px-3 py-1.5 focus:ring-2 focus:ring-red-500 outline-none transition-all text-sm"
         />
       </div>
 

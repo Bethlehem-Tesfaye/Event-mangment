@@ -55,7 +55,7 @@ export default function ProfilePage() {
 
   if (isFetching) {
     return (
-      <div className="dark:bg-gray-900 min-h-screen">
+      <div className="dark:bg-[#202127] min-h-screen">
         <Navbar
           onLogout={handleLogout}
           logoutLoading={logoutLoading}
@@ -74,7 +74,7 @@ export default function ProfilePage() {
                 </div>
               </div>
             </div>
-            <div className="p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm grid gap-4">
+            <div className="p-6 bg-white dark:bg-[#202127] border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm grid gap-4">
               <Skeleton className="h-10 rounded" />
               <Skeleton className="h-10 rounded" />
               <Skeleton className="h-10 rounded" />
@@ -87,7 +87,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <div className="dark:bg-gray-900 min-h-screen">
+    <div className="dark:bg-[#0a0a0b] min-h-screen">
       <Navbar
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
