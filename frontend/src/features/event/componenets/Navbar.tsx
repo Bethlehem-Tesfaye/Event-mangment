@@ -112,7 +112,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuLink>
+                  <NavigationMenuLink asChild>
                     <Link to="/user/myevents">
                       <Button
                         variant="ghost"

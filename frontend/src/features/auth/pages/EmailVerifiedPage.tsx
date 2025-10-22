@@ -1,33 +1,14 @@
-import { useEffect, useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
-import { api } from "@/lib/axios";
+import { useSearchParams } from "react-router-dom";
 import { AuthLayout } from "@/features/auth/components/AuthLayout";
-import { toast } from "sonner";
+import { useVerifyEmail } from "../hooks/useVerify";
 
 export const EmailVerifiedPage = () => {
   const [searchParams] = useSearchParams();
-  const [status, setStatus] = useState("loading");
-  const navigate = useNavigate();
   const token = searchParams.get("token");
 
-  useEffect(() => {
-    const verifyEmail = async () => {
-      try {
-        await api.get(
-          `/auth/verify-email?token=${encodeURIComponent(token ?? "")}`
-        );
-        toast.success("Email verified successfully!");
-        setStatus("success");
-        setTimeout(() => navigate("/login"), 9000);
-      } catch (err) {
-        setStatus("error");
-        toast.error("Verification failed or link expired.");
-      }
-    };
-    if (token) verifyEmail();
-  }, [token, navigate]);
+  const { status } = useVerifyEmail(token);
 
-  if (status === "loading")
+  if (status === "pending")
     return (
       <AuthLayout title="Verifying...">
         <p>Verifying your email...</p>
