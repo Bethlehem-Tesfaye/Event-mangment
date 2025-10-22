@@ -14,6 +14,9 @@ import Settings from "@/features/settings/pages/Settings";
 import Analytics from "@/features/organizer/analytics/pages/Analytics";
 import Attendees from "@/features/organizer/attendees/pages/Attendees";
 import NotFound from "@/components/custom/NotFound";
+import UserRegistrationsPage from "@/features/event/pages/UserRegistrations";
+import { VerifyNoticePage } from "@/features/auth/pages/VerifyNoticePage";
+import { EmailVerifiedPage } from "@/features/auth/pages/EmailVerifiedPage";
 
 export const router = createBrowserRouter([
   {
@@ -41,6 +44,15 @@ export const router = createBrowserRouter([
     path: "/settings",
     element: <Settings />,
   },
+  {
+    path: "/verify-notice",
+    element: <VerifyNoticePage />,
+  },
+  {
+    path: "/verify-email",
+    element: <EmailVerifiedPage />,
+  },
+
   // Protected routes (profile + organizer)
   {
     path: "/",
@@ -53,6 +65,7 @@ export const router = createBrowserRouter([
       { path: "organizer/create-event", element: <CreateEventPage /> },
       { path: "organizer/analytics", element: <Analytics /> },
       { path: "organizer/attendees", element: <Attendees /> },
+      { path: "user/myevents", element: <UserRegistrationsPage /> },
     ],
     errorElement: <NotFound />,
   },

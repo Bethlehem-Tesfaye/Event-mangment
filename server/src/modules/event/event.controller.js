@@ -207,3 +207,13 @@ export const getDashboardStatsController = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const getUserRegistrationsController = async (req, res, next) => {
+  try {
+    const { userId } = req;
+    const registrations = await eventService.getUserRegistrations(userId);
+    return res.status(200).json({ data: registrations });
+  } catch (err) {
+    return next(err);
+  }
+};

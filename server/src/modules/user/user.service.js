@@ -1,5 +1,6 @@
 import dotenv from "dotenv";
-
+import transporter from "../../lib/mailer.js";
+import logger from "../../utils/logger.js";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import prisma from "../../lib/prisma.js";
@@ -9,6 +10,14 @@ dotenv.config();
 
 const ACCESS_EXPIRES_IN = "1d";
 const REFRESH_EXPIRES_IN = "7d";
+const EMAIL_VERIFY_EXPIRES_IN = "1h";
+
+const signEmailVerifyToken = (user) =>
+  jwt.sign(
+    { userId: user.id, email: user.email },
+    process.env.ACCESS_TOKEN_SECRET,
+    { expiresIn: EMAIL_VERIFY_EXPIRES_IN }
+  );
 
 const signAccessToken = (user) =>
   jwt.sign(
@@ -43,10 +52,38 @@ export const registerUser = async ({ email, password }) => {
     data: {
       email,
       password: hashedPassword,
+      isVerified: false,
       profile: { create: {} }
     },
     select: { id: true, email: true, tokenVersion: true }
   });
+
+  const token = signEmailVerifyToken(user);
+  const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+  const html = `
+    <div style="font-family: sans-serif; line-height: 1.6;">
+      <h2>Welcome to EventLight!</h2>
+      <p>Please verify your email address to activate your account.</p>
+      <a href="${verificationLink}" 
+         style="display:inline-block;padding:10px 20px;background:#4f46e5;color:#fff;
+         text-decoration:none;border-radius:8px;">Verify Email</a>
+      <p>This link will expire in 1 hour.</p>
+    </div>
+  `;
+  try {
+    await transporter.sendMail({
+      to: user.email,
+      subject: "Verify your EventLight account",
+      html
+    });
+    logger.info(`Verification email sent to ${user.email}`);
+  } catch (err) {
+    logger.error("Failed to send verification email", { error: err.message });
+    throw new CustomError(
+      "Registration failed while sending verification email",
+      500
+    );
+  }
 
   const accessToken = signAccessToken(user);
   const refreshToken = signRefreshToken(user);
@@ -165,3 +202,50 @@ export async function changePassword(userId, currentPassword, newPassword) {
 
   return { success: true };
 }
+
+export async function verrtfiyEmail(token) {
+  if (!token) throw new CustomError("Token is required", 400);
+
+  try {
+    const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+
+    const user = await prisma.user.findUnique({
+      where: { id: payload.userId }
+    });
+    if (!user) throw new CustomError("User not found", 404);
+
+    if (user.isVerified) throw new CustomError("Email already verified", 400);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { isVerified: true }
+    });
+
+    return { message: "Email verified successfully" };
+  } catch (err) {
+    throw new CustomError("Invalid or expired token", 400);
+  }
+}
+
+export const resendVerification = async (email) => {
+  if (!email) throw new CustomError("Email is required", 400);
+  const user = await prisma.user.findUnique({ where: { email } });
+  if (!user) throw new CustomError("User not found", 404);
+  if (user.isVerified) throw new CustomError("Email already verified", 400);
+
+  const token = signEmailVerifyToken({ id: user.id, email: user.email });
+  const verificationLink = `${process.env.CLIENT_URL}/verify-email?token=${token}`;
+  const html = `<p>Please verify</p><a href="${verificationLink}">Verify</a>`;
+
+  try {
+    await transporter.sendMail({
+      to: user.email,
+      subject: "Resend: Verify your EventLight account",
+      html
+    });
+  } catch (e) {
+    console.log("error in resend ", e);
+  }
+
+  return { message: "Verification email resent" };
+};

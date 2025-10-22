@@ -83,3 +83,24 @@ export async function changePassword(req, res, next) {
     return next(err);
   }
 }
+
+export const verifyEmailController = async (req, res, next) => {
+  const { token } = req.query;
+
+  try {
+    const result = await userService.verrtfiyEmail(token);
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const resendVerifyController = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const result = await userService.resendVerification(email);
+    return res.status(200).json({ data: result });
+  } catch (err) {
+    return next(err);
+  }
+};

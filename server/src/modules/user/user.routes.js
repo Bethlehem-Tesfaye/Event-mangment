@@ -29,4 +29,7 @@ userRoutes.post(
   userController.changePassword
 );
 
+userRoutes.get("/verify-email", userController.verifyEmailController);
+userRoutes.post("/verify-email/resend", userController.resendVerifyController);
+
 export default userRoutes;

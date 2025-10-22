@@ -112,14 +112,16 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuLink href="/myevents">
-                    <Button
-                      variant="ghost"
-                      className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointer"
-                    >
-                      <Calendar className="h-5 w-5" />
-                      <span className="text-[13px]">My Events</span>
-                    </Button>
+                  <NavigationMenuLink>
+                    <Link to="/user/myevents">
+                      <Button
+                        variant="ghost"
+                        className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointer"
+                      >
+                        <Calendar className="h-5 w-5" />
+                        <span className="text-[13px]">My Events</span>
+                      </Button>
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
               </NavigationMenuList>
@@ -185,7 +187,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem asChild>
-                <Link to="/myevents" className="flex items-center gap-2">
+                <Link to="/user/myevents" className="flex items-center gap-2">
                   <Calendar className="h-4 w-4" /> My Events
                 </Link>
               </DropdownMenuItem>

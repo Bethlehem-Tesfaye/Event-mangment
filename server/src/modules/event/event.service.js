@@ -518,3 +518,19 @@ export const getDashboardStatsService = async (userId) => {
     totalTicketsSold
   };
 };
+
+export const getUserRegistrations = async (userId) => {
+  if (!userId) throw new CustomError("User ID is required", 400);
+
+  const regs = await prisma.registration.findMany({
+    where: { userId: Number(userId), deletedAt: null },
+    orderBy: { registeredAt: "desc" },
+    include: {
+      ticket: true,
+      event: true,
+      user: true
+    }
+  });
+
+  return regs;
+};

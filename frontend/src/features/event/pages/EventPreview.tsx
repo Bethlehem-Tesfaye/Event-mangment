@@ -17,18 +17,15 @@ import {
 } from "../hooks/useEventDetails";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "../componenets/Navbar";
-import { useState } from "react";
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useAuth } from "@/context/AuthContext";
 
 export function EventPreview() {
   const { id } = useParams<{ id: string }>();
 
-  const [search, setSearch] = useState("");
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   const { clearAuth } = useAuth();
 
-  const handleSearchChange = (value: string) => setSearch(value);
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => clearAuth(),
@@ -44,10 +41,9 @@ export function EventPreview() {
     return (
       <>
         <Navbar
-          searchValue={search}
-          onSearchChange={handleSearchChange}
           onLogout={handleLogout}
           logoutLoading={logoutLoading}
+          showSearch={false}
         />
         <div className="max-w-7xl mx-auto px-16 py-10 flex flex-col gap-10">
           <Skeleton className="h-8 w-1/3 mb-6" />
@@ -71,10 +67,9 @@ export function EventPreview() {
     return (
       <>
         <Navbar
-          searchValue={search}
-          onSearchChange={handleSearchChange}
           onLogout={handleLogout}
           logoutLoading={logoutLoading}
+          showSearch={false}
         />
         <div className="max-w-3xl mx-auto py-20 text-center text-muted-foreground">
           Event not found.{" "}
@@ -89,10 +84,9 @@ export function EventPreview() {
   return (
     <div className=" ">
       <Navbar
-        searchValue={search}
-        onSearchChange={handleSearchChange}
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
+        showSearch={false}
       />
       <div className="max-w-7xl mx-auto px-16 py-10 flex flex-col gap-10">
         <Breadcrumb className="mb-4">

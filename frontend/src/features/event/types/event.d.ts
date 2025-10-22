@@ -41,8 +41,8 @@ export interface NavbarProps {
   searchValue?: string;
   onSearchChange?: (q: string) => void;
   onSearchSubmit?: () => void;
-  onLogout:() => void;
-  logoutLoading:boolean
+  onLogout: () => void;
+  logoutLoading: boolean;
 }
 
 export interface EventDetail {
@@ -115,7 +115,7 @@ export interface User {
 
 export interface EventCategory {
   category: Category;
-  [key: string]: any; 
+  [key: string]: any;
 }
 export interface Event {
   description?: string;
@@ -133,7 +133,7 @@ export interface EventTabsProps {
   loading?: boolean;
 }
 
-export interface InputFieldProps  {
+export interface InputFieldProps {
   label: string;
   value: string | number;
   onChange: (v: any) => void;
@@ -141,16 +141,20 @@ export interface InputFieldProps  {
   min?: number;
   max?: number;
   required?: boolean;
-};
+}
 
 export interface PurchaseModalProps {
   ticket: Ticket | null;
   open: boolean;
   onClose: () => void;
-  onPurchase: (attendeeName: string, attendeeEmail: string, quantity: number) => void;
+  onPurchase: (
+    attendeeName: string,
+    attendeeEmail: string,
+    quantity: number
+  ) => void;
 }
 
-export interface InputFieldProps{
+export interface InputFieldProps {
   label: string;
   value: string | number;
   onChange: (v: any) => void;
@@ -158,4 +162,21 @@ export interface InputFieldProps{
   min?: number;
   max?: number;
   required?: boolean;
-};
+}
+
+export interface Registration {
+  id: number;
+  userId: number | null;
+  eventId: number;
+  ticketType: number;
+  attendeeName: string | null;
+  attendeeEmail: string | null;
+  registeredQuantity: number;
+  registeredAt: string;
+  qrCodeUrl?: string | null;
+  event?: EventType | any;
+  ticket?: Ticket | any;
+  user?: { id: number; email: string } | null;
+}
+
+export type UserRegistrationsResponse = Registration[];

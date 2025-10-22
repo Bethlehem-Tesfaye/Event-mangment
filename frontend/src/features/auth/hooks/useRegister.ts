@@ -17,8 +17,8 @@ export const useRegister = (options?: UseRegisterOptions) => {
     mutationFn: registerUser,
     onSuccess: (data) => {
       setAuth(data.user, data.accessToken);
-      toast.success(`Welcome, ${data.user.email}! Your account was created.`);
-      navigate("/browse-event");
+      toast.success(`Welcome, ${data.user.email}! Please verify your email.`);
+      navigate("/verify-notice");
       options?.onSuccess?.(data);
     },
     onError: (error) => {

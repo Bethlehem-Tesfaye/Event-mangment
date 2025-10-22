@@ -44,3 +44,10 @@ export const purchaseTicket = async (payload: {
 
   return data;
 };
+
+// new: fetch the authenticated user's registrations
+export const fetchUserRegistrations = async () => {
+  const { data } = await api.get("/users/events", { withCredentials: true });
+  // returns data (controller sends { data: registrations })
+  return data?.data ?? [];
+};
