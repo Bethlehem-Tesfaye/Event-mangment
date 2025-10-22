@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Poppins:wght@600&display=swap");
 
 @import "tailwindcss";
 @import "tw-animate-css";
@@ -75,8 +75,8 @@
   --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
   --sidebar-border: oklch(0.92 0.004 286.32);
   --sidebar-ring: oklch(0.645 0.246 16.439);
-   --font-body: 'Inter', sans-serif;
-  --font-heading: 'Poppins', sans-serif;
+  --font-body: "Inter", sans-serif;
+  --font-heading: "Poppins", sans-serif;
 }
 
 .dark {
