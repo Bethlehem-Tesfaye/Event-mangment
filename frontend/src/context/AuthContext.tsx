@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useMe } from "../features/auth/hooks/useMe.ts";
 
-type User = { id: string; email: string };
+type User = { id: string; email: string; isVerified: boolean };
 
 interface AuthContextType {
   user: User | null;
@@ -56,7 +56,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, setAuth, clearAuth, loading }}>
+    <AuthContext.Provider
+      value={{ user, accessToken, setAuth, clearAuth, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

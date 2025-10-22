@@ -16,7 +16,12 @@ export const useLogin = (options?: UseLoginOptions) => {
   const mutation = useMutation<LoginResponse, Error, LoginPayload>({
     mutationFn: loginUser,
     onSuccess: (data) => {
-      setAuth(data.user, data.accessToken);
+      const userWithVerified = {
+        id: data.user.id,
+        email: data.user.email,
+        isVerified: (data.user as any).isVerified ?? false,
+      };
+      setAuth(userWithVerified, data.accessToken);
       toast.success(`Welcome back, ${data.user.email}!`);
       navigate("/browse-event");
       options?.onSuccess?.(data);

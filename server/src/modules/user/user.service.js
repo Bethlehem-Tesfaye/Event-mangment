@@ -139,7 +139,8 @@ export const refreshTokens = async (incomingRefreshToken) => {
       id: true,
       email: true,
       tokenVersion: true,
-      refreshTokenHash: true
+      refreshTokenHash: true,
+      isVerified: true
     }
   });
   if (!user) throw new CustomError("Unauthorized user ", 401);
@@ -164,7 +165,7 @@ export const refreshTokens = async (incomingRefreshToken) => {
   await setHashedRefreshToken(user.id, newRefreshToken);
 
   return {
-    user: { id: user.id, email: user.email },
+    user: { id: user.id, email: user.email, isVerified: user.isVerified },
     accessToken,
     refreshToken: newRefreshToken
   };
