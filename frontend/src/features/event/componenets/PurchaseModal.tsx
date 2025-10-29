@@ -33,7 +33,7 @@ const InputField = React.memo(function InputField({
         min={min}
         max={max}
         required={required}
-        className="px-4 py-2 rounded-lg border text-sm transition w-full border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-500"
+        className="px-4 py-2 rounded-lg border text-sm transition w-full border-gray-300 focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-primary"
       />
     </div>
   );
@@ -121,7 +121,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
     <Dialog open={open} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle className="text-lg font-semibold text-red-600">
+          <DialogTitle className="text-lg font-semibold text-primary">
             {step === 1 ? "Attendee Information" : "Confirm Purchase"}
           </DialogTitle>
         </DialogHeader>
@@ -175,15 +175,17 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
 
             {step === 2 && ticket && (
               <>
-                <div className="border rounded-lg p-4 bg-gray-50 shadow-sm">
-                  <h3 className="font-semibold text-gray-800">{ticket.type}</h3>
-                  <p className="text-sm text-gray-600 mt-1">
+                <div className="border rounded-lg p-4 bg-gray-50 dark:bg-[#202127] shadow-sm">
+                  <h3 className="font-semibold text-gray-800 dark:text-white">
+                    {ticket.type}
+                  </h3>
+                  <p className="text-sm text-gray-600 mt-1  dark:text-white">
                     ${ticket.price} × {quantity} ={" "}
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-primary">
                       ${numericPrice * quantity}
                     </span>
                   </p>
-                  <p className="text-sm text-gray-600 mt-1">
+                  <p className="text-sm text-gray-600 mt-1  dark:text-white">
                     Attendee: {attendeeName}{" "}
                     {user ? `(${user.email})` : `(${attendeeEmail})`}
                   </p>
@@ -210,7 +212,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
             <DialogFooter className="mt-6 flex gap-3">
               {step === 1 ? (
                 <Button
-                  className="bg-red-600 hover:bg-red-700 rounded-lg shadow"
+                  className="bg-primary hover:bg-red-700 rounded-lg shadow"
                   onClick={() => setStep(2)}
                   disabled={!canContinue}
                 >
@@ -226,7 +228,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                     Back
                   </Button>
                   <Button
-                    className="bg-red-600 hover:bg-red-700 rounded-lg shadow"
+                    className="bg-primary hover:bg-red-700 rounded-lg shadow  dark:bg-white dark:text-black"
                     onClick={handleConfirm}
                     disabled={!agree || mutation.isPending}
                   >
@@ -238,7 +240,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
           </div>
 
           {ticket && (
-            <div className="border rounded-lg p-4 bg-white shadow-sm flex flex-col gap-2">
+            <div className="border rounded-lg p-4 bg-white dark:bg-[#202127] shadow-sm flex flex-col gap-2 dark:">
               <h3 className="font-semibold mb-1">Order Summary</h3>
               <p className="text-sm">{ticket.type}</p>
               <p className="text-sm text-gray-600">

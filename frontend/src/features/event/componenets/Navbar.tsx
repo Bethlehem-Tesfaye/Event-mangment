@@ -46,7 +46,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
         <div className="flex items-center gap-24">
           <div className="flex items-center gap-0 font-bold text-xl">
             <Logo />
-            <span className="text-[15px] font-semibold text-red-500">
+            <span className="text-[15px] font-semibold text-primary">
               EventLight
             </span>
           </div>
@@ -74,7 +74,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
               <div
                 role="button"
                 onClick={() => onSearchSubmit?.()}
-                className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 bg-red-600 rounded-3xl flex items-center justify-center cursor-pointer"
+                className="absolute right-0 top-1/2 -translate-y-1/2 h-8 w-8 bg-primary rounded-3xl flex items-center justify-center cursor-pointer"
                 aria-label="Submit search"
               >
                 <Search className="w-4 h-4 text-white" />
@@ -146,7 +146,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                   <Link to="/settings">
                     <DropdownMenuItem>Settings</DropdownMenuItem>
                   </Link>
-                  <DropdownMenuItem className="text-red-500" onClick={onLogout}>
+                  <DropdownMenuItem className="text-primary" onClick={onLogout}>
                     Logout
                   </DropdownMenuItem>
                 </>

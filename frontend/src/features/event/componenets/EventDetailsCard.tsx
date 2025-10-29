@@ -19,14 +19,14 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
 
         {event.startDatetime && (
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-500">
-            <Calendar className="w-4 h-4 text-red-500" />
+            <Calendar className="w-4 h-4 text-primary" />
             <span>{format(new Date(event.startDatetime), "PPPp")}</span>
           </div>
         )}
 
         {event.location && (
           <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-500">
-            <MapPin className="w-4 h-4 text-red-500" />
+            <MapPin className="w-4 h-4 text-primary" />
             <span>{event.location}</span>
           </div>
         )}

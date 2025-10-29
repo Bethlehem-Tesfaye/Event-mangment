@@ -16,7 +16,7 @@ export function CategorySelector({
           ? Array.from({ length: placeholderCount }).map((_, idx) => (
               <div key={idx} className="relative whitespace-nowrap pb-2">
                 <Skeleton className="h-6 w-20 rounded" />
-                <Skeleton className="absolute left-0 bottom-0 w-full h-0.5 bg-red-500 rounded-full" />
+                <Skeleton className="absolute left-0 bottom-0 w-full h-0.5 bg-primary rounded-full" />
               </div>
             ))
           : ["All", ...categories].map((cat) => (
@@ -25,13 +25,13 @@ export function CategorySelector({
                 onClick={() => onSelect(selected === cat ? null : cat)}
                 className={`relative whitespace-nowrap pb-2 font-medium transition-colors text-[12px] dark:text-gray-100 ${
                   selected === cat || (cat === "All" && !selected)
-                    ? "text-red-500"
-                    : "text-gray-700 hover:text-red-500"
+                    ? "text-primary"
+                    : "text-gray-700 hover:text-primary"
                 }`}
               >
                 {cat}
                 {(selected === cat || (cat === "All" && !selected)) && (
-                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg-red-500 rounded-full"></span>
+                  <span className="absolute left-0 bottom-0 w-full h-0.5 bg--primary rounded-full"></span>
                 )}
               </button>
             ))}

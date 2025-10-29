@@ -43,11 +43,11 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
               onClick={() => handleSelect(t)}
               className={`relative border rounded-xl p-5 bg-white shadow-sm cursor-pointer transition dark:bg-gray-500 ${
                 selectedTicket?.id === t.id
-                  ? "border-red-500 ring-2 ring-red-200"
+                  ? "border-primary ring-2 ring-red-200"
                   : "border-gray-200 hover:border-gray-300"
               }`}
             >
-              <span className="absolute top-3 right-3 bg-red-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full dark:text-gray-300 dark:bg-red-500">
+              <span className="absolute top-3 right-3 bg-red-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full dark:text-gray-300 dark:bg-primary">
                 {t.remainingQuantity} left
               </span>
               <h3 className="text-md">{t.type}</h3>
@@ -68,7 +68,7 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
       <button
         className={`mt-4 w-full py-2 rounded-md font-semibold transition text-[12px] ${
           selectedTicket
-            ? "bg-red-500 text-white border border-red-700"
+            ? "bg-primary text-white border border-red-700"
             : "bg-gray-300 text-gray-600 cursor-not-allowed"
         }`}
         disabled={!selectedTicket}

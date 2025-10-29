@@ -10,21 +10,55 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Logo from "@/components/custom/Logo";
 import { Link } from "react-router-dom";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { useState } from "react";
 
-export default function Topbar() {
+export default function Topbar({ user }: { user?: { email?: string } | null }) {
+  const [open, setOpen] = useState(false);
   return (
-    <header className="flex items-center justify-between p-4 bg-card border-b dark:bg-[#202127]">
-      <h1 className="text-lg font-bold ml-14">
-        <Logo /> <span className="text-red-500">Eventlight</span>
-      </h1>
+    <header className="flex items-center justify-between h-14 px-6 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
       <div className="flex items-center gap-4">
-        <Button>Create Event</Button>
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Logo />
+          <span className="text-lg font-semibold text-black dark:text-white ">
+            Eventlight
+          </span>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          className="px-3 py-1 text-sm bg-gray-200 dark:bg-[#202127]"
+        >
+          Create Event
+        </Button>
+        <Link to="/browse-event">
+          <Button
+            variant="ghost"
+            className="px-7 py-1 text-sm  bg-gray-200 dark:bg-[#202127]"
+          >
+            Browse
+          </Button>
+        </Link>
+        <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
-            <Avatar className="cursor-pointer">
-              <AvatarImage src="/avatar.png" alt="You" />
-              <AvatarFallback>U</AvatarFallback>
-            </Avatar>
+            <div className="flex items-center gap-2 cursor-pointerpx-2 py-1">
+              <Avatar className="cursor-pointer">
+                <AvatarImage src="/avatar.png" alt="You" />
+                <AvatarFallback>
+                  {user?.email ? user.email[0].toUpperCase() : "U"}
+                </AvatarFallback>
+              </Avatar>
+              <span className="text-sm text-gray-700 dark:text-gray-300">
+                {user?.email || "User"}
+              </span>
+              {open ? (
+                <ChevronUp className="w-4 h-4 text-gray-500" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-gray-500" />
+              )}
+            </div>
           </DropdownMenuTrigger>
           <DropdownMenuContent className="w-48" align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
@@ -34,7 +68,9 @@ export default function Topbar() {
             </Link>
             <DropdownMenuItem>Profile</DropdownMenuItem>
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-red-500">Logout</DropdownMenuItem>
+            <DropdownMenuItem className="text-gray-700 dark:text-gray-300">
+              Logout
+            </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>

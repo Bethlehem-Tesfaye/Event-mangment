@@ -63,39 +63,44 @@ export default function Sidebar({
   ];
 
   const content = (
-    <aside className="w-64 min-h-screen bg-[#00030b] border-r flex flex-col dark:bg-[#100f0f]">
-      <div className="p-4 flex  gap-2">
+    <aside className="w-56 min-h-screen bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 flex flex-col">
+      <div className="p-4 flex items-center gap-3 border-b border-transparent dark:border-gray-800">
         <Logo />
-        <div className="text-sm text-muted-foreground mt-1">Organizer</div>
+        <div className="text-sm font-medium text-black dark:text-white">
+          Organizer
+        </div>
       </div>
 
-      <ScrollArea className="flex-1 p-2">
-        <nav className="flex flex-col gap-2 text-white">
-          {items.map((it) => (
-            <Button
-              key={it.key}
-              variant={active === it.key ? "secondary" : "ghost"}
-              onClick={() => {
-                onNavigate(it.key);
-                navigate(it.path);
-                setMobileOpen(false);
-              }}
-              className={`justify-start w-full
-                ${
-                  active === it.key
-                    ? "bg-red-300 text-black hover:bg-red-300 dark:hover:bg-red-500  dark:bg-red-500"
-                    : "hover:bg-red-300 hover:text-black  dark:hover:bg-red-500"
-                }
-              `}
-            >
-              <span className="mr-3">{it.icon}</span>
-              {it.label}
-            </Button>
-          ))}
+      <ScrollArea className="flex-1 p-3">
+        <nav className="flex flex-col gap-1">
+          {items.map((it) => {
+            const isActive = active === it.key;
+            return (
+              <Button
+                key={it.key}
+                variant="ghost"
+                onClick={() => {
+                  onNavigate(it.key);
+                  navigate(it.path);
+                  setMobileOpen(false);
+                }}
+                className={`justify-start w-full px-3 py-2 rounded-md transition-colors text-sm
+                  ${
+                    isActive
+                      ? "bg-gray-100 dark:bg-white/6 text-black dark:text-white font-semibold"
+                      : "text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-white/5"
+                  }
+                `}
+              >
+                <span className="mr-3 text-current">{it.icon}</span>
+                <span className="truncate">{it.label}</span>
+              </Button>
+            );
+          })}
         </nav>
       </ScrollArea>
 
-      <div className="p-4 text-xs text-muted-foreground">
+      <div className="p-4 text-xs text-gray-600 dark:text-gray-300">
         <div>Account: You (organizer)</div>
       </div>
     </aside>

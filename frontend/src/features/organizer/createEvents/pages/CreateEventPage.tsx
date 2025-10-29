@@ -295,6 +295,7 @@ export default function CreateEventPage() {
                     Save as Draft
                   </Button>
                   <Button
+                    className="bg-[#202127]"
                     type="button"
                     onClick={() => handleEventInfoSubmit(false)}
                     disabled={createEvent.isPending}
