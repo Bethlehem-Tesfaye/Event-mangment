@@ -13,13 +13,19 @@ export const RegisterPage = () => {
     register(values);
   };
 
+  const handleSocialClick = (provider: string) => {
+    if (provider === "Google") {
+      window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    } else {
+      toast.info(`${provider} login coming soon`);
+    }
+  };
+
   return (
     <AuthLayout title="Register your account">
       <RegisterForm
         onSubmit={handleSubmit}
-        onSocialClick={(provider) =>
-          toast.info(`${provider} login coming soon`)
-        }
+        onSocialClick={handleSocialClick}
         onLogin={() => navigate("/login")}
         isLoading={isLoading}
       />

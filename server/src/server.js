@@ -7,6 +7,7 @@ import routes from "./routes.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import requestLogger from "./middleware/requestLogger.js";
 import logger from "./utils/logger.js";
+import passport from "passport";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -27,6 +28,7 @@ app.use(requestLogger);
 app.get("/", (req, res) => {
   res.send("server works!!!");
 });
+app.use(passport.initialize());
 app.use("/api/v1", routes);
 app.use(errorMiddleware);
 

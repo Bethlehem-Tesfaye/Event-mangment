@@ -1,4 +1,5 @@
 import express from "express";
+import passport from "passport";
 import * as userController from "./user.controller.js";
 import {
   registerSchema,
@@ -8,6 +9,7 @@ import {
 import { validate } from "../../middleware/validate.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
 import optionalAuthMiddleware from "../../middleware/optionalAuthMiddleware.js";
+import "../../lib/passport.js";
 
 const userRoutes = express.Router();
 
@@ -31,5 +33,18 @@ userRoutes.post(
 
 userRoutes.get("/verify-email", userController.verifyEmailController);
 userRoutes.post("/verify-email/resend", userController.resendVerifyController);
+
+// Start Google login
+userRoutes.get(
+  "/google",
+  passport.authenticate("google", { scope: ["profile", "email"] })
+);
+
+// Google callback
+userRoutes.get(
+  "/google/callback",
+  passport.authenticate("google", { session: false }),
+  userController.googleCallback
+);
 
 export default userRoutes;

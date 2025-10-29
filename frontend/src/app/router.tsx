@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Route } from "react-router-dom";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import Events from "@/features/event/pages/Events";
@@ -17,6 +17,7 @@ import NotFound from "@/components/custom/NotFound";
 import UserRegistrationsPage from "@/features/event/pages/UserRegistrations";
 import { VerifyNoticePage } from "@/features/auth/pages/VerifyNoticePage";
 import { EmailVerifiedPage } from "@/features/auth/pages/EmailVerifiedPage";
+import OAuthSuccessPage from "@/features/auth/pages/OAuthSuccessPage";
 
 export const router = createBrowserRouter([
   {
@@ -51,6 +52,10 @@ export const router = createBrowserRouter([
   {
     path: "/verify-email",
     element: <EmailVerifiedPage />,
+  },
+  {
+    path: "/auth/success",
+    element: <OAuthSuccessPage />,
   },
 
   // Protected routes (profile + organizer)

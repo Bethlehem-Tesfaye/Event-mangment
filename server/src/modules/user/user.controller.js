@@ -104,3 +104,25 @@ export const resendVerifyController = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const googleCallback = async (req, res, next) => {
+  try {
+    const oauthUser = req.user;
+    const { user, accessToken, refreshToken } =
+      await userService.oauthSignIn(oauthUser);
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    };
+
+    res.cookie("refreshToken", refreshToken, cookieOptions);
+
+    const redirectUrl = `${process.env.CLIENT_URL}/auth/success?accessToken=${accessToken}`;
+    return res.redirect(redirectUrl);
+  } catch (err) {
+    return next(err);
+  }
+};

@@ -251,3 +251,28 @@ export const resendVerification = async (email) => {
 
   return { message: "Verification email resent" };
 };
+
+export const oauthSignIn = async (oauthUser) => {
+  if (!oauthUser || !oauthUser.id) {
+    throw new CustomError("Invalid OAuth user", 400);
+  }
+
+  // Ensure we have latest user fields we need
+  const user = await prisma.user.findUnique({
+    where: { id: oauthUser.id },
+    select: { id: true, email: true, tokenVersion: true, isVerified: true }
+  });
+
+  if (!user) throw new CustomError("User not found", 404);
+
+  const accessToken = signAccessToken(user);
+  const refreshToken = signRefreshToken(user);
+
+  await setHashedRefreshToken(user.id, refreshToken);
+
+  return {
+    user: { id: user.id, email: user.email, isVerified: user.isVerified },
+    accessToken,
+    refreshToken
+  };
+};
