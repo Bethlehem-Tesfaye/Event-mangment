@@ -4,9 +4,15 @@ A full-stack web application for managing events, including features for creatin
 
 ## Tech Stack
 
-- **Backend**: Node.js, Express.js, PostgreSQL  
-- **Frontend**: React, Redux Toolkit  
-- **Others**: RESTful API, JWT Authentication, Zod for validation
+### **Backend**: 
+- Node.js, Express.js, PostgreSQL,
+- Zod for request validation,
+- JWT for authentication
+### **Frontend**:
+- React with typescript,
+- TanStack React Query for state and server data management
+- Axios for API communication
+
 
 ## Features
 
@@ -22,7 +28,7 @@ A full-stack web application for managing events, including features for creatin
 ## Folder Structure
 
 - `server/`: Backend code (Express + PostgreSQL)
-- `client/`: Frontend code (React + Redux)
+- `client/`: Frontend code (React + tanstack react query)
 
 ## Installation
 
