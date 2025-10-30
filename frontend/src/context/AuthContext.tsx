@@ -1,7 +1,12 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useMe } from "../features/auth/hooks/useMe.ts";
 
-type User = { id: string; email: string; isVerified: boolean };
+type User = {
+  id: string;
+  email: string;
+  isVerified: boolean;
+  hasPassword: boolean;
+};
 
 interface AuthContextType {
   user: User | null;

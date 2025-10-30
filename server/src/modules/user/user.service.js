@@ -140,7 +140,8 @@ export const refreshTokens = async (incomingRefreshToken) => {
       email: true,
       tokenVersion: true,
       refreshTokenHash: true,
-      isVerified: true
+      isVerified: true,
+      hasPassword: true
     }
   });
   if (!user) throw new CustomError("Unauthorized user ", 401);
@@ -165,7 +166,12 @@ export const refreshTokens = async (incomingRefreshToken) => {
   await setHashedRefreshToken(user.id, newRefreshToken);
 
   return {
-    user: { id: user.id, email: user.email, isVerified: user.isVerified },
+    user: {
+      id: user.id,
+      email: user.email,
+      isVerified: user.isVerified,
+      hasPassword: user.hasPassword
+    },
     accessToken,
     refreshToken: newRefreshToken
   };
@@ -276,3 +282,29 @@ export const oauthSignIn = async (oauthUser) => {
     refreshToken
   };
 };
+
+export async function setPassword(userId, newPassword) {
+  const user = await prisma.user.findUnique({ where: { id: userId } });
+  if (!user) {
+    const err = new Error("User not found");
+    err.status = 404;
+    throw err;
+  }
+  const hasPassword = await prisma.user.findUnique({
+    where: { id: userId },
+    select: { hasPassword: true }
+  });
+  if (hasPassword === false) {
+    const err = new Error("User already set password");
+    err.status = 404;
+    throw err;
+  }
+
+  const hashed = await bcrypt.hash(newPassword, 10);
+  await prisma.user.update({
+    where: { id: userId },
+    data: { password: hashed, hasPassword: true }
+  });
+
+  return { success: true };
+}

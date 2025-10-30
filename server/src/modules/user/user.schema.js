@@ -32,3 +32,11 @@ export const changePasswordSchema = z
       .min(6, { message: "Password must be at least 6 characters long" })
   })
   .strict();
+
+export const setPasswordSchema = z
+  .object({
+    newPassword: z
+      .string()
+      .min(6, { message: "Password must be at least 6 characters long" })
+  })
+  .strict();

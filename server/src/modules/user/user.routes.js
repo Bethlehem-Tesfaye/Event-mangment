@@ -4,7 +4,8 @@ import * as userController from "./user.controller.js";
 import {
   registerSchema,
   loginSchema,
-  changePasswordSchema
+  changePasswordSchema,
+  setPasswordSchema
 } from "./user.schema.js";
 import { validate } from "../../middleware/validate.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
@@ -29,6 +30,13 @@ userRoutes.post(
   authMiddleware,
   validate(changePasswordSchema),
   userController.changePassword
+);
+// set password
+userRoutes.post(
+  "/set-password",
+  authMiddleware,
+  validate(setPasswordSchema),
+  userController.setPassword
 );
 
 userRoutes.get("/verify-email", userController.verifyEmailController);

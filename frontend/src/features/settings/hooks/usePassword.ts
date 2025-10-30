@@ -2,8 +2,10 @@ import { useMutation } from "@tanstack/react-query";
 import { toast } from "sonner";
 import {
   changePassword,
+  setPassword,
   type ChangePasswordPayload,
   type ChangePasswordResponse,
+  type setPasswordPayload,
 } from "../api/changePassword";
 
 export function usePassword() {
@@ -23,6 +25,29 @@ export function usePassword() {
 
   return {
     changePassword: mutation.mutateAsync,
+    isLoading: mutation.isPending,
+    error: mutation.error,
+    data: mutation.data,
+  };
+}
+
+export function useSetPassword() {
+  const mutation = useMutation<
+    ChangePasswordResponse,
+    Error,
+    setPasswordPayload
+  >({
+    mutationFn: setPassword,
+    onSuccess: (data) => {
+      toast.success(data?.message ?? "Password set successfully.");
+    },
+    onError: (err: any) => {
+      toast.error(err?.message ?? "Failed to set password");
+    },
+  });
+
+  return {
+    setPassword: mutation.mutateAsync,
     isLoading: mutation.isPending,
     error: mutation.error,
     data: mutation.data,

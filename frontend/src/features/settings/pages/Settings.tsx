@@ -5,14 +5,15 @@ import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useTheme } from "next-themes";
 import { ChangePasswordForm } from "../components/ChangePasswordForm";
 import { LogOut, Moon, Sun } from "lucide-react";
-import { usePassword } from "../hooks/usePassword";
+import { usePassword, useSetPassword } from "../hooks/usePassword";
 
 function Settings() {
-  const { clearAuth } = useAuth();
+  const { user, clearAuth } = useAuth();
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
   const passwordHook = usePassword();
+  const setPasswordHook = useSetPassword();
 
   useEffect(() => {
     setMounted(true);
@@ -65,6 +66,7 @@ function Settings() {
         </section>
 
         {/* Account Section */}
+
         <section className="bg-white dark:bg-[#202127] border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             Account
@@ -75,8 +77,14 @@ function Settings() {
 
           <div className="mb-8">
             <ChangePasswordForm
-              changePassword={passwordHook.changePassword}
+              changePassword={
+                user?.hasPassword
+                  ? passwordHook.changePassword
+                  : setPasswordHook.setPassword
+              }
+              user={user}
               isLoading={passwordHook.isLoading}
+              hasPassword={user?.hasPassword}
             />
           </div>
 

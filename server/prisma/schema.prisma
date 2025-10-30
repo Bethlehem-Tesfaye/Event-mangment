@@ -141,6 +141,7 @@ model User {
   googleId         String?        @unique
   isVerified       Boolean        @default(false)
   createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  hasPassword      Boolean        @default(true)
   updatedAt        DateTime       @default(now()) @map("updated_at") @db.Timestamp(6)
   deletedAt        DateTime?      @map("deleted_at") @db.Timestamp(6)
   events           Event[]

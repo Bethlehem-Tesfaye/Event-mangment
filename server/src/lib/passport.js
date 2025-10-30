@@ -31,6 +31,7 @@ passport.use(
               password: dummyPassword,
               googleId: profile.id,
               isVerified: true,
+              hasPassword: false,
               profile: { create: {} }
             },
             select: { id: true, email: true, tokenVersion: true }

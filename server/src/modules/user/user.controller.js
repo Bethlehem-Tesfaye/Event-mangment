@@ -126,3 +126,18 @@ export const googleCallback = async (req, res, next) => {
     return next(err);
   }
 };
+
+export async function setPassword(req, res, next) {
+  try {
+    const { userId } = req;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { newPassword } = req.body;
+    await userService.setPassword(userId, newPassword);
+    return res.status(200).json({ message: "Password set" });
+  } catch (err) {
+    return next(err);
+  }
+}
