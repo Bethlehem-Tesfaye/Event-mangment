@@ -55,6 +55,13 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   const mutation = usePurchaseTicket();
 
   useEffect(() => {
+    if (!ticket) return;
+    if (ticket.maxPerUser === 1) {
+      setQuantity(1);
+    }
+  }, [ticket]);
+
+  useEffect(() => {
     if (!open) {
       const timer = setTimeout(() => {
         setStep(1);
@@ -156,20 +163,29 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                   </div>
                 )}
 
-                <InputField
-                  label="Quantity"
-                  type="number"
-                  value={quantity}
-                  onChange={(v) =>
-                    setQuantity(typeof v === "number" && !isNaN(v) ? v : 1)
-                  }
-                  min={1}
-                  max={ticket?.maxPerUser ?? 1}
-                  required
-                />
-                <p className="text-xs text-gray-500">
-                  Max per user: {ticket?.maxPerUser}
-                </p>
+                {ticket?.maxPerUser && ticket.maxPerUser > 1 ? (
+                  <>
+                    <InputField
+                      label="Quantity"
+                      type="number"
+                      value={quantity}
+                      onChange={(v) =>
+                        setQuantity(typeof v === "number" && !isNaN(v) ? v : 1)
+                      }
+                      min={1}
+                      max={ticket?.maxPerUser ?? 1}
+                      required
+                    />
+                    <p className="text-xs text-gray-500">
+                      Max per user: {ticket?.maxPerUser}
+                    </p>
+                  </>
+                ) : (
+                  // don't show quantity input when maxPerUser === 1; we'll just send 1
+                  <p className="text-xs text-gray-500">
+                    Max per user: {ticket?.maxPerUser}
+                  </p>
+                )}
               </>
             )}
 
