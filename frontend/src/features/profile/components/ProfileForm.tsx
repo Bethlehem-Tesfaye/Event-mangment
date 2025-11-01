@@ -3,7 +3,12 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import type { ProfileFormProps } from "../types/profile";
 
-export function ProfileForm({ profile, onChange, onSave , isSaving}: ProfileFormProps) {
+export function ProfileForm({
+  profile,
+  onChange,
+  onSave,
+  isSaving,
+}: ProfileFormProps) {
   return (
     <form onSubmit={onSave} className="grid gap-4">
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -58,7 +63,7 @@ export function ProfileForm({ profile, onChange, onSave , isSaving}: ProfileForm
       </div>
 
       <Button type="submit" className="mt-4">
-        {isSaving?"Saving...":"Save Changes"}
+        {isSaving ? "Saving..." : "Save Changes"}
       </Button>
     </form>
   );

@@ -12,7 +12,7 @@ function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState<string>("");
-  const { clearAuth } = useAuth();
+  const { user, clearAuth } = useAuth();
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   // const navigate = useNavigate();
 
@@ -54,6 +54,7 @@ function Events() {
         onSearchChange={handleSearchChange}
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
+        user={user as any}
       />
       <div className="md:mx-[70px] md:mt-5">
         <Hero />

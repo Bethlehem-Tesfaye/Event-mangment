@@ -86,7 +86,6 @@ export const getEventSpeakers = async (eventId) => {
     throw new CustomError("No speakers found for this event", 404);
 
   return speakers;
-  // ??
 };
 
 export const getEventTickets = async (eventId) => {
@@ -121,45 +120,64 @@ export const purchaseTicket = async ({
     throw new CustomError("Not enough tickets available", 409);
   }
 
-  if (userId || attendeeEmail) {
-    const userRegistrations = await prisma.registration.findMany({
-      where: {
-        ticketType: ticket.id,
-        deletedAt: null,
-        OR: [
-          userId ? { userId } : undefined,
-          attendeeEmail ? { attendeeEmail } : undefined
-        ].filter(Boolean)
-      }
+  let emailForReceipt = null;
+  if (userId) {
+    const user = await prisma.user.findUnique({
+      where: { id: Number(userId) },
+      select: { email: true }
     });
-
-    const totalQuantity =
-      userRegistrations.reduce((sum, r) => sum + r.registeredQuantity, 0) +
-      quantity;
-
-    if (totalQuantity > ticket.maxPerUser) {
-      throw new CustomError(
-        `Max ${ticket.maxPerUser} tickets allowed per user/email`,
-        400
-      );
+    if (!user) throw new CustomError("User not found", 404);
+    emailForReceipt = (user.email || "").trim().toLowerCase();
+  } else {
+    if (!attendeeEmail)
+      throw new CustomError("Email is required for guest purchase", 400);
+    emailForReceipt = String(attendeeEmail).trim().toLowerCase();
+  }
+  if (userId && emailForReceipt) {
+    await prisma.registration.updateMany({
+      where: {
+        attendeeEmail: emailForReceipt,
+        userId: null
+      },
+      data: { userId: Number(userId) }
+    });
+  }
+  const userRegistrations = await prisma.registration.findMany({
+    where: {
+      ticketType: ticket.id,
+      deletedAt: null,
+      OR: [
+        userId ? { userId: Number(userId) } : undefined,
+        emailForReceipt ? { attendeeEmail: emailForReceipt } : undefined
+      ].filter(Boolean)
     }
+  });
+
+  const totalQuantity =
+    userRegistrations.reduce((sum, r) => sum + r.registeredQuantity, 0) +
+    quantity;
+
+  if (totalQuantity > ticket.maxPerUser) {
+    throw new CustomError(
+      `Max ${ticket.maxPerUser} tickets allowed per user/email`,
+      400
+    );
   }
 
-  const reg = await prisma.$transaction(async (prismaTx) => {
-    // create registration
-    const created = await prismaTx.registration.create({
+  // Transaction: create registration + update ticket count
+  const reg = await prisma.$transaction(async (tx) => {
+    const created = await tx.registration.create({
       data: {
-        userId: userId || null,
+        userId: userId ? Number(userId) : null,
         eventId: ticket.eventId,
         ticketType: ticket.id,
         registeredQuantity: quantity,
         attendeeName,
-        attendeeEmail
+        attendeeEmail: emailForReceipt
       }
     });
 
-    // decrement ticket count
-    await prismaTx.ticket.update({
+    await tx.ticket.update({
       where: { id: ticket.id },
       data: { remainingQuantity: ticket.remainingQuantity - quantity }
     });
@@ -167,38 +185,34 @@ export const purchaseTicket = async ({
     return created;
   });
 
-  // Generate QR JSON payload
+  // QR generation (reuse your logic)
+  const qrDir = path.join(process.cwd(), "uploads", "qrcodes");
+  if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
+
+  const qrPath = path.join(qrDir, `ticket-${reg.id}.png`);
   const qrData = JSON.stringify({
     registrationId: reg.id,
     eventId: ticket.eventId,
     ticketId: ticket.id,
     attendeeName,
-    attendeeEmail
+    attendeeEmail: emailForReceipt
   });
-
-  // Save QR code to file
-  const qrDir = path.join(process.cwd(), "uploads", "qrcodes");
-  if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
-
-  const qrPath = path.join(qrDir, `ticket-${reg.id}.png`);
   await QRCode.toFile(qrPath, qrData);
 
-  // Update registration with QR path
   const updatedReg = await prisma.registration.update({
     where: { id: reg.id },
     data: { qrCodeUrl: `/uploads/qrcodes/ticket-${reg.id}.png` }
   });
 
+  // Send email
   await transporter.sendMail({
-    from: `"EventLight" <${process.env.SMTP_USER}>`,
-    to: attendeeEmail,
+    to: emailForReceipt,
     subject: `🎟 Your Ticket for Event #${eventId}`,
     html: `
       <h2>Hello ${attendeeName},</h2>
       <p>Thank you for purchasing a <b>${ticket.type}</b> ticket.</p>
       <p>Here’s your QR code:</p>
       <p><img src="cid:ticketqr-${reg.id}" alt="QR Code" /></p>
-      <p>Please present this QR code at the entrance.</p>
     `,
     attachments: [
       {
@@ -452,4 +466,71 @@ export const getAllCategories = async () => {
   });
 
   return categories;
+};
+
+export const getOrganizerEvents = async (
+  userId,
+  { limit = 20, offset = 0, status } = {}
+) => {
+  if (!userId) throw new CustomError("User ID is required", 400);
+
+  const where = { userId, deletedAt: null };
+  if (status) where.status = status;
+
+  const [events, totalCount] = await Promise.all([
+    prisma.event.findMany({
+      where,
+      skip: Number(offset) || 0,
+      take: Number(limit) || 20,
+      orderBy: { createdAt: "desc" },
+      include: {
+        tickets: { where: { deletedAt: null } },
+        eventSpeakers: { where: { deletedAt: null } },
+        eventCategories: {
+          where: { deletedAt: null },
+          include: { category: true }
+        }
+      }
+    }),
+    prisma.event.count({ where })
+  ]);
+
+  return { events, totalCount };
+};
+
+export const getDashboardStatsService = async (userId) => {
+  if (!userId) throw new Error("User ID is required");
+
+  const { events } = await getOrganizerEvents(userId);
+
+  let totalRevenue = 0;
+  let totalTicketsSold = 0;
+
+  for (const event of events) {
+    const analytics = await getEventAnalytics(event.id, userId);
+    totalRevenue += analytics.totalRevenue;
+    totalTicketsSold += analytics.totalTicketsSold;
+  }
+
+  return {
+    totalEvents: events.length,
+    totalRevenue,
+    totalTicketsSold
+  };
+};
+
+export const getUserRegistrations = async (userId) => {
+  if (!userId) throw new CustomError("User ID is required", 400);
+
+  const regs = await prisma.registration.findMany({
+    where: { userId: Number(userId), deletedAt: null },
+    orderBy: { registeredAt: "desc" },
+    include: {
+      ticket: true,
+      event: true,
+      user: true
+    }
+  });
+
+  return regs;
 };

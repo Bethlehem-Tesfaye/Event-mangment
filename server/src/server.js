@@ -1,10 +1,13 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import passport from "passport";
 import cookieParser from "cookie-parser";
 import conn from "./db/db.js";
 import routes from "./routes.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
+import requestLogger from "./middleware/requestLogger.js";
+import logger from "./utils/logger.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -19,23 +22,29 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
+// attach request logger early so all requests are logged
+app.use(requestLogger);
+
 app.get("/", (req, res) => {
   res.send("server works!!!");
 });
+app.use(passport.initialize());
 app.use("/api/v1", routes);
 app.use(errorMiddleware);
 
 conn
   .query("SELECT 1")
   .then(() => {
-    // eslint-disable-next-line no-console
-    console.log("database connected");
+    logger.info("database connected");
     app.listen(port, () => {
-      // eslint-disable-next-line no-console
-      console.log(`server running on port ${port}`);
+      logger.info(
+        `server running on port ${port} - env=${process.env.NODE_ENV || "development"}`
+      );
     });
   })
   .catch((err) => {
-    // eslint-disable-next-line no-console
-    console.log("database connection failed", err);
+    logger.error("database connection failed", {
+      stack: err?.stack,
+      error: err
+    });
   });

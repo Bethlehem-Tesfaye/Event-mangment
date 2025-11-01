@@ -16,9 +16,15 @@ export const useRegister = (options?: UseRegisterOptions) => {
   const mutation = useMutation<RegisterResponse, Error, RegisterPayload>({
     mutationFn: registerUser,
     onSuccess: (data) => {
-      setAuth(data.user, data.accessToken);
-      toast.success(`Welcome, ${data.user.email}! Your account was created.`);
-      navigate("/browse-event");
+      const userWithVerified = {
+        id: data.user.id,
+        email: data.user.email,
+        isVerified: (data.user as any).isVerified ?? false,
+        hasPassword: (data.user as any).hasPassword ?? false,
+      };
+      setAuth(userWithVerified, data.accessToken);
+      toast.success(`Welcome, ${data.user.email}! Please verify your email.`);
+      navigate("/verify-notice");
       options?.onSuccess?.(data);
     },
     onError: (error) => {

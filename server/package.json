@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs",
-    "postinstall": "npx prisma generate --schema=src/prisma/schema.prisma",
+    "postinstall": "npx prisma generate --schema=prisma/schema.prisma",
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
     "migrate:create": "prisma migrate dev --name",
@@ -37,8 +37,12 @@
     "node-pg-migrate": "^8.0.3",
     "nodemailer": "^7.0.5",
     "nodemon": "^3.1.10",
+    "passport": "^0.7.0",
+    "passport-google-oauth20": "^2.0.0",
     "pg": "^8.16.3",
     "qrcode": "^1.5.4",
+    "resend": "^6.1.3",
+    "winston": "^3.18.3",
     "zod": "^4.0.10"
   },
   "devDependencies": {

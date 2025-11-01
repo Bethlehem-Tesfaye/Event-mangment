@@ -4,7 +4,7 @@ import type { EventDetailsCardProps } from "../types/event";
 
 export default function EventDetailsCard({ event }: EventDetailsCardProps) {
   return (
-    <div className="bg-white rounded-2xl shadow-md overflow-hidden">
+    <div className="bg-white rounded-2xl shadow-md overflow-hidden dark:bg-[#202127]">
       {event.eventBannerUrl && (
         <img
           src={event.eventBannerUrl}
@@ -13,22 +13,23 @@ export default function EventDetailsCard({ event }: EventDetailsCardProps) {
         />
       )}
       <div className="p-6 flex flex-col gap-4">
-        <h1 className="text-3xl md:text-4xl font-bold">{event.title}</h1>
+        <h1 className="text-3xl md:text-4xl font-bold dark:text-gray-200">
+          {event.title}
+        </h1>
 
         {event.startDatetime && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <Calendar className="w-4 h-4 text-red-500" />
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-500">
+            <Calendar className="w-4 h-4 text-primary" />
             <span>{format(new Date(event.startDatetime), "PPPp")}</span>
           </div>
         )}
 
         {event.location && (
-          <div className="flex items-center gap-2 text-sm text-gray-600">
-            <MapPin className="w-4 h-4 text-red-500" />
+          <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-500">
+            <MapPin className="w-4 h-4 text-primary" />
             <span>{event.location}</span>
           </div>
         )}
-
       </div>
     </div>
   );

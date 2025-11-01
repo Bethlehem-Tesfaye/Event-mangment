@@ -1,7 +1,13 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useMe } from "../features/auth/hooks/useMe.ts";
+import { useQueryClient } from "@tanstack/react-query";
 
-type User = { id: string; email: string };
+type User = {
+  id: string;
+  email: string;
+  isVerified: boolean;
+  hasPassword: boolean;
+};
 
 interface AuthContextType {
   user: User | null;
@@ -24,6 +30,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   const { data, isSuccess, isFetching } = useMe();
+  const qc = useQueryClient();
 
   useEffect(() => {
     if (isSuccess && data?.user) {
@@ -40,6 +47,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setUser(u);
     setAccessToken(token);
     localStorage.setItem("accessToken", token);
+    qc.setQueryData(["me"], { user: u });
   };
 
   const clearAuth = () => {
@@ -56,7 +64,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, setAuth, clearAuth, loading }}>
+    <AuthContext.Provider
+      value={{ user, accessToken, setAuth, clearAuth, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

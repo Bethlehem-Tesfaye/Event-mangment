@@ -68,3 +68,76 @@ export const me = async (req, res, next) => {
     return next(error);
   }
 };
+
+export async function changePassword(req, res, next) {
+  try {
+    const { userId } = req;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { currentPassword, newPassword } = req.body;
+    await userService.changePassword(userId, currentPassword, newPassword);
+    return res.status(200).json({ message: "Password changed" });
+  } catch (err) {
+    return next(err);
+  }
+}
+
+export const verifyEmailController = async (req, res, next) => {
+  const { token } = req.query;
+
+  try {
+    const result = await userService.verrtfiyEmail(token);
+    return res.status(200).json(result);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const resendVerifyController = async (req, res, next) => {
+  try {
+    const { email } = req.body;
+    const result = await userService.resendVerification(email);
+    return res.status(200).json({ data: result });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const googleCallback = async (req, res, next) => {
+  try {
+    const oauthUser = req.user;
+    const { accessToken, refreshToken } =
+      await userService.oauthSignIn(oauthUser);
+
+    const cookieOptions = {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "Lax",
+      maxAge: 7 * 24 * 60 * 60 * 1000
+    };
+
+    res.cookie("refreshToken", refreshToken, cookieOptions);
+
+    const redirectUrl = `${process.env.CLIENT_URL}/auth/success?accessToken=${accessToken}`;
+    return res.redirect(redirectUrl);
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export async function setPassword(req, res, next) {
+  try {
+    const { userId } = req;
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    const { newPassword } = req.body;
+    await userService.setPassword(userId, newPassword);
+    return res.status(200).json({ message: "Password set" });
+  } catch (err) {
+    return next(err);
+  }
+}

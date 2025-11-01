@@ -21,7 +21,7 @@ export function Hero() {
   }, []);
 
   return (
-    <section className="relative h-[400px] bg-gradient-to-r from-red-400 via-pink-400 to-purple-500 text-white overflow-hidden animate-gradient rounded-2xl">
+    <section className="relative h-[400px] bg-gradient-to-r from-primary via-pink-400 to-purple-500 text-white overflow-hidden animate-gradient rounded-2xl">
       <div className="absolute top-0 left-0 w-64 h-64 bg-white/10 rounded-full animate-float1"></div>
       <div className="absolute bottom-0 right-0 w-72 h-72 bg-white/10 rounded-full animate-float2"></div>
 

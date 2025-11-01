@@ -5,6 +5,27 @@ export const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
   withCredentials: true,
 });
+const storedToken = localStorage.getItem("accessToken");
+if (storedToken) {
+  api.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+}
+
+api.interceptors.request.use((config) => {
+  try {
+    const token = localStorage.getItem("accessToken");
+    if (token) {
+      config.headers = config.headers || {};
+      if (
+        !config.headers["Authorization"] &&
+        !config.headers["authorization"]
+      ) {
+        config.headers["Authorization"] = `Bearer ${token}`;
+      }
+    }
+    config.withCredentials = true;
+  } catch (e) {}
+  return config;
+});
 
 let isRefreshing = false;
 let failedQueue: any[] = [];
@@ -44,11 +65,13 @@ api.interceptors.response.use(
         const { data } = await axios.post(
           `${import.meta.env.VITE_API_URL}/auth/refresh`,
           {},
-          { withCredentials: true },
+          { withCredentials: true }
         );
 
         const { accessToken, user } = data.data;
 
+        // persist and apply token so subsequent requests include it
+        localStorage.setItem("accessToken", accessToken);
         api.defaults.headers.common["Authorization"] = `Bearer ${accessToken}`;
         originalRequest.headers["Authorization"] = `Bearer ${accessToken}`;
 
@@ -68,5 +91,5 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(error);
-  },
+  }
 );
