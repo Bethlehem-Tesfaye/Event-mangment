@@ -24,7 +24,7 @@ export function EventPreview() {
   const { id } = useParams<{ id: string }>();
 
   const { mutate: logout, isPending: logoutLoading } = useLogout();
-  const { clearAuth } = useAuth();
+  const { user, clearAuth } = useAuth();
 
   const handleLogout = () => {
     logout(undefined, {
@@ -44,6 +44,7 @@ export function EventPreview() {
           onLogout={handleLogout}
           logoutLoading={logoutLoading}
           showSearch={false}
+          user={user as any}
         />
         <div className="max-w-7xl mx-auto px-16 py-10 flex flex-col gap-10">
           <Skeleton className="h-8 w-1/3 mb-6" />
@@ -69,6 +70,7 @@ export function EventPreview() {
         <Navbar
           onLogout={handleLogout}
           logoutLoading={logoutLoading}
+          user={user as any}
           showSearch={false}
         />
         <div className="max-w-3xl mx-auto py-20 text-center text-muted-foreground">
@@ -87,6 +89,7 @@ export function EventPreview() {
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
         showSearch={false}
+        user={user as any}
       />
       <div className="max-w-7xl mx-auto px-16 py-10 flex flex-col gap-10">
         <Breadcrumb className="mb-4">

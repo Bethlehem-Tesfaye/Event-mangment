@@ -17,30 +17,57 @@ passport.use(
         const email = profile.emails?.[0]?.value;
         if (!email) return done(new Error("Email not found in Google profile"));
 
-        // Find existing user
-        let user = await prisma.user.findUnique({
-          where: { email },
-          select: { id: true, email: true, tokenVersion: true }
-        });
-        const dummyPassword = Math.random().toString(36).slice(-8);
+        // Check if Google verified the email
+        const isVerified = profile.emails?.[0]?.verified || false;
 
-        if (!user) {
-          user = await prisma.user.create({
-            data: {
-              email,
-              password: dummyPassword,
-              googleId: profile.id,
-              isVerified: true,
-              hasPassword: false,
-              profile: { create: {} }
-            },
-            select: { id: true, email: true, tokenVersion: true }
-          });
+        // Find existing user by email
+        let existingUser = await prisma.user.findUnique({
+          where: { email }
+        });
+
+        // case1: User already exists AND has googleId linked
+        if (existingUser && existingUser.googleId) {
+          return done(null, existingUser);
         }
 
-        done(null, user);
+        // case 2: Existing password account, not yet linked
+        if (existingUser && !existingUser.googleId) {
+          //  Auto-link if Google verified the email
+          if (isVerified) {
+            const updatedUser = await prisma.user.update({
+              where: { email },
+              data: {
+                googleId: profile.id,
+                isVerified: true
+              },
+              select: { id: true, email: true, tokenVersion: true }
+            });
+            return done(null, updatedUser);
+          } else {
+            return done(
+              new Error("Google email not verified — cannot auto-link account.")
+            );
+          }
+        }
+
+        // case 3: No existing user, create new Google-only account
+        const dummyPassword = Math.random().toString(36).slice(-8);
+        const newUser = await prisma.user.create({
+          data: {
+            email,
+            password: dummyPassword,
+            googleId: profile.id,
+            isVerified: true,
+            hasPassword: false,
+            profile: { create: {} }
+          },
+          select: { id: true, email: true, tokenVersion: true }
+        });
+
+        return done(null, newUser);
       } catch (err) {
-        done(err, null);
+        console.error("Google Auth error:", err);
+        return done(err, null);
       }
     }
   )

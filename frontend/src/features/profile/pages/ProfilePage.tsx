@@ -11,9 +11,8 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
-  const { user } = useAuth();
+  const { user, clearAuth } = useAuth();
   const { mutate: logout, isPending: logoutLoading } = useLogout();
-  const { clearAuth } = useAuth();
 
   const { profile, isFetching, isUpdating, updateProfile, refetchProfile } =
     useProfile({
@@ -60,6 +59,7 @@ export default function ProfilePage() {
           onLogout={handleLogout}
           logoutLoading={logoutLoading}
           showSearch={false}
+          user={user as any}
         />
         <div className="container max-w-4xl mx-auto py-8">
           <div className="space-y-6">
@@ -92,6 +92,7 @@ export default function ProfilePage() {
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
         showSearch={false}
+        user={user as any}
       />
       <div className="container max-w-4xl mx-auto py-8 ">
         <BreadcrumbNav currentPage="Profile" />

@@ -13,7 +13,18 @@ import { Link } from "react-router-dom";
 import { ChevronDown, ChevronUp } from "lucide-react";
 import { useState } from "react";
 
-export default function Topbar({ user }: { user?: { email?: string } | null }) {
+interface User {
+  email?: string;
+}
+
+type LogoutHandler = (...args: any[]) => void;
+
+interface TopbarProps {
+  user?: User | null;
+  onLogout?: LogoutHandler;
+}
+
+export default function Topbar({ user, onLogout }: TopbarProps) {
   const [open, setOpen] = useState(false);
   return (
     <header className="flex items-center justify-between h-14 px-6 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
@@ -43,7 +54,7 @@ export default function Topbar({ user }: { user?: { email?: string } | null }) {
         </Link>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
-            <div className="flex items-center gap-2 cursor-pointerpx-2 py-1">
+            <div className="flex items-center gap-2 cursor-pointer px-2 py-1">
               <Avatar className="cursor-pointer">
                 <AvatarImage src="/avatar.png" alt="You" />
                 <AvatarFallback>
@@ -63,12 +74,19 @@ export default function Topbar({ user }: { user?: { email?: string } | null }) {
           <DropdownMenuContent className="w-48" align="end">
             <DropdownMenuLabel>My Account</DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <Link to="/browse-event">
-              <DropdownMenuItem>Browse Events</DropdownMenuItem>
-            </Link>
-            <DropdownMenuItem>Profile</DropdownMenuItem>
+            <DropdownMenuItem asChild>
+              <Link to="/organizer/profile">Profile</Link>
+            </DropdownMenuItem>
+
+            <DropdownMenuItem asChild>
+              <Link to="/organizer/settings">Settings</Link>
+            </DropdownMenuItem>
+
             <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-gray-700 dark:text-gray-300">
+            <DropdownMenuItem
+              className="text-gray-700 dark:text-gray-300"
+              onClick={onLogout}
+            >
               Logout
             </DropdownMenuItem>
           </DropdownMenuContent>

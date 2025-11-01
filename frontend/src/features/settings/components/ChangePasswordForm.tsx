@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 type User = {
   id: string;
@@ -25,8 +25,22 @@ export function ChangePasswordForm({
   const [confirm, setConfirm] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loadingForm, setLoadingForm] = useState(true);
 
   const isDisabled = !user;
+
+  const computedHasPassword =
+    typeof hasPassword === "boolean" ? hasPassword : !!user?.hasPassword;
+  useEffect(() => {
+    setLoadingForm(true);
+    setCurrentPassword("");
+    setNewPassword("");
+    setConfirm("");
+    setMessage(null);
+    setError(null);
+    const t = setTimeout(() => setLoadingForm(false), 50);
+    return () => clearTimeout(t);
+  }, [computedHasPassword, user?.id]);
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -44,11 +58,12 @@ export function ChangePasswordForm({
     }
 
     try {
-      if (hasPassword) {
+      if (computedHasPassword) {
         await changePassword({ currentPassword, newPassword });
       } else {
         await changePassword({ newPassword });
       }
+
       setMessage("Password set successfully.");
       setCurrentPassword("");
       setNewPassword("");
@@ -57,6 +72,19 @@ export function ChangePasswordForm({
       setError(err?.message ?? "Failed to change password");
     }
   };
+
+  if (loadingForm) {
+    return (
+      <div className="w-full max-w-md md:max-w-lg space-y-3 p-4 rounded-lg bg-gray-100 dark:bg-[#1b1b1f]">
+        {computedHasPassword && (
+          <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-full animate-pulse" />
+        )}
+        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-full animate-pulse" />
+        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-full animate-pulse" />
+        <div className="h-8 bg-gray-300 dark:bg-gray-700 rounded w-1/4 animate-pulse ml-auto" />
+      </div>
+    );
+  }
 
   return (
     <form
@@ -71,12 +99,11 @@ export function ChangePasswordForm({
         </p>
       )}
 
-      {hasPassword ? (
+      {computedHasPassword && (
         <div>
           <label className="block text-xs font-medium text-gray-700 dark:text-gray-300">
             Current password
           </label>
-
           <input
             type="password"
             value={currentPassword}
@@ -86,8 +113,6 @@ export function ChangePasswordForm({
             className="mt-1 block w-full max-w-sm rounded-md border border-gray-300 dark:border-slate-600 bg-white dark:bg-[#202127] px-3 py-1.5 focus:ring-2 focus:ring-red-500 outline-none transition-all text-sm disabled:bg-gray-100 disabled:dark:bg-[#111111]"
           />
         </div>
-      ) : (
-        ""
       )}
 
       <div>
@@ -133,9 +158,9 @@ export function ChangePasswordForm({
         >
           {isLoading
             ? "Saving..."
-            : hasPassword
+            : computedHasPassword
             ? "Change password"
-            : "Change password"}
+            : "set password"}
         </button>
       </div>
     </form>

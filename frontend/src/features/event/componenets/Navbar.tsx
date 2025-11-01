@@ -6,7 +6,7 @@ import {
   Globe,
   Menu,
   Calendar,
-  User,
+  // User,
 } from "lucide-react";
 import Logo from "@/components/custom/Logo";
 import { Link } from "react-router-dom";
@@ -27,6 +27,9 @@ import {
 import type { NavbarProps } from "../types/event";
 import { useAuth } from "@/context/AuthContext";
 import PulseLoader from "@/components/custom/PulseLoader";
+import { useState } from "react";
+import { ChevronDown, ChevronUp } from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   const {
@@ -36,9 +39,13 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
     onLogout,
     logoutLoading,
     showSearch = true,
+    user,
   } = props;
-  const { accessToken } = useAuth();
+  const { accessToken, user: authUser, loading: authLoading } = useAuth();
+  const effectiveUser = user === undefined ? authUser : user;
   const isLoggedIn = !!accessToken;
+  const [open, setOpen] = useState(false);
+
   return (
     <>
       {logoutLoading ? <PulseLoader show /> : ""}
@@ -128,14 +135,37 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
             </NavigationMenu>
           </div>
 
-          <DropdownMenu>
+          <DropdownMenu onOpenChange={setOpen}>
             <DropdownMenuTrigger asChild>
-              <Avatar className="cursor-pointer">
-                <AvatarImage src="/placeholder-user.jpg" alt="User" />
-                <AvatarFallback className="bg-gray-200 dark:bg-slate-700">
-                  <User />
-                </AvatarFallback>
-              </Avatar>
+              <div className="flex items-center gap-2 cursor-pointer px-2 py-1">
+                <Avatar className="cursor-pointer">
+                  {authLoading ? (
+                    <Skeleton className="h-8 w-8 rounded-full bg-gray-400" />
+                  ) : (
+                    <>
+                      <AvatarImage src="/avatar.png" alt="You" />
+                      <AvatarFallback className="rounded-full bg-gray-300">
+                        {effectiveUser?.email
+                          ? effectiveUser.email[0].toUpperCase()
+                          : "U"}
+                      </AvatarFallback>
+                    </>
+                  )}
+                </Avatar>
+
+                {authLoading ? (
+                  <Skeleton className="h-4 w-28 rounded ml-2  bg-gray-400" />
+                ) : (
+                  <span className="text-sm text-gray-700 dark:text-gray-300 ml-2">
+                    {effectiveUser?.email || null}
+                  </span>
+                )}
+                {open ? (
+                  <ChevronUp className="w-4 h-4 text-gray-500" />
+                ) : (
+                  <ChevronDown className="w-4 h-4 text-gray-500" />
+                )}
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               {isLoggedIn ? (

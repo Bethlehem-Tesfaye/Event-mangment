@@ -36,13 +36,16 @@ export interface BrowsePageProps {
   onPageChange: (page: number) => void;
   limit: number;
 }
-
+interface User {
+  email?: string;
+}
 export interface NavbarProps {
   searchValue?: string;
   onSearchChange?: (q: string) => void;
   onSearchSubmit?: () => void;
   onLogout: () => void;
   logoutLoading: boolean;
+  user: User | null;
 }
 
 export interface EventDetail {

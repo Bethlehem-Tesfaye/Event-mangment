@@ -20,6 +20,7 @@ export const useRegister = (options?: UseRegisterOptions) => {
         id: data.user.id,
         email: data.user.email,
         isVerified: (data.user as any).isVerified ?? false,
+        hasPassword: (data.user as any).hasPassword ?? false,
       };
       setAuth(userWithVerified, data.accessToken);
       toast.success(`Welcome, ${data.user.email}! Please verify your email.`);

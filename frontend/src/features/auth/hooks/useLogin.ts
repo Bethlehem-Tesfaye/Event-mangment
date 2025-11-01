@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   loginUser,
   type LoginPayload,
@@ -11,6 +11,7 @@ import type { UseLoginOptions } from "../types/auth";
 
 export const useLogin = (options?: UseLoginOptions) => {
   const { setAuth } = useAuth();
+  const qc = useQueryClient();
   const navigate = useNavigate();
 
   const mutation = useMutation<LoginResponse, Error, LoginPayload>({
@@ -20,8 +21,10 @@ export const useLogin = (options?: UseLoginOptions) => {
         id: data.user.id,
         email: data.user.email,
         isVerified: (data.user as any).isVerified ?? false,
+        hasPassword: (data.user as any).hasPassword ?? true,
       };
       setAuth(userWithVerified, data.accessToken);
+      qc.setQueryData(["me"], { user: userWithVerified });
       toast.success(`Welcome back, ${data.user.email}!`);
       navigate("/browse-event");
       options?.onSuccess?.(data);

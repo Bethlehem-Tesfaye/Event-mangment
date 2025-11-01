@@ -3,17 +3,20 @@ import Sidebar from "../components/SideBar";
 import Topbar from "../components/Topbar";
 import EventsList from "../components/EventsList";
 import StatCard from "../components/StatCard";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   useOrganizerEvents,
   useOrganizerDashboardStats,
 } from "../hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAuth } from "@/context/AuthContext";
+import { useLogout } from "@/features/auth/hooks/useLogout";
 
 export default function DashboardPage() {
   const [route, setRoute] = useState<string>("dashboard");
-  const { user } = useAuth();
+  const { user, clearAuth } = useAuth();
+  const { mutate: logout } = useLogout();
+  const navigate = useNavigate();
 
   const {
     data: events = [],
@@ -25,6 +28,18 @@ export default function DashboardPage() {
     isLoading: statsLoading,
     error: statsError,
   } = useOrganizerDashboardStats();
+
+  const handleLogout = () => {
+    logout(undefined, {
+      onSuccess: () => {
+        clearAuth();
+        navigate("/");
+      },
+      onError: (err) => {
+        console.error("Logout failed:", err);
+      },
+    });
+  };
 
   const stats = statsData
     ? [
@@ -50,7 +65,7 @@ export default function DashboardPage() {
     <div className="flex min-h-screen bg-gray-50 dark:bg-[#050505]">
       <Sidebar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col">
-        <Topbar user={user} />
+        <Topbar user={user} onLogout={handleLogout} />
         <main className="p-6 max-w-7xl w-full mx-auto flex-1">
           <StatCard stats={stats} loading={statsLoading} error={statsError} />
 

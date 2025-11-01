@@ -1,16 +1,17 @@
-import { createBrowserRouter, Route } from "react-router-dom";
+import { createBrowserRouter } from "react-router-dom";
 import { LoginPage } from "@/features/auth/pages/LoginPage";
 import { RegisterPage } from "@/features/auth/pages/RegisterPage";
 import Events from "@/features/event/pages/Events";
 import { EventPreview } from "@/features/event/pages/EventPreview";
 import ProfilePage from "@/features/profile/pages/ProfilePage";
+import OrgnaizerProfile from "@/features/profile/pages/OrgnaizerProfile";
 import { ProtectedLayout } from "@/lib/ProtectedLayout";
-
 import DashboardPage from "@/features/organizer/Dashboard/pages/DashboardPage";
 import EventPreviewPage from "@/features/organizer/preview/pages/EventPreviewPage";
 import OrganizerEventsListPage from "@/features/organizer/events/pages/OrganizerEventsListPage";
 import CreateEventPage from "@/features/organizer/createEvents/pages/CreateEventPage";
 import Settings from "@/features/settings/pages/Settings";
+import OrgainzerSettings from "@/features/settings/pages/OrganizerSettings";
 import Analytics from "@/features/organizer/analytics/pages/Analytics";
 import Attendees from "@/features/organizer/attendees/pages/Attendees";
 import NotFound from "@/components/custom/NotFound";
@@ -46,6 +47,10 @@ export const router = createBrowserRouter([
     element: <Settings />,
   },
   {
+    path: "/organizer/settings",
+    element: <OrgainzerSettings />,
+  },
+  {
     path: "/verify-notice",
     element: <VerifyNoticePage />,
   },
@@ -64,6 +69,7 @@ export const router = createBrowserRouter([
     element: <ProtectedLayout />,
     children: [
       { path: "profile", element: <ProfilePage /> },
+      { path: "organizer/profile", element: <OrgnaizerProfile /> },
       { path: "organizer/dashboard", element: <DashboardPage /> },
       { path: "organizer/events/:eventId", element: <EventPreviewPage /> },
       { path: "organizer/events", element: <OrganizerEventsListPage /> },

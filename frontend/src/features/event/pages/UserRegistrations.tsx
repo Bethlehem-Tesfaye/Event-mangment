@@ -9,7 +9,7 @@ export default function UserRegistrationsPage() {
   const { data: regs, isLoading, error } = useUserRegistrations();
   const list = regs ?? [];
   const { mutate: logout, isPending: logoutLoading } = useLogout();
-  const { clearAuth } = useAuth();
+  const { user, clearAuth } = useAuth();
 
   const handleLogout = () => {
     logout(undefined, {
@@ -24,6 +24,7 @@ export default function UserRegistrationsPage() {
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
         showSearch={false}
+        user={user as any}
       />
 
       {isLoading ? (

@@ -6,6 +6,9 @@ import { useTheme } from "next-themes";
 import { ChangePasswordForm } from "../components/ChangePasswordForm";
 import { LogOut, Moon, Sun } from "lucide-react";
 import { usePassword, useSetPassword } from "../hooks/usePassword";
+import { useResendVerify } from "@/features/auth/hooks/useResendVerify";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 function Settings() {
   const { user, clearAuth } = useAuth();
@@ -14,6 +17,7 @@ function Settings() {
   const [mounted, setMounted] = useState(false);
   const passwordHook = usePassword();
   const setPasswordHook = useSetPassword();
+  const resendMutation = useResendVerify();
 
   useEffect(() => {
     setMounted(true);
@@ -25,6 +29,10 @@ function Settings() {
       onError: (err) => console.error("Logout failed:", err),
     });
   };
+  const handleResend = () => {
+    if (!user) return;
+    resendMutation.mutate(user?.email);
+  };
 
   const currentTheme = mounted ? theme ?? "light" : "light";
 
@@ -34,6 +42,7 @@ function Settings() {
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
         showSearch={false}
+        user={user as any}
       />
 
       <main className="max-w-4xl mx-auto px-6 py-10 space-y-10">
@@ -87,6 +96,18 @@ function Settings() {
               hasPassword={user?.hasPassword}
             />
           </div>
+
+          {user && !user.isVerified ? (
+            <div>
+              <h2>Verify your email </h2>
+              <Button
+                onClick={handleResend}
+                disabled={resendMutation.isPending || !user}
+              >
+                <Link to="/verify-notice">verify email</Link>
+              </Button>
+            </div>
+          ) : null}
 
           <div className="pt-5 border-t border-gray-100 dark:bg-[#202127] flex justify-end">
             <button
