@@ -1,13 +1,13 @@
 import dotenv from "dotenv";
 import express from "express";
 import cors from "cors";
+import passport from "passport";
 import cookieParser from "cookie-parser";
 import conn from "./db/db.js";
 import routes from "./routes.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import requestLogger from "./middleware/requestLogger.js";
 import logger from "./utils/logger.js";
-import passport from "passport";
 
 dotenv.config();
 const port = process.env.PORT || 4000;

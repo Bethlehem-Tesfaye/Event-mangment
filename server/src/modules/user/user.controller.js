@@ -108,7 +108,7 @@ export const resendVerifyController = async (req, res, next) => {
 export const googleCallback = async (req, res, next) => {
   try {
     const oauthUser = req.user;
-    const { user, accessToken, refreshToken } =
+    const { accessToken, refreshToken } =
       await userService.oauthSignIn(oauthUser);
 
     const cookieOptions = {

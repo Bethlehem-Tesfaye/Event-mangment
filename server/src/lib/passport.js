@@ -1,7 +1,7 @@
+import dotenv from "dotenv";
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import prisma from "../lib/prisma.js";
-import dotenv from "dotenv";
+import prisma from "./prisma.js";
 
 dotenv.config();
 
@@ -21,7 +21,7 @@ passport.use(
         const isVerified = profile.emails?.[0]?.verified || false;
 
         // Find existing user by email
-        let existingUser = await prisma.user.findUnique({
+        const existingUser = await prisma.user.findUnique({
           where: { email }
         });
 
@@ -43,11 +43,10 @@ passport.use(
               select: { id: true, email: true, tokenVersion: true }
             });
             return done(null, updatedUser);
-          } else {
-            return done(
-              new Error("Google email not verified — cannot auto-link account.")
-            );
           }
+          return done(
+            new Error("Google email not verified — cannot auto-link account.")
+          );
         }
 
         // case 3: No existing user, create new Google-only account
@@ -66,7 +65,6 @@ passport.use(
 
         return done(null, newUser);
       } catch (err) {
-        console.error("Google Auth error:", err);
         return done(err, null);
       }
     }
