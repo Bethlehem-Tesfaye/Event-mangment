@@ -36,7 +36,13 @@ const speakerSchema = z.object({
 });
 
 function getBannerFromEvent(ev: any): string | null {
-  return ev?.banner ?? ev?.bannerUrl ?? ev?.eventBannerUrl ?? ev?.event_banner_url ?? null;
+  return (
+    ev?.banner ??
+    ev?.bannerUrl ??
+    ev?.eventBannerUrl ??
+    ev?.event_banner_url ??
+    null
+  );
 }
 
 export default function EventPreviewPage() {
@@ -46,17 +52,20 @@ export default function EventPreviewPage() {
   const [saving, setSaving] = useState(false);
   const queryClient = useQueryClient();
 
-  const id = useMemo(() => (eventId ? Number(eventId) : NaN), [eventId]);
-  const { data: event, isLoading, error } = useOrganizerEvent(Number.isFinite(id) ? id : 0);
+  // treat eventId as a string UUID — do NOT coerce to Number
+  const id = useMemo(() => eventId ?? "", [eventId]);
+  const { data: event, isLoading, error } = useOrganizerEvent(id);
 
-  const createTicket = useCreateTicket(Number(id));
-  const updateTicket = useUpdateTicket(Number(id));
-  const deleteTicketMutation = useDeleteTicket(Number(id));
-  const createSpeaker = useCreateSpeaker(Number(id));
-  const updateSpeaker = useUpdateSpeaker(Number(id));
-  const deleteSpeakerMutation = useDeleteSpeaker(Number(id));
+  const createTicket = useCreateTicket(id);
+  const updateTicket = useUpdateTicket(id);
+  const deleteTicketMutation = useDeleteTicket(id);
+  const createSpeaker = useCreateSpeaker(id);
+  const updateSpeaker = useUpdateSpeaker(id);
+  const deleteSpeakerMutation = useDeleteSpeaker(id);
 
-  const [editableEvent, setEditableEvent] = useState<OrganizerEvent | null>(null);
+  const [editableEvent, setEditableEvent] = useState<OrganizerEvent | null>(
+    null
+  );
   const [newTicket, setNewTicket] = useState<any>(null);
   const [newSpeaker, setNewSpeaker] = useState<any>(null);
   const [ticketError, setTicketError] = useState<string | null>(null);
@@ -66,7 +75,8 @@ export default function EventPreviewPage() {
   useEffect(() => {
     if (!event) return;
     const tickets = (event as any).tickets ?? (event as any).eventTickets ?? [];
-    const speakers = (event as any).eventSpeakers ?? (event as any).speakers ?? [];
+    const speakers =
+      (event as any).eventSpeakers ?? (event as any).speakers ?? [];
     const banner = getBannerFromEvent(event);
     setEditableEvent({
       ...event,
@@ -132,8 +142,11 @@ export default function EventPreviewPage() {
                 <Skeleton className="h-4 w-1/4" />
                 <Skeleton className="h-4 w-1/4" />
               </div>
-              {[1, 2, 3].map(i => (
-                <div key={i} className="flex gap-2 items-center border p-2 rounded">
+              {[1, 2, 3].map((i) => (
+                <div
+                  key={i}
+                  className="flex gap-2 items-center border p-2 rounded"
+                >
                   <Skeleton className="h-8 w-1/4" />
                   <Skeleton className="h-8 w-1/4" />
                   <Skeleton className="h-8 w-1/4" />
@@ -150,8 +163,11 @@ export default function EventPreviewPage() {
               <Skeleton className="h-8 w-20" />
             </CardHeader>
             <CardContent className="flex flex-col gap-3">
-              {[1, 2].map(i => (
-                <div key={i} className="flex gap-2 items-center border p-2 rounded">
+              {[1, 2].map((i) => (
+                <div
+                  key={i}
+                  className="flex gap-2 items-center border p-2 rounded"
+                >
                   <Skeleton className="h-12 w-12 rounded-full" />
                   <div className="flex-1">
                     <Skeleton className="h-6 w-1/3 mb-2" />
@@ -166,12 +182,15 @@ export default function EventPreviewPage() {
     );
   }
 
-  if (error || !editableEvent) return <p className="p-4 text-red-500">Failed to load event.</p>;
+  if (error || !editableEvent)
+    return <p className="p-4 text-red-500">Failed to load event.</p>;
 
-  const bannerSrc = (editableEvent?.banner ?? bannerPreview) ?? undefined;
-  const makeTempId = () => `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const bannerSrc = editableEvent?.banner ?? bannerPreview ?? undefined;
+  const makeTempId = () =>
+    `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
-  const handleChangeField = (k: string, v: string) => setEditableEvent(prev => prev ? ({ ...prev, [k]: v }) : prev);
+  const handleChangeField = (k: string, v: string) =>
+    setEditableEvent((prev) => (prev ? { ...prev, [k]: v } : prev));
 
   const handleAddTicketLocal = () => {
     if (!newTicket) return;
@@ -179,15 +198,19 @@ export default function EventPreviewPage() {
       type: newTicket.type,
       price: Number(newTicket.price),
       totalQuantity: Number(newTicket.totalQuantity),
-      maxPerUser: newTicket.maxPerUser ? Number(newTicket.maxPerUser) : undefined,
+      maxPerUser: newTicket.maxPerUser
+        ? Number(newTicket.maxPerUser)
+        : undefined,
     });
     if (!parsed.success) {
-      setTicketError(parsed.error.issues.map(i => i.message).join(", "));
+      setTicketError(parsed.error.issues.map((i) => i.message).join(", "));
       return;
     }
     setTicketError(null);
     const t: Ticket = { id: makeTempId(), ...parsed.data, isTemp: true };
-    setEditableEvent(prev => (prev ? { ...prev, tickets: [...(prev.tickets ?? []), t] } : prev));
+    setEditableEvent((prev) =>
+      prev ? { ...prev, tickets: [...(prev.tickets ?? []), t] } : prev
+    );
     setNewTicket(null);
   };
 
@@ -195,44 +218,90 @@ export default function EventPreviewPage() {
     if (!newSpeaker) return;
     const parsed = speakerSchema.safeParse(newSpeaker);
     if (!parsed.success) {
-      setSpeakerError(parsed.error.issues.map(i => i.message).join(", "));
+      setSpeakerError(parsed.error.issues.map((i) => i.message).join(", "));
       return;
     }
     setSpeakerError(null);
     const s: Speaker = { id: makeTempId(), ...parsed.data, isTemp: true };
-    setEditableEvent(prev => (prev ? { ...prev, speakers: [...(prev.speakers ?? []), s] } : prev));
+    setEditableEvent((prev) =>
+      prev ? { ...prev, speakers: [...(prev.speakers ?? []), s] } : prev
+    );
     setNewSpeaker(null);
   };
 
-  const handleRemoveLocal = (type: "ticket" | "speaker", idToRemove: string | number) => {
-    setEditableEvent(prev => {
+  const handleRemoveLocal = (
+    type: "ticket" | "speaker",
+    idToRemove: string | number
+  ) => {
+    setEditableEvent((prev) => {
       if (!prev) return prev;
-      if (type === "ticket") return { ...prev, tickets: (prev.tickets ?? []).filter(t => t.id !== idToRemove) };
-      return { ...prev, speakers: (prev.speakers ?? []).filter(s => s.id !== idToRemove) };
+      if (type === "ticket")
+        return {
+          ...prev,
+          tickets: (prev.tickets ?? []).filter((t) => t.id !== idToRemove),
+        };
+      return {
+        ...prev,
+        speakers: (prev.speakers ?? []).filter((s) => s.id !== idToRemove),
+      };
     });
   };
 
-  const handleChangeTicket = (id: number | string, field: string, value: any) => {
-    setEditableEvent(prev => prev ? ({ ...prev, tickets: prev.tickets!.map(t => t.id === id ? { ...t, [field]: value } : t) }) : prev);
-    const existing = (editableEvent?.tickets ?? []).find(t => t.id === id);
-    if (existing && !(existing as any).isTemp) updateTicket.mutate({ ticketId: Number(id), data: { [field]: value } });
+  const handleChangeTicket = (
+    id: number | string,
+    field: string,
+    value: any
+  ) => {
+    setEditableEvent((prev) =>
+      prev
+        ? {
+            ...prev,
+            tickets: prev.tickets!.map((t) =>
+              t.id === id ? { ...t, [field]: value } : t
+            ),
+          }
+        : prev
+    );
+    const existing = (editableEvent?.tickets ?? []).find((t) => t.id === id);
+    if (existing && !(existing as any).isTemp)
+      updateTicket.mutate({ ticketId: Number(id), data: { [field]: value } });
   };
 
-  const handleDeleteTicketRemote = (ticketId: number) => deleteTicketMutation.mutate(ticketId);
+  const handleDeleteTicketRemote = (ticketId: number) =>
+    deleteTicketMutation.mutate(ticketId);
 
-  const handleChangeSpeaker = (id: number | string, field: string, value: any) => {
-    setEditableEvent(prev => prev ? ({ ...prev, speakers: prev.speakers!.map(s => s.id === id ? { ...s, [field]: value } : s) }) : prev);
-    const existing = (editableEvent?.speakers ?? []).find(s => s.id === id);
-    if (existing && !(existing as any).isTemp) updateSpeaker.mutate({ speakerId: Number(id), data: { [field]: value } });
+  const handleChangeSpeaker = (
+    id: number | string,
+    field: string,
+    value: any
+  ) => {
+    setEditableEvent((prev) =>
+      prev
+        ? {
+            ...prev,
+            speakers: prev.speakers!.map((s) =>
+              s.id === id ? { ...s, [field]: value } : s
+            ),
+          }
+        : prev
+    );
+    const existing = (editableEvent?.speakers ?? []).find((s) => s.id === id);
+    if (existing && !(existing as any).isTemp)
+      updateSpeaker.mutate({ speakerId: Number(id), data: { [field]: value } });
   };
 
-  const handleDeleteSpeakerRemote = (id: number) => deleteSpeakerMutation.mutate(id);
+  const handleDeleteSpeakerRemote = (id: number) =>
+    deleteSpeakerMutation.mutate(id);
 
   const handleSave = async () => {
-    if (!editableEvent || !Number.isFinite(id)) return;
+    if (!editableEvent || !id) return;
     setSaving(true);
-    const createdTickets = (editableEvent.tickets ?? []).filter(t => (t as any).isTemp);
-    const createdSpeakers = (editableEvent.speakers ?? []).filter(s => (s as any).isTemp);
+    const createdTickets = (editableEvent.tickets ?? []).filter(
+      (t) => (t as any).isTemp
+    );
+    const createdSpeakers = (editableEvent.speakers ?? []).filter(
+      (s) => (s as any).isTemp
+    );
     try {
       await api.put(`/organizer/events/${id}`, {
         title: editableEvent.title,
@@ -271,7 +340,8 @@ export default function EventPreviewPage() {
       return;
     }
     const tickets = (event as any).tickets ?? (event as any).eventTickets ?? [];
-    const speakers = (event as any).eventSpeakers ?? (event as any).speakers ?? [];
+    const speakers =
+      (event as any).eventSpeakers ?? (event as any).speakers ?? [];
     const banner = getBannerFromEvent(event);
     setEditableEvent({
       ...event,
@@ -307,7 +377,11 @@ export default function EventPreviewPage() {
               <Button onClick={handleSave} disabled={saving}>
                 {saving ? "Saving..." : "Save"}
               </Button>
-              <Button variant="destructive" onClick={handleCancel} disabled={saving}>
+              <Button
+                variant="destructive"
+                onClick={handleCancel}
+                disabled={saving}
+              >
                 Cancel
               </Button>
             </div>
@@ -316,7 +390,12 @@ export default function EventPreviewPage() {
           )}
         </div>
 
-        <EventInfo bannerSrc={bannerSrc} editable={editable} editableEvent={editableEvent} onChangeField={handleChangeField} />
+        <EventInfo
+          bannerSrc={bannerSrc}
+          editable={editable}
+          editableEvent={editableEvent}
+          onChangeField={handleChangeField}
+        />
 
         <TicketsList
           tickets={editableEvent.tickets ?? []}

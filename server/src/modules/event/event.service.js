@@ -59,7 +59,7 @@ export const getEvents = async ({
 };
 export const getEventById = async (eventId) => {
   const event = await prisma.event.findFirst({
-    where: { id: parseInt(eventId, 10), status: "published", deletedAt: null },
+    where: { id: eventId, status: "published", deletedAt: null },
     include: {
       tickets: { where: { deletedAt: null } },
       eventSpeakers: { where: { deletedAt: null } },
@@ -78,7 +78,7 @@ export const getEventById = async (eventId) => {
 
 export const getEventSpeakers = async (eventId) => {
   const speakers = await prisma.eventSpeaker.findMany({
-    where: { eventId: parseInt(eventId, 10), deletedAt: null },
+    where: { eventId: eventId, deletedAt: null },
     select: { id: true, name: true, bio: true, photoUrl: true }
   });
 
@@ -90,7 +90,7 @@ export const getEventSpeakers = async (eventId) => {
 
 export const getEventTickets = async (eventId) => {
   const tickets = await prisma.ticket.findMany({
-    where: { eventId: parseInt(eventId, 10), deletedAt: null }
+    where: { eventId: eventId, deletedAt: null }
   });
 
   if (tickets.length === 0)
@@ -110,7 +110,7 @@ export const purchaseTicket = async ({
   const ticket = await prisma.ticket.findFirst({
     where: {
       id: parseInt(ticketId, 10),
-      eventId: parseInt(eventId, 10),
+      eventId: eventId,
       deletedAt: null
     }
   });
@@ -256,7 +256,7 @@ export const createEvent = async ({
 
 export const getEventDetailById = async (eventId) => {
   const event = await prisma.event.findUnique({
-    where: { id: parseInt(eventId, 10) },
+    where: { id: eventId },
     include: {
       tickets: { where: { deletedAt: null } },
       eventSpeakers: { where: { deletedAt: null } },
@@ -275,7 +275,7 @@ export const getEventDetailById = async (eventId) => {
 
 export const updateEvent = async (eventId, userId, data) => {
   const event = await prisma.event.findFirst({
-    where: { id: parseInt(eventId, 10), userId }
+    where: { id: eventId, userId }
   });
   if (!event) throw new CustomError("Event not found", 404);
 
@@ -333,7 +333,7 @@ export const updateEvent = async (eventId, userId, data) => {
 
   //  Update event
   const updatedEvent = await prisma.event.update({
-    where: { id: parseInt(eventId, 10) },
+    where: { id: eventId },
     data: {
       ...data,
       deletedAt: status === "cancelled" ? new Date() : undefined,
@@ -347,7 +347,7 @@ export const updateEvent = async (eventId, userId, data) => {
 // Soft delete event
 export const deleteEvent = async (eventId) => {
   const event = await prisma.event.update({
-    where: { id: parseInt(eventId, 10) },
+    where: { id: eventId },
     data: { deletedAt: new Date() }
   });
   return event;
@@ -356,7 +356,7 @@ export const deleteEvent = async (eventId) => {
 export const addCategoryToEvent = async ({ eventId, categoryId }) => {
   return prisma.eventCategory.create({
     data: {
-      eventId: parseInt(eventId, 10),
+      eventId: eventId,
       categoryId: parseInt(categoryId, 10)
     }
   });
@@ -366,7 +366,7 @@ export const removeCategoryFromEvent = async ({ eventId, categoryId }) => {
   return prisma.eventCategory.update({
     where: {
       eventId_categoryId: {
-        eventId: parseInt(eventId, 10),
+        eventId: eventId,
         categoryId: parseInt(categoryId, 10)
       }
     },
@@ -376,7 +376,7 @@ export const removeCategoryFromEvent = async ({ eventId, categoryId }) => {
 
 export const getEventAnalytics = async (eventId, userId) => {
   const event = await prisma.event.findUnique({
-    where: { id: parseInt(eventId, 10), deletedAt: null }
+    where: { id: eventId, deletedAt: null }
   });
 
   if (!event) throw new CustomError("Event not found", 404);
@@ -423,7 +423,7 @@ export const getEventAnalytics = async (eventId, userId) => {
 
 export const getEventAttendeesService = async (eventId) => {
   const registrations = await prisma.registration.findMany({
-    where: { eventId: parseInt(eventId, 10), deletedAt: null },
+    where: { eventId: eventId, deletedAt: null },
     include: {
       ticket: { select: { type: true } },
       user: {
