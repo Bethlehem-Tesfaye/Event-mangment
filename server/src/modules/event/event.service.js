@@ -90,7 +90,7 @@ export const getEventSpeakers = async (eventId) => {
 
 export const getEventTickets = async (eventId) => {
   const tickets = await prisma.ticket.findMany({
-    where: { eventId: eventId, deletedAt: null }
+    where: { eventId, deletedAt: null }
   });
 
   if (tickets.length === 0)
@@ -110,7 +110,7 @@ export const purchaseTicket = async ({
   const ticket = await prisma.ticket.findFirst({
     where: {
       id: parseInt(ticketId, 10),
-      eventId: eventId,
+      eventId,
       deletedAt: null
     }
   });
@@ -356,7 +356,7 @@ export const deleteEvent = async (eventId) => {
 export const addCategoryToEvent = async ({ eventId, categoryId }) => {
   return prisma.eventCategory.create({
     data: {
-      eventId: eventId,
+      eventId,
       categoryId: parseInt(categoryId, 10)
     }
   });
@@ -366,7 +366,7 @@ export const removeCategoryFromEvent = async ({ eventId, categoryId }) => {
   return prisma.eventCategory.update({
     where: {
       eventId_categoryId: {
-        eventId: eventId,
+        eventId,
         categoryId: parseInt(categoryId, 10)
       }
     },
@@ -423,7 +423,7 @@ export const getEventAnalytics = async (eventId, userId) => {
 
 export const getEventAttendeesService = async (eventId) => {
   const registrations = await prisma.registration.findMany({
-    where: { eventId: eventId, deletedAt: null },
+    where: { eventId, deletedAt: null },
     include: {
       ticket: { select: { type: true } },
       user: {
