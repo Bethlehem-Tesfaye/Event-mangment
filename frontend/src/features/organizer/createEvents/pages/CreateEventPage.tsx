@@ -7,7 +7,6 @@ import {
   usePublishEvent,
   useDeleteTicket,
   useDeleteSpeaker,
-  useCreateCategory,
   useAssignCategoriesToEvent,
 } from "../hooks/useCreateEvent";
 import { Input } from "@/components/ui/input";
@@ -58,7 +57,6 @@ export default function CreateEventPage() {
     photoUrl: "",
   });
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
-  const [newCategory, setNewCategory] = useState("");
   const [duration, setDuration] = useState<number | undefined>();
 
   const { data: categories, isLoading: loadingCategories } = useCategories();
@@ -68,7 +66,6 @@ export default function CreateEventPage() {
   const createSpeaker = useCreateSpeaker(eventId ?? 0);
   const deleteTicket = useDeleteTicket(eventId ?? 0);
   const deleteSpeaker = useDeleteSpeaker(eventId ?? 0);
-  const createCategory = useCreateCategory();
   const assignCategories = useAssignCategoriesToEvent(eventId ?? 0);
 
   const handleEventInfoSubmit = (asDraft = false) => {
@@ -310,60 +307,73 @@ export default function CreateEventPage() {
               <Card className="p-6 space-y-4  dark:bg-[#202127]">
                 <div className="font-medium mb-2">Tickets</div>
                 <div className="flex gap-2 mb-2">
-                  <Input
-                    placeholder="Type (e.g. General)"
-                    value={ticketDraft.type}
-                    onChange={(e) =>
-                      setTicketDraft({ ...ticketDraft, type: e.target.value })
-                    }
-                    className="w-32"
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Price"
-                    value={ticketDraft.price}
-                    onChange={(e) =>
-                      setTicketDraft({
-                        ...ticketDraft,
-                        price: Number(e.target.value),
-                      })
-                    }
-                    className="w-24"
-                    min={0}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Total Qty"
-                    value={ticketDraft.totalQuantity}
-                    onChange={(e) =>
-                      setTicketDraft({
-                        ...ticketDraft,
-                        totalQuantity: Number(e.target.value),
-                      })
-                    }
-                    className="w-24"
-                    min={1}
-                  />
-                  <Input
-                    type="number"
-                    placeholder="Max/User"
-                    value={ticketDraft.maxPerUser ?? ""}
-                    onChange={(e) =>
-                      setTicketDraft({
-                        ...ticketDraft,
-                        maxPerUser: Number(e.target.value),
-                      })
-                    }
-                    className="w-24"
-                    min={1}
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleAddTicket}
-                    disabled={createTicket.isPending}
-                  >
-                    Add
-                  </Button>
+                  <div className="flex flex-col w-32">
+                    <label className="text-xs mb-1">Type (e.g. General)</label>
+                    <Input
+                      value={ticketDraft.type}
+                      onChange={(e) =>
+                        setTicketDraft({ ...ticketDraft, type: e.target.value })
+                      }
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="flex flex-col w-24">
+                    <label className="text-xs mb-1">Price</label>
+                    <Input
+                      type="number"
+                      value={ticketDraft.price ?? ""}
+                      onChange={(e) =>
+                        setTicketDraft({
+                          ...ticketDraft,
+                          price: Number(e.target.value),
+                        })
+                      }
+                      className="w-full"
+                    />
+                  </div>
+
+                  <div className="flex flex-col w-24">
+                    <label className="text-xs mb-1">Total Qty</label>
+                    <Input
+                      type="number"
+                      value={ticketDraft.totalQuantity}
+                      onChange={(e) =>
+                        setTicketDraft({
+                          ...ticketDraft,
+                          totalQuantity: Number(e.target.value),
+                        })
+                      }
+                      className="w-full"
+                      min={1}
+                    />
+                  </div>
+
+                  <div className="flex flex-col w-24">
+                    <label className="text-xs mb-1">Max/User</label>
+                    <Input
+                      type="number"
+                      value={ticketDraft.maxPerUser ?? ""}
+                      onChange={(e) =>
+                        setTicketDraft({
+                          ...ticketDraft,
+                          maxPerUser: Number(e.target.value),
+                        })
+                      }
+                      className="w-full"
+                      min={1}
+                    />
+                  </div>
+
+                  <div className="flex items-end">
+                    <Button
+                      type="button"
+                      onClick={handleAddTicket}
+                      disabled={createTicket.isPending}
+                    >
+                      Add
+                    </Button>
+                  </div>
                 </div>
                 <div className="flex flex-col gap-2">
                   {tickets.map((t, idx) => (
@@ -505,31 +515,7 @@ export default function CreateEventPage() {
               <Card className="p-6 space-y-4 dark:bg-[#202127]">
                 <div>
                   <label className="block font-medium mb-1">Categories</label>
-                  <div className="flex gap-2 mb-2">
-                    <Input
-                      placeholder="Add new category"
-                      value={newCategory}
-                      onChange={(e) => setNewCategory(e.target.value)}
-                      className="w-48"
-                    />
-                    <Button
-                      type="button"
-                      onClick={() => {
-                        if (!newCategory.trim()) return;
-                        createCategory.mutate(
-                          { name: newCategory.trim() },
-                          {
-                            onSuccess: () => setNewCategory(""),
-                            onError: (error) =>
-                              console.error("Error creating category:", error),
-                          }
-                        );
-                      }}
-                      disabled={createCategory.isPending || !newCategory.trim()}
-                    >
-                      {createCategory.isPending ? "Adding..." : "Add"}
-                    </Button>
-                  </div>
+
                   {loadingCategories ? (
                     <Skeleton className="h-8 w-32" />
                   ) : (
