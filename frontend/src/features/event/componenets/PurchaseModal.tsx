@@ -10,7 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { InputFieldProps, PurchaseModalProps } from "../types/event";
 import { usePurchaseTicket } from "../hooks/usePurchaseTicket";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 
 const InputField = React.memo(function InputField({
   label,
@@ -45,7 +45,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   onClose,
   onPurchase,
 }) => {
-  const { user } = useAuth();
+  const { user, isPending: authLoading } = useCurrentUser();
   const [step, setStep] = useState(1);
   const [attendeeName, setAttendeeName] = useState("");
   const [attendeeEmail, setAttendeeEmail] = useState("");
@@ -181,7 +181,6 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                     </p>
                   </>
                 ) : (
-                  // don't show quantity input when maxPerUser === 1; we'll just send 1
                   <p className="text-xs text-gray-500">
                     Max per user: {ticket?.maxPerUser}
                   </p>
@@ -195,15 +194,15 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                   <h3 className="font-semibold text-gray-800 dark:text-white">
                     {ticket.type}
                   </h3>
-                  <p className="text-sm text-gray-600 mt-1  dark:text-white">
+                  <p className="text-sm text-gray-600 mt-1 dark:text-white">
                     ${ticket.price} × {quantity} ={" "}
                     <span className="font-semibold text-primary">
                       ${numericPrice * quantity}
                     </span>
                   </p>
-                  <p className="text-sm text-gray-600 mt-1  dark:text-white">
-                    Attendee: {attendeeName}{" "}
-                    {user ? `(${user.email})` : `(${attendeeEmail})`}
+                  <p className="text-sm text-gray-600 mt-1 dark:text-white">
+                    Attendee: {attendeeName} (
+                    {user ? user.email : attendeeEmail})
                   </p>
                 </div>
 
@@ -244,7 +243,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                     Back
                   </Button>
                   <Button
-                    className="bg-primary hover:bg-red-700 rounded-lg shadow  dark:bg-white dark:text-black"
+                    className="bg-primary hover:bg-red-700 rounded-lg shadow dark:bg-white dark:text-black"
                     onClick={handleConfirm}
                     disabled={!agree || mutation.isPending}
                   >
@@ -256,7 +255,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
           </div>
 
           {ticket && (
-            <div className="border rounded-lg p-4 bg-white dark:bg-[#202127] shadow-sm flex flex-col gap-2 dark:">
+            <div className="border rounded-lg p-4 bg-white dark:bg-[#202127] shadow-sm flex flex-col gap-2">
               <h3 className="font-semibold mb-1">Order Summary</h3>
               <p className="text-sm">{ticket.type}</p>
               <p className="text-sm text-gray-600">

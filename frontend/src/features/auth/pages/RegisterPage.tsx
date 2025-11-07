@@ -9,16 +9,21 @@ export const RegisterPage = () => {
   const navigate = useNavigate();
   const { register, isLoading } = useRegister();
 
-  const handleSubmit = async (values: { email: string; password: string }) => {
-    register(values);
+  const handleSubmit = async (values: {
+    name: string;
+    email: string;
+    password: string;
+    callbackURL: string;
+  }) => {
+    await register(values);
   };
 
   const handleSocialClick = (provider: string) => {
-    if (provider === "Google") {
-      window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-    } else {
-      toast.info(`${provider} login coming soon`);
-    }
+    // if (provider === "Google") {
+    //   window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    // } else {
+    toast.info(`${provider} login coming soon`);
+    // }
   };
 
   return (

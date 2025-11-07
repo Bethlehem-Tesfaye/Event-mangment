@@ -1,3 +1,20 @@
+import { useState } from "react";
+import { Link } from "react-router-dom";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+} from "@/components/ui/dropdown-menu";
+import {
+  NavigationMenu,
+  NavigationMenuList,
+  NavigationMenuItem,
+  NavigationMenuLink,
+} from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -6,30 +23,15 @@ import {
   Globe,
   Menu,
   Calendar,
-  // User,
+  ChevronDown,
+  ChevronUp,
 } from "lucide-react";
+
 import Logo from "@/components/custom/Logo";
-import { Link } from "react-router-dom";
-import {
-  NavigationMenu,
-  NavigationMenuList,
-  NavigationMenuItem,
-  NavigationMenuLink,
-} from "@/components/ui/navigation-menu";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
-import type { NavbarProps } from "../types/event";
-import { useAuth } from "@/context/AuthContext";
 import PulseLoader from "@/components/custom/PulseLoader";
-import { useState } from "react";
-import { ChevronDown, ChevronUp } from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
+
+import type { NavbarProps } from "../types/event";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 
 export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   const {
@@ -39,16 +41,18 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
     onLogout,
     logoutLoading,
     showSearch = true,
-    user,
+    user: propUser,
   } = props;
-  const { accessToken, user: authUser, loading: authLoading } = useAuth();
-  const effectiveUser = user === undefined ? authUser : user;
-  const isLoggedIn = !!accessToken;
+
+  const { user: authUser, isPending: authLoading } = useCurrentUser();
+  const effectiveUser = propUser ?? authUser;
+  const isLoggedIn = !!effectiveUser;
+
   const [open, setOpen] = useState(false);
 
   return (
     <>
-      {logoutLoading ? <PulseLoader show /> : ""}
+      {logoutLoading && <PulseLoader show />}
       <nav className="sticky top-0 z-50 flex items-center justify-between border-b px-6 bg-gray-100 dark:bg-[#202127] border-gray-200 dark:border-slate-900">
         <div className="flex items-center gap-24">
           <div className="flex items-center gap-0 font-bold text-xl">
@@ -98,7 +102,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                   <NavigationMenuLink href="/organizer/dashboard">
                     <Button
                       variant="ghost"
-                      className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointers"
+                      className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointer"
                     >
                       <LayoutDashboard className="h-5 w-5" />
                       <span className="text-[13px]">Organizer Panel</span>
@@ -145,9 +149,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                     <>
                       <AvatarImage src="/avatar.png" alt="You" />
                       <AvatarFallback className="rounded-full bg-gray-300">
-                        {effectiveUser?.email
-                          ? effectiveUser.email[0].toUpperCase()
-                          : "U"}
+                        {effectiveUser?.email?.[0].toUpperCase() || "U"}
                       </AvatarFallback>
                     </>
                   )}

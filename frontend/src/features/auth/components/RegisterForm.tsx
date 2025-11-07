@@ -8,7 +8,12 @@ import { PasswordRequirements } from "./PasswordRequirements";
 import { validatePassword } from "../validation/password";
 
 export interface RegisterFormProps {
-  onSubmit: (values: { email: string; password: string }) => void;
+  onSubmit: (values: {
+    name: string;
+    email: string;
+    password: string;
+    callbackURL: string;
+  }) => void;
   onSocialClick: (provider: string) => void;
   onLogin: () => void;
   isLoading?: boolean;
@@ -20,6 +25,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
   onLogin,
   isLoading = false,
 }) => {
+  const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showError, setShowError] = useState(false);
@@ -35,7 +41,9 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       return;
     }
 
-    onSubmit({ email, password });
+    const callbackURL = "http://localhost:5173/browse-event";
+
+    onSubmit({ name, email, password, callbackURL });
   };
 
   return (
@@ -43,6 +51,18 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       onSubmit={handleFormSubmit}
       className="flex flex-col gap-4 h-full justify-between"
     >
+      <div className="flex flex-col gap-2">
+        <Label htmlFor="email">Name</Label>
+        <Input
+          className="h-10"
+          id="name"
+          type="text"
+          placeholder="your name"
+          required
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
+      </div>
       <div className="flex flex-col gap-2">
         <Label htmlFor="email">Email</Label>
         <Input
@@ -71,7 +91,10 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
           }}
         />
         {password.length > 0 && (
-          <PasswordRequirements password={password} highlightError={showError} />
+          <PasswordRequirements
+            password={password}
+            highlightError={showError}
+          />
         )}
       </div>
       <div className="text-center">
@@ -84,11 +107,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       </div>
 
       <div className="flex flex-col gap-4 w-full">
-        <Button
-          type="submit"
-          className="w-full"
-          disabled={isLoading}
-        >
+        <Button type="submit" className="w-full" disabled={isLoading}>
           {isLoading ? "Registering..." : "Register"}
         </Button>
 

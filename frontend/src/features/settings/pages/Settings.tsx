@@ -1,40 +1,53 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "../../event/componenets/Navbar";
-import { useAuth } from "@/context/AuthContext";
-import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useTheme } from "next-themes";
 import { ChangePasswordForm } from "../components/ChangePasswordForm";
 import { LogOut, Moon, Sun } from "lucide-react";
-import { usePassword, useSetPassword } from "../hooks/usePassword";
-import { useResendVerify } from "@/features/auth/hooks/useResendVerify";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 
+import { useLogout } from "@/features/auth/hooks/useLogout";
+import { usePassword, useSetPassword } from "../hooks/usePassword";
+import { useResendVerify } from "@/features/auth/hooks/useResendVerify";
+
+// ✅ NEW HOOK
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+
 function Settings() {
-  const { user, clearAuth } = useAuth();
+  // ✅ Replace old context with new BetterAuth hook
+  const { user, isPending } = useCurrentUser();
+
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
   const passwordHook = usePassword();
   const setPasswordHook = useSetPassword();
   const resendMutation = useResendVerify();
 
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   const handleLogout = () => {
-    logout(undefined, {
-      onSuccess: () => clearAuth(),
-      onError: (err) => console.error("Logout failed:", err),
-    });
+    logout(); // no clearAuth() needed anymore
   };
+
   const handleResend = () => {
     if (!user) return;
-    resendMutation.mutate(user?.email);
+    resendMutation.mutate({
+      email: user.email,
+      callbackURL: "http://localhost:5173/browse-event",
+    });
   };
 
   const currentTheme = mounted ? theme ?? "light" : "light";
+
+  if (isPending) {
+    return (
+      <div className="min-h-screen flex justify-center items-center text-gray-500">
+        Loading...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-[#202127]">
@@ -75,7 +88,6 @@ function Settings() {
         </section>
 
         {/* Account Section */}
-
         <section className="bg-white dark:bg-[#202127] border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8">
           <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">
             Account
@@ -84,7 +96,7 @@ function Settings() {
             Manage your password and account security.
           </p>
 
-          <div className="mb-8">
+          {/* <div className="mb-8">
             <ChangePasswordForm
               changePassword={
                 user?.hasPassword
@@ -95,21 +107,26 @@ function Settings() {
               isLoading={passwordHook.isLoading}
               hasPassword={user?.hasPassword}
             />
-          </div>
+          </div> */}
 
-          {user && !user.isVerified ? (
-            <div>
-              <h2>Verify your email </h2>
+          {/* EMAIL VERIFICATION SECTION */}
+          {user && !user.emailVerified && (
+            <div className="mt-4">
+              <h2 className="font-semibold text-gray-900 dark:text-white">
+                Verify your email
+              </h2>
+
               <Button
                 onClick={handleResend}
-                disabled={resendMutation.isPending || !user}
+                disabled={resendMutation.isPending}
+                className="mt-2"
               >
-                <Link to="/verify-notice">verify email</Link>
+                <Link to="/verify-notice">Verify Email</Link>
               </Button>
             </div>
-          ) : null}
+          )}
 
-          <div className="pt-5 border-t border-gray-100 dark:bg-[#202127] flex justify-end">
+          <div className="pt-5 border-t border-gray-100 dark:border-slate-700 flex justify-end">
             <button
               onClick={handleLogout}
               disabled={logoutLoading}

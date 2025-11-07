@@ -2,19 +2,20 @@ import { AuthLayout } from "../components/AuthLayout";
 import { LoginForm } from "../components/LoginForm";
 import { useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useAuth } from "@/context/AuthContext";
-import { useLogin } from "../hooks/useLogin";
+import { useLogin } from "../hooks/useLogin"; // updated hook
+import { useCurrentUser } from "../hooks/useCurrentUser"; // Better Auth session hook
 import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
 
 export function LoginPage() {
   const { login, isLoading } = useLogin();
-  const { user } = useAuth();
+  const { user, isPending } = useCurrentUser(); // use Better Auth session
   const navigate = useNavigate();
   const location = useLocation();
 
   const from = (location.state as any)?.from?.pathname ?? "/";
 
+  // Redirect if already logged in
   useEffect(() => {
     if (user) {
       navigate(from, { replace: true });
@@ -26,11 +27,11 @@ export function LoginPage() {
   };
 
   const handleSocialClick = (provider: string) => {
-    if (provider === "Google") {
-      window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-    } else {
-      toast.info(`${provider} login coming soon`);
-    }
+    // if (provider === "Google") {
+    // window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
+    // } else {
+    toast.info(`${provider} login coming soon`);
+    // }
   };
 
   return (
@@ -39,9 +40,9 @@ export function LoginPage() {
         onSubmit={handleSubmit}
         onSocialClick={handleSocialClick}
         onRegister={() => navigate("/register")}
-        isLoading={isLoading}
+        isLoading={isLoading || isPending} // show loader while session is pending
       />
-      {isLoading && <PulseLoader show />}
+      {(isLoading || isPending) && <PulseLoader show />}
     </AuthLayout>
   );
 }

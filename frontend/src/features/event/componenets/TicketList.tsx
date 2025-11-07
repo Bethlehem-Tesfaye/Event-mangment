@@ -2,7 +2,7 @@ import { useCallback, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Ticket } from "../types/event";
 import PurchaseModal from "./PurchaseModal";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 
 interface TicketListProps {
   tickets: Ticket[];
@@ -10,7 +10,7 @@ interface TicketListProps {
 }
 
 export default function TicketList({ tickets, loading }: TicketListProps) {
-  const { user } = useAuth();
+  const { user } = useCurrentUser(); // replaced useAuth
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -33,10 +33,10 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
   }, []);
 
   return (
-    <div className="flex flex-col gap-4 ">
+    <div className="flex flex-col gap-4">
       <div className="border rounded-2xl p-6 bg-gray-50 dark:bg-[#202127]">
         <h2 className="text-md mb-2">Select Tickets</h2>
-        <div className="flex flex-col gap-3 ">
+        <div className="flex flex-col gap-3">
           {tickets.map((t) => (
             <div
               key={t.id}
@@ -52,11 +52,11 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
               </span>
               <h3 className="text-md">{t.type}</h3>
               <div className="flex items-baseline gap-2 mt-1">
-                <span className="text-lg font-bold text-red-800 dark:text-gray-300 ">
+                <span className="text-lg font-bold text-red-800 dark:text-gray-300">
                   ${t.price}
                 </span>
               </div>
-              <ul className="list-disc list-inside text-[12px] text-gray-600 mt-3 space-y-1 dark:text-gray-300 ">
+              <ul className="list-disc list-inside text-[12px] text-gray-600 mt-3 space-y-1 dark:text-gray-300">
                 <li>Max per user: {t.maxPerUser}</li>
                 <li>Total tickets: {t.totalQuantity}</li>
               </ul>
@@ -78,7 +78,7 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
       </button>
 
       <PurchaseModal
-        key={user?.id ?? "guest"}
+        key={user?.id ?? "guest"} // still works, now comes from useCurrentUser
         open={modalOpen}
         onClose={handleCloseModal}
         ticket={selectedTicket}

@@ -3,17 +3,17 @@ import { useUserRegistrations } from "../hooks/useUserRegistrations";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "../componenets/Navbar";
 import { useLogout } from "@/features/auth/hooks/useLogout";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 
 export default function UserRegistrationsPage() {
+  const { user } = useCurrentUser(); // replaced useAuth
   const { data: regs, isLoading, error } = useUserRegistrations();
   const list = regs ?? [];
+
   const { mutate: logout, isPending: logoutLoading } = useLogout();
-  const { user, clearAuth } = useAuth();
 
   const handleLogout = () => {
     logout(undefined, {
-      onSuccess: () => clearAuth(),
       onError: (err) => console.error("Logout failed:", err),
     });
   };

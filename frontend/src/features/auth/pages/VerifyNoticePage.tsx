@@ -6,11 +6,11 @@ import { useResendVerify } from "@/features/auth/hooks/useResendVerify";
 
 export const VerifyNoticePage = () => {
   const [email, setEmail] = useState("");
-  const resendMutation = useResendVerify();
+  const { mutate: resend, isPending, isSuccess } = useResendVerify();
 
   const handleResend = () => {
     if (!email) return;
-    resendMutation.mutate(email);
+    resend({ email, callbackURL: "http://localhost:5173/browse-event" });
   };
 
   return (
@@ -31,15 +31,12 @@ export const VerifyNoticePage = () => {
             onChange={(e) => setEmail(e.target.value)}
             className="w-64"
           />
-          <Button
-            onClick={handleResend}
-            disabled={resendMutation.isPending || !email}
-          >
-            {resendMutation.isPending ? "Sending..." : "Resend"}
+          <Button onClick={handleResend} disabled={isPending || !email}>
+            {isPending ? "Sending..." : "Resend"}
           </Button>
         </div>
 
-        {resendMutation.isSuccess && (
+        {isSuccess && (
           <p className="text-green-600 text-sm">
             Verification email has been resent successfully.
           </p>

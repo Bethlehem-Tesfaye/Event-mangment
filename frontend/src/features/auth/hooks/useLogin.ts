@@ -1,37 +1,32 @@
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  loginUser,
-  type LoginPayload,
-  type LoginResponse,
-} from "../api/login ";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useMutation } from "@tanstack/react-query";
+import { authClient } from "@/lib/authClient";
 import { toast } from "sonner";
-import type { UseLoginOptions } from "../types/auth";
+import { useNavigate } from "react-router-dom";
 
-export const useLogin = (options?: UseLoginOptions) => {
-  const { setAuth } = useAuth();
-  const qc = useQueryClient();
+interface LoginPayload {
+  email: string;
+  password: string;
+}
+
+export const useLogin = () => {
   const navigate = useNavigate();
 
-  const mutation = useMutation<LoginResponse, Error, LoginPayload>({
-    mutationFn: loginUser,
+  const mutation = useMutation({
+    mutationFn: async ({ email, password }: LoginPayload) => {
+      const res = await authClient.signIn.email({
+        email,
+        password,
+      });
+
+      if (res.error) throw new Error(res.error.message);
+      return res.data; // returns { session, user }
+    },
     onSuccess: (data) => {
-      const userWithVerified = {
-        id: data.user.id,
-        email: data.user.email,
-        isVerified: (data.user as any).isVerified ?? false,
-        hasPassword: (data.user as any).hasPassword ?? true,
-      };
-      setAuth(userWithVerified, data.accessToken);
-      qc.setQueryData(["me"], { user: userWithVerified });
       toast.success(`Welcome back, ${data.user.email}!`);
       navigate("/browse-event");
-      options?.onSuccess?.(data);
     },
-    onError: (error) => {
-      toast.error("Login failed, try again");
-      options?.onError?.(error);
+    onError: (error: Error) => {
+      toast.error(error.message || "Login failed, try again");
     },
   });
 

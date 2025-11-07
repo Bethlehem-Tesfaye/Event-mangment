@@ -1,16 +1,26 @@
 import { useMutation } from "@tanstack/react-query";
+import { authClient } from "@/lib/authClient";
 import { toast } from "sonner";
-import { resendVerificationEmail } from "../api/resendVerify";
+
+type ResendVars = { email: string; callbackURL?: string };
 
 export const useResendVerify = () =>
-  useMutation({
-    mutationFn: (email: string) => resendVerificationEmail(email),
-    onSuccess: () => toast.success("Verification email resent successfully"),
+  useMutation<void, any, ResendVars>({
+    mutationFn: async ({ email, callbackURL }: ResendVars) => {
+      const res = await authClient.sendVerificationEmail({
+        email,
+        callbackURL,
+      });
+      if (res.error) throw new Error(res.error.message);
+    },
+    onSuccess: () => {
+      toast.success("Verification email resent successfully!");
+    },
     onError: (err: any) => {
       const msg =
-        err?.response?.data?.message ||
         err?.message ||
-        "Failed to resend email";
+        err?.response?.data?.message ||
+        "Failed to resend verification email.";
       toast.error(String(msg));
     },
   });

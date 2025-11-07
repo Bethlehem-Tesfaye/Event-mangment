@@ -6,20 +6,24 @@ export const EmailVerifiedPage = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
 
-  const { status } = useVerifyEmail(token);
+  const { isPending, isError } = useVerifyEmail(token);
 
-  if (status === "pending")
+  if (isPending) {
     return (
       <AuthLayout title="Verifying...">
         <p>Verifying your email...</p>
       </AuthLayout>
     );
-  if (status === "error")
+  }
+
+  if (isError) {
     return (
       <AuthLayout title="Verification failed">
         <p>Invalid or expired verification link.</p>
       </AuthLayout>
     );
+  }
+
   return (
     <AuthLayout title="Verified!">
       <p>Your email has been verified. Redirecting to login...</p>

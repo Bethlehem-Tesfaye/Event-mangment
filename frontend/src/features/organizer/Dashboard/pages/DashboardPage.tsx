@@ -9,12 +9,12 @@ import {
   useOrganizerDashboardStats,
 } from "../hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
 
 export default function DashboardPage() {
   const [route, setRoute] = useState<string>("dashboard");
-  const { user, clearAuth } = useAuth();
+  const { user } = useCurrentUser(); // replaced useAuth
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
 
@@ -23,6 +23,7 @@ export default function DashboardPage() {
     isLoading: eventsLoading,
     error: eventsError,
   } = useOrganizerEvents();
+
   const {
     data: statsData,
     isLoading: statsLoading,
@@ -32,7 +33,6 @@ export default function DashboardPage() {
   const handleLogout = () => {
     logout(undefined, {
       onSuccess: () => {
-        clearAuth();
         navigate("/");
       },
       onError: (err) => {

@@ -1,28 +1,35 @@
-import { useQuery, queryOptions } from "@tanstack/react-query";
-import { verifyEmail } from "../api/resendVerify";
+import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-
+import { useQuery } from "@tanstack/react-query";
+import { authClient } from "@/lib/authClient";
 export const useVerifyEmail = (token?: string | null) => {
   const navigate = useNavigate();
 
-  const options = queryOptions({
-    queryKey: ["verify", "email"],
-    queryFn: () => verifyEmail(token),
+  const query = useQuery({
+    queryKey: ["verify-email", token],
     enabled: !!token,
+    queryFn: async () => {
+      if (!token) throw new Error("Missing verification token");
+      const res = await authClient.verifyEmail({ query: { token } });
+      if (res.error) throw new Error(res.error.message);
+      return res.data;
+    },
   });
 
-  const query = useQuery(options);
+  useEffect(() => {
+    if (query.isSuccess) {
+      toast.success("Email verified successfully!");
+      navigate("/login");
+    }
 
-  if (query.isSuccess) {
-    toast.success("Vertified email successfully!");
-    setTimeout(() => {
-      navigate("/login"), 20000;
-    });
-  }
-  if (query.isError) {
-    toast.error("Vertified email failed, please try again!");
-  }
+    if (query.isError) {
+      toast.error("Email verification failed, please try again!");
+    }
+  }, [query.isSuccess, query.isError, navigate]);
 
-  return query;
+  return {
+    ...query,
+    isPending: query.isLoading,
+  };
 };

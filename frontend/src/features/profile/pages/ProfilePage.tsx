@@ -5,13 +5,13 @@ import { ProfileForm } from "../components/ProfileForm";
 import { ProfileDisplay } from "../components/ProfileDisplay";
 import { useProfile } from "../hooks/useProfile";
 import { Navbar } from "@/features/event/componenets/Navbar";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
-  const { user, clearAuth } = useAuth();
+  const { user } = useCurrentUser(); // replaced useAuth
   const { mutate: logout, isPending: logoutLoading } = useLogout();
 
   const { profile, isFetching, isUpdating, updateProfile, refetchProfile } =
@@ -29,9 +29,12 @@ export default function ProfilePage() {
   const handleChange = (field: string, value: string) => {
     setFormProfile((prev: any) => ({ ...prev, [field]: value }));
   };
+
   const handleLogout = () => {
     logout(undefined, {
-      onSuccess: () => clearAuth(),
+      onSuccess: () => {
+        // redirected or page refresh handled by router
+      },
       onError: (err) => console.error("Logout failed:", err),
     });
   };
@@ -64,7 +67,6 @@ export default function ProfilePage() {
         <div className="container max-w-4xl mx-auto py-8">
           <div className="space-y-6">
             <Skeleton className="h-8 w-48 rounded" />
-
             <div className="p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm">
               <div className="flex items-center gap-4">
                 <Skeleton className="h-16 w-16 rounded-full" />
@@ -94,7 +96,7 @@ export default function ProfilePage() {
         showSearch={false}
         user={user as any}
       />
-      <div className="container max-w-4xl mx-auto py-8 ">
+      <div className="container max-w-4xl mx-auto py-8">
         <BreadcrumbNav currentPage="Profile" />
         <ProfileCard
           profile={profile}

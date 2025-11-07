@@ -1,33 +1,30 @@
 import { useEffect, useState } from "react";
-// removed Navbar import
-import { useAuth } from "@/context/AuthContext";
-import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useTheme } from "next-themes";
-import { ChangePasswordForm } from "../components/ChangePasswordForm";
 import { LogOut, Moon, Sun } from "lucide-react";
+import { ChangePasswordForm } from "../components/ChangePasswordForm";
 import { usePassword, useSetPassword } from "../hooks/usePassword";
-// add Sidebar + Topbar
 import Sidebar from "@/features/organizer/Dashboard/components/SideBar";
 import Topbar from "@/features/organizer/Dashboard/components/Topbar";
+import { useLogout } from "@/features/auth/hooks/useLogout";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // optional replacement for useAuth
 
-function Settings() {
-  const { user, clearAuth } = useAuth();
+export default function Settings() {
+  const { user } = useCurrentUser(); // read-only user
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+
   const passwordHook = usePassword();
   const setPasswordHook = useSetPassword();
+  const [route, setRoute] = useState<string>("settings"); // sidebar active route
 
-  // route state for Sidebar active item
-  const [route, setRoute] = useState<string>("settings");
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
+  useEffect(() => setMounted(true), []);
 
   const handleLogout = () => {
     logout(undefined, {
-      onSuccess: () => clearAuth(),
+      onSuccess: () => {
+        // redirect or page refresh handled by router
+      },
       onError: (err) => console.error("Logout failed:", err),
     });
   };
@@ -78,7 +75,7 @@ function Settings() {
               Manage your password and account security.
             </p>
 
-            <div className="mb-8">
+            {/* <div className="mb-8">
               <ChangePasswordForm
                 changePassword={
                   user?.hasPassword
@@ -89,7 +86,7 @@ function Settings() {
                 isLoading={passwordHook.isLoading}
                 hasPassword={user?.hasPassword}
               />
-            </div>
+            </div> */}
 
             <div className="pt-5 border-t border-gray-100 dark:bg-[#202127] flex justify-end">
               <button
@@ -107,5 +104,3 @@ function Settings() {
     </div>
   );
 }
-
-export default Settings;

@@ -3,7 +3,7 @@ import { ProfileCard } from "../components/ProfileCard";
 import { ProfileForm } from "../components/ProfileForm";
 import { ProfileDisplay } from "../components/ProfileDisplay";
 import { useProfile } from "../hooks/useProfile";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { Skeleton } from "@/components/ui/skeleton";
 import Sidebar from "@/features/organizer/Dashboard/components/SideBar";
@@ -21,9 +21,8 @@ import { Link } from "react-router-dom";
 export default function ProfilePage() {
   const [editing, setEditing] = useState(false);
   const [route, setRoute] = useState<string>("dashboard");
-  const { user } = useAuth();
+  const { user } = useCurrentUser(); // replaced useAuth
   const { mutate: logout } = useLogout();
-  const { clearAuth } = useAuth();
 
   const { profile, isFetching, isUpdating, updateProfile, refetchProfile } =
     useProfile({
@@ -40,9 +39,12 @@ export default function ProfilePage() {
   const handleChange = (field: string, value: string) => {
     setFormProfile((prev: any) => ({ ...prev, [field]: value }));
   };
+
   const handleLogout = () => {
     logout(undefined, {
-      onSuccess: () => clearAuth(),
+      onSuccess: () => {
+        // redirected or page refresh handled by router
+      },
       onError: (err) => console.error("Logout failed:", err),
     });
   };
@@ -72,7 +74,6 @@ export default function ProfilePage() {
           <main className="p-6 max-w-4xl w-full mx-auto flex-1">
             <div className="space-y-6">
               <Skeleton className="h-8 w-48 rounded" />
-
               <div className="p-6 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm">
                 <div className="flex items-center gap-4">
                   <Skeleton className="h-16 w-16 rounded-full" />
@@ -101,22 +102,20 @@ export default function ProfilePage() {
       <div className="flex-1 flex flex-col">
         <Topbar user={user} onLogout={handleLogout} />
         <main className="p-6 max-w-4xl w-full mx-auto flex-1">
-          <div>
-            {" "}
-            <Breadcrumb className="mb-6">
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to="/organizer/dashboard">Home</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
-                <BreadcrumbItem>
-                  <BreadcrumbPage>profile</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-          </div>
+          <Breadcrumb className="mb-6">
+            <BreadcrumbList>
+              <BreadcrumbItem>
+                <BreadcrumbLink asChild>
+                  <Link to="/organizer/dashboard">Home</Link>
+                </BreadcrumbLink>
+              </BreadcrumbItem>
+              <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
+              <BreadcrumbItem>
+                <BreadcrumbPage>profile</BreadcrumbPage>
+              </BreadcrumbItem>
+            </BreadcrumbList>
+          </Breadcrumb>
+
           <ProfileCard
             profile={profile}
             email={user?.email}

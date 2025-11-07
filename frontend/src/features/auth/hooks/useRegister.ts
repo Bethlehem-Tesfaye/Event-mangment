@@ -1,35 +1,41 @@
 import { useMutation } from "@tanstack/react-query";
-import {
-  registerUser,
-  type RegisterPayload,
-  type RegisterResponse,
-} from "../api/register";
-import { useAuth } from "@/context/AuthContext";
+import { authClient } from "@/lib/authClient";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
-import type { UseRegisterOptions } from "../types/auth";
 
-export const useRegister = (options?: UseRegisterOptions) => {
-  const { setAuth } = useAuth();
+interface RegisterPayload {
+  name: string;
+  email: string;
+  password: string;
+  callbackURL: string;
+}
+
+export const useRegister = () => {
   const navigate = useNavigate();
 
-  const mutation = useMutation<RegisterResponse, Error, RegisterPayload>({
-    mutationFn: registerUser,
+  const mutation = useMutation({
+    mutationFn: async ({
+      name,
+      email,
+      password,
+      callbackURL,
+    }: RegisterPayload) => {
+      const res = await authClient.signUp.email({
+        name,
+        email,
+        password,
+        callbackURL,
+      });
+
+      if (res.error) throw new Error(res.error.message);
+      return res.data; // { user, session? }
+    },
     onSuccess: (data) => {
-      const userWithVerified = {
-        id: data.user.id,
-        email: data.user.email,
-        isVerified: (data.user as any).isVerified ?? false,
-        hasPassword: (data.user as any).hasPassword ?? false,
-      };
-      setAuth(userWithVerified, data.accessToken);
       toast.success(`Welcome, ${data.user.email}! Please verify your email.`);
       navigate("/verify-notice");
-      options?.onSuccess?.(data);
     },
-    onError: (error) => {
-      toast.error("Registration failed, please try again.");
-      options?.onError?.(error);
+    onError: (error: Error) => {
+      toast.error(error.message || "Registration failed, please try again.");
     },
   });
 

@@ -18,17 +18,16 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "../componenets/Navbar";
 import { useLogout } from "@/features/auth/hooks/useLogout";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 
 export function EventPreview() {
   const { id } = useParams<{ id: string }>();
 
   const { mutate: logout, isPending: logoutLoading } = useLogout();
-  const { user, clearAuth } = useAuth();
+  const { user } = useCurrentUser(); // replaced useAuth
 
   const handleLogout = () => {
     logout(undefined, {
-      onSuccess: () => clearAuth(),
       onError: (err) => console.error("Logout failed:", err),
     });
   };
@@ -84,7 +83,7 @@ export function EventPreview() {
   }
 
   return (
-    <div className=" ">
+    <div>
       <Navbar
         onLogout={handleLogout}
         logoutLoading={logoutLoading}

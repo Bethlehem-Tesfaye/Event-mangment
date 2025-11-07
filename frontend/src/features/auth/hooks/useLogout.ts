@@ -1,15 +1,20 @@
 import { useMutation } from "@tanstack/react-query";
-import { logoutUser } from "../api/logout";
+import { authClient } from "@/lib/authClient";
 import { toast } from "sonner";
 
-export const useLogout = () =>
-  useMutation<void, Error>({
-    mutationFn: logoutUser,
-    onSuccess: () => {
-      window.location.reload();
-      toast.success("Successfully logged out!");
+export const useLogout = () => {
+  return useMutation({
+    mutationFn: async () => {
+      const res = await authClient.signOut();
+      if (res.error) throw new Error(res.error.message);
     },
-    onError: () => {
-      toast.error("Logout failed, please try again");
+    onSuccess: () => {
+      toast.success("Successfully logged out!");
+      // Clear the session and refresh UI
+      window.location.reload();
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || "Logout failed, please try again.");
     },
   });
+};
