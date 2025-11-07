@@ -8,6 +8,7 @@ import routes from "./routes.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
 import requestLogger from "./middleware/requestLogger.js";
 import logger from "./utils/logger.js";
+import authRoutes from "./modules/auth/auth.routes.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -30,6 +31,7 @@ app.get("/", (req, res) => {
 });
 app.use(passport.initialize());
 app.use("/api/v1", routes);
+app.use("/api/auth", authRoutes);
 app.use(errorMiddleware);
 
 conn

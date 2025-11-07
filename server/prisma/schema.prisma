@@ -48,7 +48,7 @@ model EventSpeaker {
 
 model Event {
   id             String            @id @default(uuid())
-  userId         Int               @map("user_id")
+  userId         String            @map("user_id")
   title          String            @db.VarChar(255)
   description    String?
   locationType   LocationTypeEnum? @map("location_type")
@@ -76,7 +76,7 @@ model Event {
 
 model Profile {
   id        Int       @id @default(autoincrement())
-  userId    Int       @unique @map("user_id")
+  userId    String    @unique @map("user_id")
   firstName String?   @map("first_name") @db.VarChar(255)
   lastName  String?   @map("last_name") @db.VarChar(255)
   phone     String?   @db.VarChar(20)
@@ -94,7 +94,7 @@ model Profile {
 
 model Registration {
   id                 Int       @id @default(autoincrement())
-  userId             Int?      @map("user_id")
+  userId             String?   @map("user_id")
   ticketType         Int       @map("ticket_type")
   registeredQuantity Int       @default(1) @map("registered_quantity")
   registeredAt       DateTime  @default(now()) @map("registered_at") @db.Timestamp(6)
@@ -135,22 +135,67 @@ model Ticket {
 }
 
 model User {
-  id               Int            @id @default(autoincrement())
-  email            String         @unique @db.VarChar(255)
-  password         String
-  googleId         String?        @unique
-  isVerified       Boolean        @default(false)
-  createdAt        DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
-  hasPassword      Boolean        @default(true)
-  updatedAt        DateTime       @default(now()) @map("updated_at") @db.Timestamp(6)
-  deletedAt        DateTime?      @map("deleted_at") @db.Timestamp(6)
-  events           Event[]
-  profile          Profile?
-  registrations    Registration[]
-  tokenVersion     Int            @default(0)
-  refreshTokenHash String?
+  id            String         @id
+  name          String
+  email         String
+  emailVerified Boolean        @default(false)
+  image         String?
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @default(now()) @updatedAt
+  deletedAt     DateTime?      @map("deleted_at") @db.Timestamp(6)
+  events        Event[]
+  profile       Profile?
+  registrations Registration[]
+  sessions      Session[]
+  accounts      Account[]
 
-  @@map("users")
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
 }
 
 enum EventStatusEnum {
