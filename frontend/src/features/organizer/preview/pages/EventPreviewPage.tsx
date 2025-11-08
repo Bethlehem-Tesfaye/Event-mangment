@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
 import { Link, useParams } from "react-router-dom";
 import { useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
@@ -71,6 +71,9 @@ export default function EventPreviewPage() {
   const [ticketError, setTicketError] = useState<string | null>(null);
   const [speakerError, setSpeakerError] = useState<string | null>(null);
   const [bannerPreview, setBannerPreview] = useState<string | null>(null);
+  // added: keep selected file for upload
+  const [bannerFile, setBannerFile] = useState<File | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (!event) return;
@@ -85,6 +88,8 @@ export default function EventPreviewPage() {
       speakers: speakers.map((s: any) => ({ ...s })),
     } as OrganizerEvent);
     setBannerPreview(banner);
+    // reset any selected banner file when event loads/refreshed
+    setBannerFile(null);
   }, [event]);
 
   if (isLoading) {
@@ -293,6 +298,15 @@ export default function EventPreviewPage() {
   const handleDeleteSpeakerRemote = (id: number) =>
     deleteSpeakerMutation.mutate(id);
 
+  const handleBannerFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setBannerFile(f);
+    const url = URL.createObjectURL(f);
+    setBannerPreview(url);
+  };
+
+  // modify save to include banner file if present
   const handleSave = async () => {
     if (!editableEvent || !id) return;
     setSaving(true);
@@ -303,13 +317,30 @@ export default function EventPreviewPage() {
       (s) => (s as any).isTemp
     );
     try {
-      await api.put(`/organizer/events/${id}`, {
-        title: editableEvent.title,
-        description: editableEvent.description,
-        location: editableEvent.location,
-        startDatetime: editableEvent.startDatetime,
-        endDatetime: editableEvent.endDatetime,
-      });
+      // if bannerFile exists, upload via multipart/form-data
+      if (bannerFile) {
+        const form = new FormData();
+        form.append("title", editableEvent.title ?? "");
+        form.append("description", editableEvent.description ?? "");
+        form.append("location", editableEvent.location ?? "");
+        if (editableEvent.startDatetime)
+          form.append("startDatetime", String(editableEvent.startDatetime));
+        if (editableEvent.endDatetime)
+          form.append("endDatetime", String(editableEvent.endDatetime));
+        form.append("eventBanner", bannerFile);
+        await api.put(`/organizer/events/${id}`, form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+      } else {
+        await api.put(`/organizer/events/${id}`, {
+          title: editableEvent.title,
+          description: editableEvent.description,
+          location: editableEvent.location,
+          startDatetime: editableEvent.startDatetime,
+          endDatetime: editableEvent.endDatetime,
+        });
+      }
+
       for (const t of createdTickets) {
         await createTicket.mutateAsync({
           type: t.type,
@@ -327,6 +358,8 @@ export default function EventPreviewPage() {
       }
       queryClient.invalidateQueries({ queryKey: ["organizer-event", id] });
       setEditable(false);
+      // clear local banner file after successful save
+      setBannerFile(null);
     } catch {
       // handle error if needed
     } finally {
@@ -390,12 +423,54 @@ export default function EventPreviewPage() {
           )}
         </div>
 
-        <EventInfo
-          bannerSrc={bannerSrc}
-          editable={editable}
-          editableEvent={editableEvent}
-          onChangeField={handleChangeField}
-        />
+        {/* Wrap EventInfo so we can overlay an upload control and increase banner height */}
+        <div className="relative event-preview-banner">
+          {/* small style tweak to increase banner image height and preserve cover */}
+          <style>{`.event-preview-banner img{height:360px; object-fit:cover; width:100%;}`}</style>
+
+          {/* when in edit mode show upload icon overlay */}
+          {editable && (
+            <>
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="absolute right-4 top-4 z-20 inline-flex items-center gap-2 rounded bg-white/90 px-3 py-2 text-sm shadow hover:bg-white"
+                title="Change banner"
+              >
+                {/* simple upload SVG */}
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  className="h-4 w-4"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5-5 5 5M12 5v14"
+                  />
+                </svg>
+                <span className="text-xs">Change banner</span>
+              </button>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleBannerFileChange}
+              />
+            </>
+          )}
+
+          <EventInfo
+            bannerSrc={bannerSrc}
+            editable={editable}
+            editableEvent={editableEvent}
+            onChangeField={handleChangeField}
+          />
+        </div>
 
         <TicketsList
           tickets={editableEvent.tickets ?? []}

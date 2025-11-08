@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
-import type {
-  Category,
-  TicketInput,
-  SpeakerInput,
-  CreateEventInput,
-} from "../types/createEvent";
+import type { Category, TicketInput, SpeakerInput } from "../types/createEvent";
 
 export function useCategories() {
   return useQuery({

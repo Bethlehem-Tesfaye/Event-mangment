@@ -5,10 +5,10 @@ export interface Category {
 
 export interface TicketInput {
   id?: number; // <-- Make id optional for backend-created tickets
-  type: string;
-  price: number;
-  totalQuantity: number;
-  maxPerUser?: number;
+  type: string | undefined;
+  price: number | string | undefined;
+  totalQuantity: number | string | undefined;
+  maxPerUser?: number | string | undefined;
 }
 
 export interface SpeakerInput {
