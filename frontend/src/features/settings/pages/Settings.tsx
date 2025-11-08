@@ -1,34 +1,27 @@
 import { useEffect, useState } from "react";
 import { Navbar } from "../../event/componenets/Navbar";
 import { useTheme } from "next-themes";
-import { ChangePasswordForm } from "../components/ChangePasswordForm";
 import { LogOut, Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
-
 import { useLogout } from "@/features/auth/hooks/useLogout";
-import { usePassword, useSetPassword } from "../hooks/usePassword";
 import { useResendVerify } from "@/features/auth/hooks/useResendVerify";
 
-// ✅ NEW HOOK
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 function Settings() {
-  // ✅ Replace old context with new BetterAuth hook
   const { user, isPending } = useCurrentUser();
 
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  const passwordHook = usePassword();
-  const setPasswordHook = useSetPassword();
   const resendMutation = useResendVerify();
 
   useEffect(() => setMounted(true), []);
 
   const handleLogout = () => {
-    logout(); // no clearAuth() needed anymore
+    logout();
   };
 
   const handleResend = () => {
@@ -96,20 +89,6 @@ function Settings() {
             Manage your password and account security.
           </p>
 
-          {/* <div className="mb-8">
-            <ChangePasswordForm
-              changePassword={
-                user?.hasPassword
-                  ? passwordHook.changePassword
-                  : setPasswordHook.setPassword
-              }
-              user={user}
-              isLoading={passwordHook.isLoading}
-              hasPassword={user?.hasPassword}
-            />
-          </div> */}
-
-          {/* EMAIL VERIFICATION SECTION */}
           {user && !user.emailVerified && (
             <div className="mt-4">
               <h2 className="font-semibold text-gray-900 dark:text-white">

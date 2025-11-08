@@ -1,8 +1,6 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { LogOut, Moon, Sun } from "lucide-react";
-import { ChangePasswordForm } from "../components/ChangePasswordForm";
-import { usePassword, useSetPassword } from "../hooks/usePassword";
 import Sidebar from "@/features/organizer/Dashboard/components/SideBar";
 import Topbar from "@/features/organizer/Dashboard/components/Topbar";
 import { useLogout } from "@/features/auth/hooks/useLogout";
@@ -14,8 +12,6 @@ export default function Settings() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
 
-  const passwordHook = usePassword();
-  const setPasswordHook = useSetPassword();
   const [route, setRoute] = useState<string>("settings"); // sidebar active route
 
   useEffect(() => setMounted(true), []);
@@ -74,19 +70,6 @@ export default function Settings() {
             <p className="text-sm text-gray-500 dark:text-slate-400 mb-6">
               Manage your password and account security.
             </p>
-
-            {/* <div className="mb-8">
-              <ChangePasswordForm
-                changePassword={
-                  user?.hasPassword
-                    ? passwordHook.changePassword
-                    : setPasswordHook.setPassword
-                }
-                user={user}
-                isLoading={passwordHook.isLoading}
-                hasPassword={user?.hasPassword}
-              />
-            </div> */}
 
             <div className="pt-5 border-t border-gray-100 dark:bg-[#202127] flex justify-end">
               <button
