@@ -15,9 +15,8 @@ const authMiddleware = async (req, res, next) => {
     // Attach user to the request object
     req.user = session.user;
     req.userId = session.user.id;
-    next();
+    return next();
   } catch (err) {
-    console.error("Auth middleware error:", err);
     return res.status(500).json({ error: "Internal server error" });
   }
 };

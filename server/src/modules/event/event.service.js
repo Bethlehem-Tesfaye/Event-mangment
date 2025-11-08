@@ -139,7 +139,7 @@ export const purchaseTicket = async ({
         attendeeEmail: emailForReceipt,
         userId: null
       },
-      data: { userId: userId }
+      data: { userId }
     });
   }
   const userRegistrations = await prisma.registration.findMany({
@@ -147,7 +147,7 @@ export const purchaseTicket = async ({
       ticketType: ticket.id,
       deletedAt: null,
       OR: [
-        userId ? { userId: userId } : undefined,
+        userId ? { userId } : undefined,
         emailForReceipt ? { attendeeEmail: emailForReceipt } : undefined
       ].filter(Boolean)
     }
@@ -168,7 +168,7 @@ export const purchaseTicket = async ({
   const reg = await prisma.$transaction(async (tx) => {
     const created = await tx.registration.create({
       data: {
-        userId: userId ? userId : null,
+        userId: userId || null,
         eventId: ticket.eventId,
         ticketType: ticket.id,
         registeredQuantity: quantity,
@@ -523,7 +523,7 @@ export const getUserRegistrations = async (userId) => {
   if (!userId) throw new CustomError("User ID is required", 400);
 
   const regs = await prisma.registration.findMany({
-    where: { userId: userId, deletedAt: null },
+    where: { userId, deletedAt: null },
     orderBy: { registeredAt: "desc" },
     include: {
       ticket: true,
