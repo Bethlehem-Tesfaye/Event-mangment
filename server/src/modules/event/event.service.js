@@ -246,7 +246,7 @@ export const createEvent = async ({
       location,
       startDatetime,
       endDatetime,
-      duration,
+      duration: Number(duration),
       eventBannerUrl,
       status: "draft"
     }

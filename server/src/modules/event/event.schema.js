@@ -7,7 +7,7 @@ export const createEventSchema = z.object({
   location: z.string().optional(),
   startDatetime: z.coerce.date().optional(),
   endDatetime: z.coerce.date().optional(),
-  duration: z.number().optional(),
+  duration: z.coerce.number().optional(),
   eventBannerUrl: z.string().url().optional()
 });
 
@@ -21,7 +21,7 @@ export const updateEventSchema = z.object({
     .datetime({ message: "Invalid start date" })
     .optional(),
   endDatetime: z.string().datetime({ message: "Invalid end date" }).optional(),
-  duration: z.number().int().positive().optional(),
+  duration: z.coerce.number().optional(),
   eventBannerUrl: z.string().url("Invalid URL").optional(),
   status: z.enum(["draft", "published", "cancelled"]).optional()
 });

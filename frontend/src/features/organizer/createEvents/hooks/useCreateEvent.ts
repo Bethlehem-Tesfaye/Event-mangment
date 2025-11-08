@@ -19,7 +19,7 @@ export function useCategories() {
 
 export function useCreateEvent() {
   return useMutation({
-    mutationFn: async (data: CreateEventInput) => {
+    mutationFn: async (data: FormData) => {
       const res = await api.post("/organizer/events", data);
       return res.data;
     },
@@ -48,7 +48,10 @@ export function usePublishEvent() {
   return useMutation({
     mutationFn: async ({ eventId }: { eventId: number }) => {
       // Send an empty object as the body
-      const res = await api.put(`/organizer/events/${eventId}?status=published`, {});
+      const res = await api.put(
+        `/organizer/events/${eventId}?status=published`,
+        {}
+      );
       return res.data;
     },
   });
@@ -58,10 +61,13 @@ export function useDeleteSpeaker(eventId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (speakerId: number) => {
-      const res = await api.delete(`/organizer/events/${eventId}/speakers/${speakerId}`);
+      const res = await api.delete(
+        `/organizer/events/${eventId}/speakers/${speakerId}`
+      );
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] }),
   });
 }
 
@@ -69,10 +75,13 @@ export function useDeleteTicket(eventId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (ticketId: number) => {
-      const res = await api.delete(`/organizer/events/${eventId}/tickets/${ticketId}`);
+      const res = await api.delete(
+        `/organizer/events/${eventId}/tickets/${ticketId}`
+      );
       return res.data.data;
     },
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] })
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] }),
   });
 }
 
@@ -85,7 +94,7 @@ export function useCreateCategory() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
-    }
+    },
   });
 }
 
@@ -93,12 +102,14 @@ export function useAssignCategoriesToEvent(eventId: number) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (categoryId: number) => {
-      const res = await api.post(`/organizer/events/${eventId}/categories`, { categoryId });
+      const res = await api.post(`/organizer/events/${eventId}/categories`, {
+        categoryId,
+      });
       return res.data.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] });
-    }
+    },
   });
 }
 

@@ -13,6 +13,7 @@ import {
 import isEventOwner from "../../middleware/isEventOwner.js";
 import { ticketRoutes } from "../ticket/ticket.routes.js";
 import { speakerRoutes } from "../speaker/speaker.routes.js";
+import { eventBannerUpload } from "../../middleware/upload.js";
 
 export const eventRoutes = express.Router();
 
@@ -40,11 +41,13 @@ organizerRoutes.get("/stats", eventController.getDashboardStatsController);
 
 organizerRoutes.post(
   "",
+  eventBannerUpload.single("eventBanner"),
   validate(createEventSchema),
   eventController.createEvent
 );
 organizerRoutes.put(
   "/:eventId",
+  eventBannerUpload.single("eventBanner"),
   validate(updateEventSchema),
   isEventOwner,
   eventController.updateEvent

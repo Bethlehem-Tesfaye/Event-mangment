@@ -43,7 +43,7 @@ export default function CreateEventPage() {
   const [locationType, setLocationType] = useState<"online" | "inPerson" | "">(
     ""
   );
-  const [banner, setBanner] = useState("");
+  const [banner, setBanner] = useState<File | null>(null);
   const [tickets, setTickets] = useState<TicketInput[]>([]);
   const [ticketDraft, setTicketDraft] = useState<TicketInput>({
     type: "",
@@ -69,17 +69,21 @@ export default function CreateEventPage() {
   const assignCategories = useAssignCategoriesToEvent(eventId ?? 0);
 
   const handleEventInfoSubmit = (asDraft = false) => {
-    const payload: CreateEventInput = {
-      title,
-      description,
-      startDatetime,
-      endDatetime,
-      location,
-      locationType,
-      eventBannerUrl: banner,
-      duration,
-    };
-    createEvent.mutate(payload, {
+    const formData = new FormData();
+    formData.append("title", title);
+    formData.append("description", description);
+    formData.append("startDatetime", startDatetime);
+    formData.append("endDatetime", endDatetime);
+    formData.append("location", location);
+    formData.append("locationType", locationType);
+    formData.append("duration", duration?.toString() || "");
+
+    // Append banner file using the exact field name the server expects.
+    if (banner instanceof File) {
+      formData.append("eventBanner", banner);
+    }
+
+    createEvent.mutate(formData, {
       onSuccess: (data) => {
         console.log("Event created successfully:", data);
         setEventId(data.data.id || data.data.event?.id);
@@ -258,12 +262,14 @@ export default function CreateEventPage() {
                   </div>
                 </div>
                 <div>
-                  <label className="block font-medium mb-1">
-                    Banner Image URL
-                  </label>
+                  <label className="block font-medium mb-1">Banner Image</label>
                   <Input
-                    value={banner}
-                    onChange={(e) => setBanner(e.target.value)}
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => {
+                      const file = e.target.files?.[0];
+                      if (file) setBanner(file);
+                    }}
                   />
                 </div>
                 <div>

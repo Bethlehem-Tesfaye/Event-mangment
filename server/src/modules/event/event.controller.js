@@ -56,9 +56,13 @@ export const purchaseTicket = async (req, res, next) => {
 export const createEvent = async (req, res, next) => {
   try {
     const { userId } = req;
+    const eventData = { ...req.body };
+    if (req.file?.path) {
+      eventData.eventBannerUrl = req.file.path;
+    }
     const eventCreated = await eventService.createEvent({
       userId,
-      ...req.body
+      ...eventData
     });
     return res.status(201).json({ data: eventCreated });
   } catch (err) {
@@ -81,8 +85,13 @@ export const updateEvent = async (req, res, next) => {
     const { eventId } = req.params;
     const { userId } = req;
     const { status } = req.query;
+    const eventData = { ...req.body };
+
+    if (req.file?.path) {
+      eventData.eventBannerUrl = req.file.path;
+    }
     const updatedEvent = await eventService.updateEvent(eventId, userId, {
-      ...req.body,
+      ...eventData,
       status
     });
     return res.status(200).json({ data: { event: updatedEvent } });
