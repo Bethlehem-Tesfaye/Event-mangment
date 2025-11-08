@@ -8,7 +8,6 @@ import {
   useCreateTicket,
   useUpdateTicket,
   useDeleteTicket,
-  useCreateSpeaker,
   useUpdateSpeaker,
   useDeleteSpeaker,
 } from "../../Dashboard/hooks/useEvents";
@@ -59,7 +58,6 @@ export default function EventPreviewPage() {
   const createTicket = useCreateTicket(id);
   const updateTicket = useUpdateTicket(id);
   const deleteTicketMutation = useDeleteTicket(id);
-  const createSpeaker = useCreateSpeaker(id);
   const updateSpeaker = useUpdateSpeaker(id);
   const deleteSpeakerMutation = useDeleteSpeaker(id);
 
@@ -219,15 +217,78 @@ export default function EventPreviewPage() {
     setNewTicket(null);
   };
 
+  // upload/change existing speaker photo (immediate)
+  const handleChangeSpeakerFile = async (
+    speakerId: number | string | "new",
+    file?: File | null
+  ) => {
+    if (speakerId === "new") {
+      // new speaker file handled via setNewSpeaker in SpeakersList (already set photoFile/photoPreview)
+      return;
+    }
+
+    // update UI preview immediately
+    setEditableEvent((prev) =>
+      prev
+        ? {
+            ...prev,
+            speakers: prev.speakers!.map((s) =>
+              s.id === speakerId
+                ? {
+                    ...s,
+                    photoFile: file,
+                    photoPreview: file ? URL.createObjectURL(file) : s.photoUrl,
+                  }
+                : s
+            ),
+          }
+        : prev
+    );
+
+    // if file present and speaker exists remotely -> upload immediately
+    const existing = (editableEvent?.speakers ?? []).find(
+      (s) => s.id === speakerId
+    );
+    if (!existing || (existing as any).isTemp) return;
+
+    if (file) {
+      const form = new FormData();
+      // send only the photo (controller will pick req.file and other fields are optional)
+      form.append("photo", file);
+      try {
+        await api.put(`/organizer/events/${id}/speakers/${speakerId}`, form, {
+          headers: { "Content-Type": "multipart/form-data" },
+        });
+        queryClient.invalidateQueries({ queryKey: ["organizer-event", id] });
+      } catch {
+        // handle/upload error (optional)
+      }
+    }
+  };
+
   const handleAddSpeakerLocal = () => {
     if (!newSpeaker) return;
-    const parsed = speakerSchema.safeParse(newSpeaker);
+    const parsed = speakerSchema.safeParse({
+      name: newSpeaker.name,
+      bio: newSpeaker.bio,
+      // photoUrl is optional; we accept file via photoFile instead
+      photoUrl: newSpeaker.photoUrl ?? undefined,
+    });
     if (!parsed.success) {
       setSpeakerError(parsed.error.issues.map((i) => i.message).join(", "));
       return;
     }
     setSpeakerError(null);
-    const s: Speaker = { id: makeTempId(), ...parsed.data, isTemp: true };
+    const s: Speaker = {
+      id: makeTempId(),
+      name: parsed.data.name,
+      bio: parsed.data.bio,
+      photoUrl: parsed.data.photoUrl,
+      isTemp: true,
+      // attach file/preview locally for later upload
+      photoFile: newSpeaker.photoFile,
+      photoPreview: newSpeaker.photoPreview,
+    } as any;
     setEditableEvent((prev) =>
       prev ? { ...prev, speakers: [...(prev.speakers ?? []), s] } : prev
     );
@@ -341,6 +402,27 @@ export default function EventPreviewPage() {
         });
       }
 
+      // after event update create speakers (support file upload per speaker)
+      for (const s of createdSpeakers) {
+        if ((s as any).photoFile) {
+          const form = new FormData();
+          form.append("name", s.name ?? "");
+          if (s.bio) form.append("bio", s.bio);
+          form.append("photo", (s as any).photoFile);
+          await api.post(`/organizer/events/${id}/speakers`, form, {
+            headers: { "Content-Type": "multipart/form-data" },
+          });
+        } else {
+          // no file -> use JSON create via api or hook
+          await api.post(`/organizer/events/${id}/speakers`, {
+            name: s.name,
+            bio: s.bio,
+            photoUrl: s.photoUrl,
+          });
+        }
+      }
+
+      // create tickets same as before...
       for (const t of createdTickets) {
         await createTicket.mutateAsync({
           type: t.type,
@@ -349,16 +431,9 @@ export default function EventPreviewPage() {
           maxPerUser: Number((t as any).maxPerUser ?? 1),
         });
       }
-      for (const s of createdSpeakers) {
-        await createSpeaker.mutateAsync({
-          name: s.name,
-          bio: s.bio,
-          photoUrl: s.photoUrl,
-        });
-      }
+
       queryClient.invalidateQueries({ queryKey: ["organizer-event", id] });
       setEditable(false);
-      // clear local banner file after successful save
       setBannerFile(null);
     } catch {
       // handle error if needed
@@ -493,6 +568,7 @@ export default function EventPreviewPage() {
           onChangeSpeaker={handleChangeSpeaker}
           onRemoveLocal={handleRemoveLocal}
           onRemoteDelete={handleDeleteSpeakerRemote}
+          onFileChange={handleChangeSpeakerFile} // added
           error={speakerError}
         />
       </main>

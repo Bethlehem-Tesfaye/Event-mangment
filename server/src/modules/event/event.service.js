@@ -283,7 +283,7 @@ export const updateEvent = async (eventId, userId, data) => {
 
   if (status) {
     const validTransitions = {
-      draft: ["published"],
+      draft: ["published", "cancelled"],
       published: ["draft", "cancelled"],
       cancelled: []
     };
@@ -302,8 +302,7 @@ export const updateEvent = async (eventId, userId, data) => {
         event.locationType,
         event.startDatetime,
         event.endDatetime,
-        event.duration,
-        event.eventBannerUrl
+        event.duration
       ];
 
       if (requiredFields.some((f) => !f)) {

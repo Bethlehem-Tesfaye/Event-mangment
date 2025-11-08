@@ -53,10 +53,12 @@ export default function CreateEventPage() {
 
   // Speakers
   const [speakers, setSpeakers] = useState<SpeakerInput[]>([]);
-  const [speakerDraft, setSpeakerDraft] = useState<SpeakerInput>({
+  // speakerDraft now supports a File and preview for uploads
+  const [speakerDraft, setSpeakerDraft] = useState<any>({
     name: "",
     bio: "",
-    photoUrl: "",
+    photoFile: null as File | null,
+    photoPreview: null as string | null,
   });
 
   // Categories
@@ -156,16 +158,53 @@ export default function CreateEventPage() {
       );
       return;
     }
-    createSpeaker.mutate(speakerDraft, {
-      onSuccess: (data) => {
-        setSpeakers((prev) => [...prev, data.data]);
-        setSpeakerDraft({ name: "", bio: "", photoUrl: "" });
+
+    // if a file is present, send multipart/form-data with field name "photo"
+    if (speakerDraft.photoFile) {
+      const form = new FormData();
+      form.append("name", speakerDraft.name);
+      if (speakerDraft.bio) form.append("bio", speakerDraft.bio);
+      form.append("photo", speakerDraft.photoFile);
+      // cast FormData to SpeakerInput to satisfy the hook's expected type
+      createSpeaker.mutate(form as unknown as SpeakerInput, {
+        onSuccess: (data) => {
+          setSpeakers((prev) => [...prev, data.data]);
+          setSpeakerDraft({
+            name: "",
+            bio: "",
+            photoFile: null,
+            photoPreview: null,
+          });
+        },
+        onError: (err) => {
+          console.error(err);
+          toast.error("Error adding speaker");
+        },
+      });
+      return;
+    }
+
+    createSpeaker.mutate(
+      {
+        name: speakerDraft.name,
+        bio: speakerDraft.bio,
       },
-      onError: (err) => {
-        console.error(err);
-        toast.error("Error adding speaker");
-      },
-    });
+      {
+        onSuccess: (data) => {
+          setSpeakers((prev) => [...prev, data.data]);
+          setSpeakerDraft({
+            name: "",
+            bio: "",
+            photoFile: null,
+            photoPreview: null,
+          });
+        },
+        onError: (err) => {
+          console.error(err);
+          toast.error("Error adding speaker");
+        },
+      }
+    );
   };
 
   const handleRemoveSpeaker = (idx: number) => {
@@ -598,17 +637,29 @@ export default function CreateEventPage() {
                           }
                           className="w-40 bg-gray-200 dark:bg-gray-700 border-none rounded-md px-3 py-2 text-sm focus:ring-0 focus:outline-none"
                         />
-                        <Input
-                          placeholder="Photo URL"
-                          value={speakerDraft.photoUrl}
-                          onChange={(e) =>
-                            setSpeakerDraft({
-                              ...speakerDraft,
-                              photoUrl: e.target.value,
-                            })
-                          }
-                          className="w-40 bg-gray-200 dark:bg-gray-700 border-none rounded-md px-3 py-2 text-sm focus:ring-0 focus:outline-none"
-                        />
+                        <div className="w-40">
+                          <label className="block text-xs mb-1">Photo</label>
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => {
+                              const f = e.target.files?.[0] ?? null;
+                              setSpeakerDraft((prev: any) => ({
+                                ...prev,
+                                photoFile: f,
+                                photoPreview: f ? URL.createObjectURL(f) : null,
+                              }));
+                            }}
+                            className="w-full"
+                          />
+                          {speakerDraft.photoPreview && (
+                            <img
+                              src={speakerDraft.photoPreview}
+                              alt="preview"
+                              className="mt-2 h-10 w-10 object-cover rounded-full"
+                            />
+                          )}
+                        </div>
                         <Button
                           type="button"
                           size="sm"

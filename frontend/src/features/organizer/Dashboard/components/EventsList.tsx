@@ -3,8 +3,16 @@ import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
 import type { EventsListProps } from "../../types/organizer";
 import { Badge } from "@/components/ui/badge";
+import React from "react";
 
-export default function EventsList({ events }: EventsListProps) {
+export default function EventsList({
+  events,
+  // added optional renderActions prop
+  renderActions,
+}: {
+  events: any[];
+  renderActions?: (ev: any) => React.ReactNode;
+}) {
   if (!events.length) {
     return (
       <div className="text-muted-foreground text-center py-8">
@@ -87,9 +95,11 @@ export default function EventsList({ events }: EventsListProps) {
 
           {/* View/Edit buttons */}
           <div className="mt-4 sm:mt-0 sm:ml-auto flex flex-col gap-2">
-            <Link to={`/organizer/events/${event?.id ?? ""}`}>
+            {/* <Link to={`/organizer/events/${event?.id ?? ""}`}>
               <Button size="sm">View</Button>
-            </Link>
+            </Link> */}
+            {/* render the custom actions (Publish / Delete) if provided */}
+            {renderActions ? renderActions(event) : null}
           </div>
         </Card>
       ))}

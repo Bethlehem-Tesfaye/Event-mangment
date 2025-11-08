@@ -1,12 +1,18 @@
 import * as speakerService from "./speaker.service.js";
 
+const pickFileUrl = (file) =>
+  file?.path ?? file?.secure_url ?? file?.url ?? file?.location ?? null;
+
 export const createSpeaker = async (req, res, next) => {
   try {
     const { eventId } = req.params;
-    const speaker = await speakerService.createSpeaker({
+    const photoUrlFromFile = pickFileUrl(req.file);
+    const payload = {
       eventId,
-      ...req.body
-    });
+      ...req.body,
+      photoUrl: photoUrlFromFile ?? req.body.photoUrl
+    };
+    const speaker = await speakerService.createSpeaker(payload);
     return res.status(201).json({ data: speaker });
   } catch (err) {
     return next(err);
@@ -37,10 +43,12 @@ export const getPublicSpealersForEvent = async (req, res, next) => {
 export const updateSpeaker = async (req, res, next) => {
   try {
     const { speakerId } = req.params;
-    const updatedSpeaker = await speakerService.updateSpeaker(
-      speakerId,
-      req.body
-    );
+    const photoUrlFromFile = pickFileUrl(req.file);
+    const data = {
+      ...req.body,
+      ...(photoUrlFromFile ? { photoUrl: photoUrlFromFile } : {})
+    };
+    const updatedSpeaker = await speakerService.updateSpeaker(speakerId, data);
     return res.status(200).json({ data: updatedSpeaker });
   } catch (err) {
     return next(err);

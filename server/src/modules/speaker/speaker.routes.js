@@ -4,6 +4,7 @@ import isEventOwner from "../../middleware/isEventOwner.js";
 import { validate } from "../../middleware/validate.js";
 import * as speakerController from "./speaker.contollers.js";
 import { createSpeakerSchema, updateSpeakerSchema } from "./speaker.schema.js";
+import { profileUpload } from "../../middleware/upload.js";
 
 export const speakerRoutes = express.Router({ mergeParams: true });
 
@@ -13,11 +14,13 @@ speakerRoutes.use(isEventOwner);
 speakerRoutes.get("/speakers", speakerController.getSpeakersForEvent);
 speakerRoutes.post(
   "/speakers",
+  profileUpload.single("photo"),
   validate(createSpeakerSchema),
   speakerController.createSpeaker
 );
 speakerRoutes.put(
   "/speakers/:speakerId",
+  profileUpload.single("photo"),
   validate(updateSpeakerSchema),
   speakerController.updateSpeaker
 );

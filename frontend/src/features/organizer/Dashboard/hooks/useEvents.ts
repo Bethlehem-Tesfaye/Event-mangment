@@ -163,3 +163,30 @@ export function useDeleteSpeaker(eventId: string | number) {
       queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] }),
   });
 }
+
+export function useUpdateEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      eventId,
+      status,
+    }: {
+      eventId: string | number;
+      status: "published" | "draft" | "cancelled";
+    }) => {
+      // send params correctly as axios 3rd argument
+      const res = await api.put(
+        `/organizer/events/${eventId}`,
+        {},
+        { params: { status } }
+      );
+      return res.data.data;
+    },
+    onSuccess: (_, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["organizer-events"] });
+      queryClient.invalidateQueries({
+        queryKey: ["organizer-event", vars.eventId],
+      });
+    },
+  });
+}
