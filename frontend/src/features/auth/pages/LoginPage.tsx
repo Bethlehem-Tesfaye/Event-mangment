@@ -6,12 +6,14 @@ import { useLogin } from "../hooks/useLogin"; // updated hook
 import { useCurrentUser } from "../hooks/useCurrentUser"; // Better Auth session hook
 import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
 
 export function LoginPage() {
   const { login, isLoading } = useLogin();
   const { user, isPending } = useCurrentUser(); // use Better Auth session
   const navigate = useNavigate();
   const location = useLocation();
+  const googleAuth = useGoogleAuth();
 
   const from = (location.state as any)?.from?.pathname ?? "/";
 
@@ -27,11 +29,11 @@ export function LoginPage() {
   };
 
   const handleSocialClick = (provider: string) => {
-    // if (provider === "Google") {
-    // window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-    // } else {
-    toast.info(`${provider} login coming soon`);
-    // }
+    if (provider === "Google") {
+      googleAuth();
+    } else {
+      toast.info(`${provider} login coming soon`);
+    }
   };
 
   return (

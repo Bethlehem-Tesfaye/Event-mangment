@@ -4,10 +4,12 @@ import { useNavigate } from "react-router-dom";
 import { useRegister } from "../hooks/useRegister";
 import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
+import { useGoogleAuth } from "../hooks/useGoogleAuth";
 
 export const RegisterPage = () => {
   const navigate = useNavigate();
   const { register, isLoading } = useRegister();
+  const googleAuth = useGoogleAuth();
 
   const handleSubmit = async (values: {
     name: string;
@@ -19,11 +21,11 @@ export const RegisterPage = () => {
   };
 
   const handleSocialClick = (provider: string) => {
-    // if (provider === "Google") {
-    //   window.location.href = `${import.meta.env.VITE_API_URL}/auth/google`;
-    // } else {
-    toast.info(`${provider} login coming soon`);
-    // }
+    if (provider === "Google") {
+      googleAuth();
+    } else {
+      toast.info(`${provider} login coming soon`);
+    }
   };
 
   return (
