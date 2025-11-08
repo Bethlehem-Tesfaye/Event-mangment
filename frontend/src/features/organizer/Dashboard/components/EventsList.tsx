@@ -1,7 +1,4 @@
 import { Card } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
-import type { EventsListProps } from "../../types/organizer";
 import { Badge } from "@/components/ui/badge";
 import React from "react";
 
@@ -95,10 +92,6 @@ export default function EventsList({
 
           {/* View/Edit buttons */}
           <div className="mt-4 sm:mt-0 sm:ml-auto flex flex-col gap-2">
-            {/* <Link to={`/organizer/events/${event?.id ?? ""}`}>
-              <Button size="sm">View</Button>
-            </Link> */}
-            {/* render the custom actions (Publish / Delete) if provided */}
             {renderActions ? renderActions(event) : null}
           </div>
         </Card>
