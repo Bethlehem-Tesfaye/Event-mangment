@@ -13,7 +13,7 @@ export const ProtectedLayout: React.FC = () => {
     if (user && !user.emailVerified && !hasSentOnce.current) {
       resendMutation.mutate({
         email: user.email,
-        callbackURL: "http://localhost:5173/browse-event",
+        callbackURL: `${import.meta.env.VITE_CLIENT_URL}/browse-event`,
       });
       hasSentOnce.current = true;
     }

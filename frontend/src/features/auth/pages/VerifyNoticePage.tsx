@@ -10,7 +10,10 @@ export const VerifyNoticePage = () => {
 
   const handleResend = () => {
     if (!email) return;
-    resend({ email, callbackURL: "http://localhost:5173/browse-event" });
+    resend({
+      email,
+      callbackURL: `${import.meta.env.VITE_CLIENT_URL}/browse-event`,
+    });
   };
 
   return (

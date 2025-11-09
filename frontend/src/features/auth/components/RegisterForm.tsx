@@ -41,7 +41,7 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
       return;
     }
 
-    const callbackURL = "http://localhost:5173/browse-event";
+    const callbackURL = `${import.meta.env.VITE_CLIENT_URL}/browse-event`;
 
     onSubmit({ name, email, password, callbackURL });
   };

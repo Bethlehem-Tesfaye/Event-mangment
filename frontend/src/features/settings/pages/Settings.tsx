@@ -28,7 +28,7 @@ function Settings() {
     if (!user) return;
     resendMutation.mutate({
       email: user.email,
-      callbackURL: "http://localhost:5173/browse-event",
+      callbackURL: `${import.meta.env.VITE_CLIENT_URL}/browse-event`,
     });
   };
 
