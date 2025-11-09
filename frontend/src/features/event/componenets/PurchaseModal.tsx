@@ -45,7 +45,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   onClose,
   onPurchase,
 }) => {
-  const { user, isPending: authLoading } = useCurrentUser();
+  const { user } = useCurrentUser();
   const [step, setStep] = useState(1);
   const [attendeeName, setAttendeeName] = useState("");
   const [attendeeEmail, setAttendeeEmail] = useState("");
