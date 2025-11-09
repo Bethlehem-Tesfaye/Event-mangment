@@ -69,10 +69,11 @@ export const auth = betterAuth({
       }
     })
   },
-  cookie: {
-    secure: process.env.NODE_ENV === "production",
-    sameSite: "none",
-    httpOnly: true,
-    path: "/"
+  advanced: {
+    useSecureCookies: process.env.NODE_ENV === "production",
+    defaultCookieAttributes: {
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none"
+    }
   }
 });
