@@ -9,6 +9,7 @@ import { openAPI } from "better-auth/plugins";
 import transporter from "../../lib/mailer.js";
 import { ResetTemplate } from "../../lib/email/template/ResetTemplate.js";
 import { VerifyTemplate } from "../../lib/email/template/VerifyTemplate.js";
+import { publishEmailJob } from "../../utils/qstashPublisher.js";
 
 const prisma = new PrismaClient();
 export const auth = betterAuth({
@@ -23,12 +24,12 @@ export const auth = betterAuth({
 
   emailAndPassword: {
     enabled: true,
-    sendResetPassword: async ({ user, url, token }, request) => {
-      const html = ResetTemplate({ username: user.email, url });
-      await transporter.sendMail({
-        to: user.email,
-        subject: "Reset your password",
-        html
+    sendResetPassword: async ({ user, url, token }) => {
+      await publishEmailJob({
+        type: "reset",
+        email: user.email,
+        username: user.email,
+        url: url
       });
     }
   },
@@ -36,13 +37,14 @@ export const auth = betterAuth({
     enabled: true,
     sendOnSignUp: true,
     sendVerificationEmail: async ({ user, url }) => {
-      const html = VerifyTemplate({ username: user.email, url });
-      await transporter.sendMail({
-        to: user.email,
-        subject: "Verify your email address",
-        html
+      await publishEmailJob({
+        type: "verification",
+        email: user.email,
+        username: user.email,
+        url: url
       });
     },
+
     autoSignInAfterVerification: true,
     async afterEmailVerification(user) {
       console.log(`${user.email} successfully verified!`);

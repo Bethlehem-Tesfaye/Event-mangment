@@ -4,6 +4,7 @@ import fs from "fs";
 import transporter from "../../lib/mailer.js";
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
+import { publishEmailJob } from "../../utils/qstashPublisher.js";
 
 export const getEvents = async ({
   limit = 20,
@@ -205,22 +206,13 @@ export const purchaseTicket = async ({
   });
 
   // Send email
-  await transporter.sendMail({
-    to: emailForReceipt,
-    subject: `🎟 Your Ticket for Event #${eventId}`,
-    html: `
-      <h2>Hello ${attendeeName},</h2>
-      <p>Thank you for purchasing a <b>${ticket.type}</b> ticket.</p>
-      <p>Here’s your QR code:</p>
-      <p><img src="cid:ticketqr-${reg.id}" alt="QR Code" /></p>
-    `,
-    attachments: [
-      {
-        filename: "ticket-qr.png",
-        path: qrPath,
-        cid: `ticketqr-${reg.id}`
-      }
-    ]
+  await publishEmailJob({
+    type: "ticket",
+    email: emailForReceipt,
+    attendeeName,
+    qrPath,
+    eventId,
+    ticketId: ticket.id
   });
 
   return updatedReg;
