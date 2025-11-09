@@ -1,3 +1,5 @@
+/* eslint-disable no-console */
+
 import { serve } from "@upstash/workflow/express";
 import transporter from "../lib/mailer.js";
 import { VerifyTemplate } from "../lib/email/template/VerifyTemplate.js";

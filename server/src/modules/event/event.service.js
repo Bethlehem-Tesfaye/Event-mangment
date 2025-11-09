@@ -1,7 +1,6 @@
 import QRCode from "qrcode";
 import path from "path";
 import fs from "fs";
-import transporter from "../../lib/mailer.js";
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";

@@ -30,7 +30,7 @@ export const auth = betterAuth({
         type: "reset",
         email: user.email,
         username: user.email,
-        url: url
+        url
       });
     }
   },
@@ -42,7 +42,7 @@ export const auth = betterAuth({
         type: "verification",
         email: user.email,
         username: user.email,
-        url: url
+        url
       });
     },
 
