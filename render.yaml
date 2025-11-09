@@ -16,7 +16,7 @@ services:
       - key: VITE_CLIENT_URL
         previewValue: https://frontend-event-mangment-{{BRANCH_NAME}}.onrender.com
     envGroups:
-      - preview-secrets # Link your secret environment group
+      - preview-secret # Link your secret environment group
 
   - type: web
     name: server-event-mangment
@@ -31,4 +31,4 @@ services:
       - key: GOOGLE_CALLBACK_URL
         previewValue: https://server-event-mangment-{{BRANCH_NAME}}.onrender.com/api/v1/auth/google/callback
     envGroups:
-      - preview-secrets # Link the same secret environment group
+      - preview-secret # Link the same secret environment group
