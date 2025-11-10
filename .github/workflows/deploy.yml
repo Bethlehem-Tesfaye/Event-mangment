@@ -15,7 +15,7 @@ jobs:
 
       # Base app names for PR previews
       FRONTEND_APP: frontend
-      BACKEND_APP: backend
+      BACKEND_APP: server
 
       # Production service IDs (for main deploy)
       FRONTEND_SERVICE_ID: ${{ secrets.FRONTEND_SERVICE_ID }}
@@ -25,17 +25,33 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      #############################
+      # Frontend install/build
+      #############################
+      - name: Install Frontend Dependencies
+        run: |
+          cd frontend
+          npm ci
 
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Build project
+      - name: Build Frontend
         if: github.event.action != 'closed'
-        run: npm run build
+        run: |
+          cd frontend
+          npm run build
+
+      #############################
+      # Backend install/build
+      #############################
+      - name: Install Backend Dependencies
+        run: |
+          cd server
+          npm ci
+
+      - name: Build Backend
+        if: github.event.action != 'closed'
+        run: |
+          cd server
+          npm run build
 
       #############################
       # Production deployment (main branch)
@@ -63,7 +79,6 @@ jobs:
           PREVIEW_NAME="${FRONTEND_APP}-pr-${PR_NUMBER}"
           echo "🔍 Deploying frontend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
 
-          # Create frontend preview service
           curl -X POST "https://api.render.com/v1/services" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
@@ -84,7 +99,6 @@ jobs:
           PREVIEW_NAME="${BACKEND_APP}-pr-${PR_NUMBER}"
           echo "🔍 Deploying backend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
 
-          # Create backend preview service
           curl -X POST "https://api.render.com/v1/services" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
