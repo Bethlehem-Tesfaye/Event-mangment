@@ -55,7 +55,7 @@ jobs:
         if: github.event.action != 'closed'
         run: |
           cd server
-          # backend doesn't have build script, skip if none
+          # skip build if script doesn't exist
           if npm run | grep -q build; then npm run build; fi
 
       #############################
@@ -84,7 +84,7 @@ jobs:
           PREVIEW_NAME="${FRONTEND_APP}-pr-${PR_NUMBER}"
           echo "🔍 Deploying frontend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
 
-          curl -X POST "https://api.render.com/v1/services" \
+          RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
@@ -94,7 +94,9 @@ jobs:
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
               \"envVars\": []
-            }"
+            }")
+          echo "Render response:"
+          echo "$RESPONSE"
 
       - name: Deploy PR Preview Backend
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
@@ -104,7 +106,7 @@ jobs:
           PREVIEW_NAME="${BACKEND_APP}-pr-${PR_NUMBER}"
           echo "🔍 Deploying backend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
 
-          curl -X POST "https://api.render.com/v1/services" \
+          RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
@@ -114,7 +116,9 @@ jobs:
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
               \"envVars\": []
-            }"
+            }")
+          echo "Render response:"
+          echo "$RESPONSE"
 
       #############################
       # Install jq for cleanup
