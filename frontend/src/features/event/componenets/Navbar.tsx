@@ -99,26 +99,30 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
             <NavigationMenu>
               <NavigationMenuList className="flex gap-6">
                 <NavigationMenuItem>
-                  <NavigationMenuLink href="/organizer/dashboard">
-                    <Button
-                      variant="ghost"
-                      className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointer"
-                    >
-                      <LayoutDashboard className="h-5 w-5" />
-                      <span className="text-[13px]">Organizer Panel</span>
-                    </Button>
+                  <NavigationMenuLink asChild>
+                    <Link to="/organizer/dashboard">
+                      <Button
+                        variant="ghost"
+                        className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointer"
+                      >
+                        <LayoutDashboard className="h-5 w-5" />
+                        <span className="text-[13px]">Organizer Panel</span>
+                      </Button>
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
 
                 <NavigationMenuItem>
-                  <NavigationMenuLink href="/browse-event">
-                    <Button
-                      variant="ghost"
-                      className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointer"
-                    >
-                      <Globe className="h-5 w-5" />
-                      <span className="text-[13px]">Browse Events</span>
-                    </Button>
+                  <NavigationMenuLink asChild>
+                    <Link to="/browse-event">
+                      <Button
+                        variant="ghost"
+                        className="flex flex-col items-center gap-0 hover:text-primary hover:bg-gray-200 cursor-pointer"
+                      >
+                        <Globe className="h-5 w-5" />
+                        <span className="text-[13px]">Browse Events</span>
+                      </Button>
+                    </Link>
                   </NavigationMenuLink>
                 </NavigationMenuItem>
 

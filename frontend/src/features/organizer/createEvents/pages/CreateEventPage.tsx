@@ -20,6 +20,7 @@ import Sidebar from "@/features/organizer/Dashboard/components/SideBar";
 import Topbar from "@/features/organizer/Dashboard/components/Topbar";
 import { MapPin, Upload } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 type Stage = "event" | "tickets" | "speakers" | "categories";
 
@@ -74,6 +75,8 @@ export default function CreateEventPage() {
   const deleteSpeaker = useDeleteSpeaker(eventId ?? 0);
   const assignCategories = useAssignCategoriesToEvent(eventId ?? 0);
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     if (!banner) {
       setBannerPreview(null);
@@ -103,7 +106,8 @@ export default function CreateEventPage() {
         console.log("Event created successfully:", data);
         setEventId(data.data.id || data.data.event?.id);
         if (asDraft) {
-          window.location.href = "/organizer/events";
+          // window.location.href = "/organizer/events";
+          navigate("/organizer/events");
         } else {
           setStage("tickets");
         }
@@ -790,7 +794,8 @@ export default function CreateEventPage() {
                           variant="secondary"
                           onClick={async () => {
                             await handleSaveCategories();
-                            window.location.href = "/organizer/events";
+                            // window.location.href = "/organizer/events";
+                            navigate("/organizer/events");
                           }}
                         >
                           Save as Draft
@@ -812,7 +817,8 @@ export default function CreateEventPage() {
                         open={showCongrats}
                         onKeepDraft={() => {
                           setShowCongrats(false);
-                          window.location.href = "/organizer/events";
+                          // window.location.href = "/organizer/events";
+                          navigate("/organizer/events");
                         }}
                         onPublish={() => {
                           if (!eventId) return toast.error("Missing event id");
@@ -821,7 +827,8 @@ export default function CreateEventPage() {
                             {
                               onSuccess: () => {
                                 setShowCongrats(false);
-                                window.location.href = "/organizer/events";
+                                // window.location.href = "/organizer/events";
+                                navigate("/organizer/events");
                               },
                               onError: () => {
                                 setShowCongrats(false);
