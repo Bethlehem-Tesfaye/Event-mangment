@@ -1,8 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { authClient } from "@/lib/authClient";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 export const useLogout = () => {
+  const navigate = useNavigate();
   return useMutation({
     mutationFn: async () => {
       const res = await authClient.signOut();
@@ -10,7 +12,7 @@ export const useLogout = () => {
     },
     onSuccess: () => {
       toast.success("Successfully logged out!");
-      // Clear the session and refresh UI
+      navigate("/");
       window.location.reload();
     },
     onError: (error: Error) => {
