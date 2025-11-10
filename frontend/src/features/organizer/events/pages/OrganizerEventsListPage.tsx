@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card";
 import type { EventsTabBarTab } from "../types/eventsLists";
 import { Link } from "react-router-dom";
 import { toast } from "sonner"; // added
+import { Button } from "@/components/ui/button";
 
 const TABS: EventsTabBarTab[] = [
   { label: "All", value: "all" },
@@ -74,7 +75,11 @@ export default function OrganizerEventsListPage() {
         <main className="p-6 flex-1 space-y-6">
           <div className="flex justify-between items-center mb-4">
             <h1 className="text-2xl font-bold">Your Events</h1>
+            <Link to="/organizer/create-event">
+              <Button>create event</Button>
+            </Link>
           </div>
+
           <EventsTabBar tabs={TABS} value={tab} onChange={setTab} />
 
           {isLoading ? (

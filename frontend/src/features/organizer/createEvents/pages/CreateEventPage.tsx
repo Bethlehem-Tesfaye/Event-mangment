@@ -269,8 +269,8 @@ export default function CreateEventPage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 ">
             {/* Left visual: big preview */}
             <div className="md:col-span-1 flex justify-center items-start">
-              <Card className="dark:bg-[#251437] border-none shadow-xl rounded-2xl p-0 overflow-hidden cursor-pointer w-full max-w-[400px] h-[500px]">
-                <label className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-[#1a1522] cursor-pointer">
+              <Card className="dark:bg-[#28252c]  border-none shadow-xl rounded-2xl p-0 overflow-hidden cursor-pointer w-full max-w-[400px] h-[500px]">
+                <label className="w-full h-full flex flex-col items-center justify-center bg-gray-100 dark:bg-[#28252c] cursor-pointer">
                   {bannerPreview ? (
                     // show uploaded image
                     <img
@@ -304,7 +304,7 @@ export default function CreateEventPage() {
 
             {/* Right form: spans 2 columns on md */}
             <div className="md:col-span-2 flex justify-start">
-              <Card className="dark:bg-[#251437] bg-white border-none shadow-xl rounded-2xl">
+              <Card className="dark:bg-[#28252c] c bg-white border-none shadow-xl rounded-2xl">
                 <CardContent className="space-y-4 p-6">
                   {/* Event Form (visible when stage === 'event') */}
                   {stage === "event" && (
@@ -315,7 +315,7 @@ export default function CreateEventPage() {
                         onChange={(e) => setTitle(e.target.value)}
                         className="w-full text-4xl font-bold placeholder:text-gray-400 dark:placeholder:text-gray-500 bg-transparent border-0 focus:ring-0 focus:outline-none"
                       />
-                      <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md w-[550px] flex flex-col">
+                      <div className="bg-gray-100 dark:bg-black p-3 rounded-md w-[550px] flex flex-col">
                         <label className="text-xs font-medium text-gray-500 mb-1">
                           Description
                         </label>
@@ -327,13 +327,13 @@ export default function CreateEventPage() {
                         />
                       </div>
                       <div className="flex gap-6 items-center">
-                        <div className="flex flex-col gap-4 p-5 bg-gray-100 h-40">
+                        <div className="flex flex-col gap-4 p-5 bg-gray-100 h-40 dark:bg-black ">
                           {/* Start row */}
                           <div className="flex items-center gap-4">
                             <span className="text-xs text-gray-500 w-25">
                               Start Date
                             </span>
-                            <div className="bg-gray-200 dark:bg-gray-800 p-2 rounded-md w-[200px]">
+                            <div className="bg-gray-200 dark:bg-[#28252c]  p-2 rounded-md w-[200px]">
                               <input
                                 type="datetime-local"
                                 value={startDatetime}
@@ -350,7 +350,7 @@ export default function CreateEventPage() {
                             <span className="text-xs text-gray-500 w-25">
                               End Date
                             </span>
-                            <div className="bg-gray-200 dark:bg-gray-800 p-2 rounded-md w-[200px]">
+                            <div className="bg-gray-200 dark:bg-[#28252c]  p-2 rounded-md w-[200px]">
                               <input
                                 type="datetime-local"
                                 value={endDatetime}
@@ -360,11 +360,11 @@ export default function CreateEventPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="bg-gray-100 dark:bg-gray-800 p-6 rounded-md w-60 h-20 flex flex-col">
+                        <div className="bg-gray-100 dark:bg-black p-6 rounded-md w-60 h-20 flex flex-col">
                           <label className="text-xs font-medium text-gray-500 mb-1">
                             Duration (minutes)
                           </label>
-                          <Input
+                          <input
                             type="number"
                             value={duration ?? ""}
                             onChange={(e) =>
@@ -382,14 +382,14 @@ export default function CreateEventPage() {
                       </div>
 
                       <div className="flex gap-6">
-                        <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md w-[300px] flex items-center">
+                        <div className="bg-gray-100 dark:bg-black p-3 rounded-md w-[300px] flex items-center">
                           <div className="flex flex-col flex-1">
                             <label className="text-xs font-medium text-gray-500 mb-1">
                               Location Type
                             </label>
                             <div className="relative w-full">
                               <select
-                                className="w-full  bg-transparent border-0 px-0 py-2 text-sm focus:outline-none focus:ring-0"
+                                className="w-full  bg-transparent border-0 px-0 py-2 text-sm focus:outline-none focus:ring-0 dark:bg-[#28252c] "
                                 value={locationType}
                                 onChange={(e) =>
                                   setLocationType(
@@ -404,7 +404,7 @@ export default function CreateEventPage() {
                             </div>
                           </div>
                         </div>
-                        <div className="bg-gray-100 dark:bg-gray-800 p-3 rounded-md flex items-center gap-3 w-[300px]">
+                        <div className="bg-gray-100 dark:bg-black p-3 rounded-md flex items-center gap-3 w-[300px]">
                           {/* Icon */}
                           <MapPin />
 

@@ -16,7 +16,7 @@ function Events() {
   const { user } = useCurrentUser(); // replaced useAuth
   const { mutate: logout, isPending: logoutLoading } = useLogout();
 
-  const limit = 1;
+  const limit = 20;
 
   const {
     events,

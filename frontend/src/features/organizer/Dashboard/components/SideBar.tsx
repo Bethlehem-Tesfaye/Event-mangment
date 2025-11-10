@@ -6,7 +6,6 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
-  SquarePen,
   ChartColumnIncreasing,
   ListOrdered,
   Settings,
@@ -35,12 +34,6 @@ export default function Sidebar({
       label: "Events",
       icon: <Calendar />,
       path: "/organizer/events",
-    },
-    {
-      key: "create",
-      label: "Create event",
-      icon: <SquarePen />,
-      path: "/organizer/create-event",
     },
     {
       key: "analytics",
