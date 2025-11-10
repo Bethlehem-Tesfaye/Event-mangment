@@ -1,0 +1,126 @@
+name: Deploy Full Stack to Render
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    types: [opened, reopened, synchronize, closed]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+
+      # Base app names for PR previews
+      FRONTEND_APP: frontend
+      BACKEND_APP: backend
+
+      # Production service IDs (for main deploy)
+      FRONTEND_SERVICE_ID: ${{ secrets.FRONTEND_SERVICE_ID }}
+      BACKEND_SERVICE_ID: ${{ secrets.BACKEND_SERVICE_ID }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        if: github.event.action != 'closed'
+        run: npm run build
+
+      #############################
+      # Production deployment (main branch)
+      #############################
+      - name: Deploy Production Frontend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "🚀 Deploying frontend production..."
+          npx render deploy --service-id $FRONTEND_SERVICE_ID --api-key $RENDER_API_KEY
+
+      - name: Deploy Production Backend
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        run: |
+          echo "🚀 Deploying backend production..."
+          npx render deploy --service-id $BACKEND_SERVICE_ID --api-key $RENDER_API_KEY
+
+      #############################
+      # PR Preview deployment
+      #############################
+      - name: Deploy PR Preview Frontend
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          BRANCH_NAME=${{ github.head_ref }}
+          PREVIEW_NAME="${FRONTEND_APP}-pr-${PR_NUMBER}"
+          echo "🔍 Deploying frontend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
+
+          # Create frontend preview service
+          curl -X POST "https://api.render.com/v1/services" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"$PREVIEW_NAME\",
+              \"type\": \"web_service\",
+              \"repo\": \"${{ github.repository }}\",
+              \"branch\": \"$BRANCH_NAME\",
+              \"plan\": \"free\",
+              \"envVars\": []
+            }"
+
+      - name: Deploy PR Preview Backend
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+          BRANCH_NAME=${{ github.head_ref }}
+          PREVIEW_NAME="${BACKEND_APP}-pr-${PR_NUMBER}"
+          echo "🔍 Deploying backend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
+
+          # Create backend preview service
+          curl -X POST "https://api.render.com/v1/services" \
+            -H "Authorization: Bearer $RENDER_API_KEY" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"name\": \"$PREVIEW_NAME\",
+              \"type\": \"web_service\",
+              \"repo\": \"${{ github.repository }}\",
+              \"branch\": \"$BRANCH_NAME\",
+              \"plan\": \"free\",
+              \"envVars\": []
+            }"
+
+      #############################
+      # Install jq for cleanup
+      #############################
+      - name: Install jq
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        run: sudo apt-get install -y jq
+
+      #############################
+      # Cleanup PR Preview on close
+      #############################
+      - name: Remove PR Preview Services
+        if: github.event_name == 'pull_request' && github.event.action == 'closed'
+        run: |
+          PR_NUMBER=${{ github.event.pull_request.number }}
+
+          for APP in $FRONTEND_APP $BACKEND_APP; do
+            PREVIEW_NAME="${APP}-pr-${PR_NUMBER}"
+            echo "🧹 Deleting preview service $PREVIEW_NAME..."
+
+            SERVICE_ID=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
+              "https://api.render.com/v1/services" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
+
+            if [ -n "$SERVICE_ID" ]; then
+              curl -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
+                -H "Authorization: Bearer $RENDER_API_KEY"
+            fi
+          done
