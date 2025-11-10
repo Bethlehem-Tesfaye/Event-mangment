@@ -7,6 +7,10 @@ on:
   pull_request:
     types: [opened, reopened, synchronize, closed]
 
+permissions:
+  contents: read
+  pull-requests: write # needed to comment on PRs
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -47,13 +51,12 @@ jobs:
           cd server
           npm ci
 
-      # Backend has no build script, skip if not needed
-      # If you add a build script, uncomment below
-      #- name: Build Backend
-      #  if: github.event.action != 'closed'
-      #  run: |
-      #    cd server
-      #    npm run build
+      - name: Build Backend
+        if: github.event.action != 'closed'
+        run: |
+          cd server
+          # backend doesn't have build script, skip if none
+          if npm run | grep -q build; then npm run build; fi
 
       #############################
       # Production deployment (main branch)
@@ -114,20 +117,6 @@ jobs:
             }"
 
       #############################
-      # Comment PR with preview links
-      #############################
-      - name: Comment PR with preview links
-        if: github.event_name == 'pull_request' && github.event.action != 'closed'
-        uses: peter-evans/create-or-update-comment@v4
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          issue-number: ${{ github.event.pull_request.number }}
-          body: |
-            🚀 PR Preview deployed:
-            - Frontend: https://${FRONTEND_APP}-pr-${{ github.event.pull_request.number }}.onrender.com
-            - Backend: https://${BACKEND_APP}-pr-${{ github.event.pull_request.number }}.onrender.com
-
-      #############################
       # Install jq for cleanup
       #############################
       - name: Install jq
@@ -154,3 +143,17 @@ jobs:
                 -H "Authorization: Bearer $RENDER_API_KEY"
             fi
           done
+
+      #############################
+      # Comment PR with preview links
+      #############################
+      - name: Comment PR with Preview Links
+        if: github.event_name == 'pull_request' && github.event.action != 'closed'
+        uses: peter-evans/create-or-update-comment@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          issue-number: ${{ github.event.pull_request.number }}
+          body: |
+            🚀 PR Preview deployed:
+            - Frontend: https://${{ env.FRONTEND_APP }}-pr-${{ github.event.pull_request.number }}.onrender.com
+            - Backend: https://${{ env.BACKEND_APP }}-pr-${{ github.event.pull_request.number }}.onrender.com
