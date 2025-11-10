@@ -217,7 +217,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                 </Link>
               </DropdownMenuItem>
               <DropdownMenuItem asChild>
-                <Link to="/browse" className="flex items-center gap-2">
+                <Link to="/browse-event" className="flex items-center gap-2">
                   <Globe className="h-4 w-4" /> Browse Events
                 </Link>
               </DropdownMenuItem>
