@@ -40,18 +40,12 @@ jobs:
           npm run build
 
       #############################
-      # Backend install/build
+      # Backend install
       #############################
       - name: Install Backend Dependencies
         run: |
           cd server
           npm ci
-
-      - name: Build Backend
-        if: github.event.action != 'closed'
-        run: |
-          cd server
-          npm run build
 
       #############################
       # Production deployment (main branch)
