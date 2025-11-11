@@ -88,6 +88,7 @@ jobs:
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
+              \"ownerId\": \"tea-d184lk6mcj7s73b2pqh0\",
               \"name\": \"$PREVIEW_NAME\",
               \"type\": \"web_service\",
               \"repo\": \"${{ github.repository }}\",
@@ -110,6 +111,7 @@ jobs:
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
+              \"ownerId\": \"tea-d184lk6mcj7s73b2pqh0\",
               \"name\": \"$PREVIEW_NAME\",
               \"type\": \"web_service\",
               \"repo\": \"${{ github.repository }}\",
