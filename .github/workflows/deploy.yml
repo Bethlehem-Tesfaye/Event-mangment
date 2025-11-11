@@ -121,11 +121,14 @@ jobs:
               \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
-               \"serviceDetails\": {
+                \"serviceDetails\": {
                 \"env\": \"node\",
                 \"buildCommand\": \"npm ci\",
                 \"startCommand\": \"npm start\",
-                \"rootDir\": \"server\"
+                \"rootDir\": \"server\",
+                \"envSpecificDetails\": {
+                  \"nodeVersion\": \"20\"
+                }
               }
             }")
 
