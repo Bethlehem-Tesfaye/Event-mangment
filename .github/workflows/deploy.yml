@@ -97,7 +97,8 @@ jobs:
                 \"env\": \"node\",
                 \"buildCommand\": \"npm install && npm run build\",
                 \"startCommand\": \"npm run start\",
-                \"rootDir\": \"frontend\"
+                \"rootDir\": \"frontend\",
+                \"envSpecificDetails\": {}
               }
             }")
 
@@ -127,7 +128,8 @@ jobs:
                 \"env\": \"node\",
                 \"buildCommand\": \"npm install && npm run build\",
                 \"startCommand\": \"npm run start\",
-                \"rootDir\": \"server\"
+                \"rootDir\": \"server\",
+                \"envSpecificDetails\": {}
               }
             }")
 
