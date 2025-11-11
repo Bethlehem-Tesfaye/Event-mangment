@@ -90,7 +90,7 @@ jobs:
               \"ownerId\": \"$OWNER_ID\",
               \"name\": \"$PREVIEW_NAME\",
               \"type\": \"web_service\",
-              \"repo\": \"${{ github.repository }}\",
+              \"repo\": \"https://github.com/${{ github.repository }}\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
               \"serviceDetails\": {
@@ -120,7 +120,7 @@ jobs:
               \"ownerId\": \"$OWNER_ID\",
               \"name\": \"$PREVIEW_NAME\",
               \"type\": \"web_service\",
-              \"repo\": \"${{ github.repository }}\",
+              \"repo\": \"https://github.com/${{ github.repository }}\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
               \"serviceDetails\": {
