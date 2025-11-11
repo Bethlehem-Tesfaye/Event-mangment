@@ -89,16 +89,14 @@ jobs:
             -d "{
               \"ownerId\": \"$OWNER_ID\",
               \"name\": \"$PREVIEW_NAME\",
-              \"type\": \"web_service\",
-              \"repo\": \"https://github.com/${{ github.repository }}\",
+              \"type\": \"static_site\",
+              \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
               \"serviceDetails\": {
-                \"env\": \"node\",
-                \"buildCommand\": \"npm install && npm run build\",
-                \"startCommand\": \"npm run start\",
-                \"rootDir\": \"frontend\",
-                \"envSpecificDetails\": {}
+                \"env\": \"static\",
+                \"buildCommand\": \"npm ci && npm run build\",
+                \"publishPath\": \"frontend/dist\"
               }
             }")
 
@@ -121,13 +119,13 @@ jobs:
               \"ownerId\": \"$OWNER_ID\",
               \"name\": \"$PREVIEW_NAME\",
               \"type\": \"web_service\",
-              \"repo\": \"https://github.com/${{ github.repository }}\",
+              \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
               \"serviceDetails\": {
                 \"env\": \"node\",
-                \"buildCommand\": \"npm install && npm run build\",
-                \"startCommand\": \"npm run start\",
+                \"buildCommand\": \"npm ci\",
+                \"startCommand\": \"npm start\",
                 \"rootDir\": \"server\",
                 \"envSpecificDetails\": {}
               }
