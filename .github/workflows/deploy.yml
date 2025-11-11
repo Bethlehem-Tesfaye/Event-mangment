@@ -93,8 +93,7 @@ jobs:
               \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
-              \"serviceDetails\": {
-                \"env\": \"static\",
+               \"serviceDetails\": {
                 \"buildCommand\": \"npm ci && npm run build\",
                 \"publishPath\": \"frontend/dist\"
               }
@@ -122,12 +121,11 @@ jobs:
               \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
-              \"serviceDetails\": {
+               \"serviceDetails\": {
                 \"env\": \"node\",
                 \"buildCommand\": \"npm ci\",
                 \"startCommand\": \"npm start\",
-                \"rootDir\": \"server\",
-                \"envSpecificDetails\": {}
+                \"rootDir\": \"server\"
               }
             }")
 
