@@ -9,19 +9,18 @@ on:
 
 permissions:
   contents: read
-  pull-requests: write # needed to comment on PRs
+  pull-requests: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     env:
       RENDER_API_KEY: ${{ secrets.RENDER_API_KEY }}
+      OWNER_ID: tea-d184lk6mcj7s73b2pqh0
 
-      # Base app names for PR previews
       FRONTEND_APP: frontend
       BACKEND_APP: server
 
-      # Production service IDs (for main deploy)
       FRONTEND_SERVICE_ID: ${{ secrets.FRONTEND_SERVICE_ID }}
       BACKEND_SERVICE_ID: ${{ secrets.BACKEND_SERVICE_ID }}
 
@@ -55,7 +54,6 @@ jobs:
         if: github.event.action != 'closed'
         run: |
           cd server
-          # skip build if script doesn't exist
           if npm run | grep -q build; then npm run build; fi
 
       #############################
@@ -82,20 +80,27 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           BRANCH_NAME=${{ github.head_ref }}
           PREVIEW_NAME="${FRONTEND_APP}-pr-${PR_NUMBER}"
+
           echo "🔍 Deploying frontend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
 
           RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"ownerId\": \"tea-d184lk6mcj7s73b2pqh0\",
+              \"ownerId\": \"$OWNER_ID\",
               \"name\": \"$PREVIEW_NAME\",
               \"type\": \"web_service\",
               \"repo\": \"${{ github.repository }}\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
-              \"envVars\": []
+              \"serviceDetails\": {
+                \"env\": \"node\",
+                \"buildCommand\": \"npm install && npm run build\",
+                \"startCommand\": \"npm run start\",
+                \"rootDir\": \"frontend\"
+              }
             }")
+
           echo "Render response:"
           echo "$RESPONSE"
 
@@ -105,20 +110,27 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           BRANCH_NAME=${{ github.head_ref }}
           PREVIEW_NAME="${BACKEND_APP}-pr-${PR_NUMBER}"
+
           echo "🔍 Deploying backend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
 
           RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
             -H "Authorization: Bearer $RENDER_API_KEY" \
             -H "Content-Type: application/json" \
             -d "{
-              \"ownerId\": \"tea-d184lk6mcj7s73b2pqh0\",
+              \"ownerId\": \"$OWNER_ID\",
               \"name\": \"$PREVIEW_NAME\",
               \"type\": \"web_service\",
               \"repo\": \"${{ github.repository }}\",
               \"branch\": \"$BRANCH_NAME\",
               \"plan\": \"free\",
-              \"envVars\": []
+              \"serviceDetails\": {
+                \"env\": \"node\",
+                \"buildCommand\": \"npm install && npm run build\",
+                \"startCommand\": \"npm run start\",
+                \"rootDir\": \"server\"
+              }
             }")
+
           echo "Render response:"
           echo "$RESPONSE"
 
