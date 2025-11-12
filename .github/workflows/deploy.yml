@@ -88,10 +88,12 @@ jobs:
 
           RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=200")
 
-          if echo "$RESPONSE" | jq empty 2>/dev/null; then
+          # ✅ Fix jq error safely
+          if echo "$RESPONSE" | jq -e . >/dev/null 2>&1 && echo "$RESPONSE" | jq -e 'type=="array"' >/dev/null 2>&1; then
             SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
           else
-            echo "⚠️ Invalid JSON returned from Render API!"
+            echo "⚠️ Render API did not return valid JSON (maybe unauthorized or rate-limited):"
+            echo "$RESPONSE"
             SERVICE_ID=""
           fi
 
@@ -131,10 +133,12 @@ jobs:
 
           RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=200")
 
-          if echo "$RESPONSE" | jq empty 2>/dev/null; then
+          # ✅ Fix jq error safely
+          if echo "$RESPONSE" | jq -e . >/dev/null 2>&1 && echo "$RESPONSE" | jq -e 'type=="array"' >/dev/null 2>&1; then
             SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
           else
-            echo "⚠️ Invalid JSON returned from Render API!"
+            echo "⚠️ Render API did not return valid JSON (maybe unauthorized or rate-limited):"
+            echo "$RESPONSE"
             SERVICE_ID=""
           fi
 
@@ -176,10 +180,15 @@ jobs:
             PREVIEW_NAME="${APP}-pr-${PR_NUMBER}"
             echo "🧹 Deleting preview service: $PREVIEW_NAME"
             RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=200")
-            SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
-            if [ -n "$SERVICE_ID" ]; then
-              curl -s -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
-                -H "Authorization: Bearer $RENDER_API_KEY"
+            if echo "$RESPONSE" | jq -e . >/dev/null 2>&1 && echo "$RESPONSE" | jq -e 'type=="array"' >/dev/null 2>&1; then
+              SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
+              if [ -n "$SERVICE_ID" ]; then
+                curl -s -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
+                  -H "Authorization: Bearer $RENDER_API_KEY"
+              fi
+            else
+              echo "⚠️ Invalid JSON from Render API during cleanup"
+              echo "$RESPONSE"
             fi
           done
 
