@@ -72,35 +72,47 @@ jobs:
           npx render deploy --service-id $BACKEND_SERVICE_ID --api-key $RENDER_API_KEY
 
       #############################
-      # PR Preview deployment
+      # PR Preview deployment (fixed)
       #############################
+      - name: Install jq
+        if: github.event_name == 'pull_request'
+        run: sudo apt-get install -y jq
+
       - name: Deploy PR Preview Frontend
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
           BRANCH_NAME=${{ github.head_ref }}
           PREVIEW_NAME="${FRONTEND_APP}-pr-${PR_NUMBER}"
+          echo "🔍 Checking for existing frontend preview $PREVIEW_NAME..."
 
-          echo "🔍 Deploying frontend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
+          SERVICE_ID=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
+            "https://api.render.com/v1/services?limit=200" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
 
-          RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
-            -H "Authorization: Bearer $RENDER_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"ownerId\": \"$OWNER_ID\",
-              \"name\": \"$PREVIEW_NAME\",
-              \"type\": \"static_site\",
-              \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
-              \"branch\": \"$BRANCH_NAME\",
-              \"plan\": \"free\",
-               \"serviceDetails\": {
-                \"buildCommand\": \"npm ci && npm run build\",
-                \"publishPath\": \"frontend/dist\"
-              }
-            }")
-
-          echo "Render response:"
-          echo "$RESPONSE"
+          if [ -n "$SERVICE_ID" ]; then
+            echo "🔁 Existing service found ($SERVICE_ID). Triggering redeploy..."
+            curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{}"
+          else
+            echo "🆕 Creating new frontend preview service..."
+            curl -s -X POST "https://api.render.com/v1/services" \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"ownerId\": \"$OWNER_ID\",
+                \"name\": \"$PREVIEW_NAME\",
+                \"type\": \"static_site\",
+                \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
+                \"branch\": \"$BRANCH_NAME\",
+                \"plan\": \"starter\",
+                \"serviceDetails\": {
+                  \"buildCommand\": \"npm install && npm run build\",
+                  \"publishPath\": \"frontend/dist\"
+                }
+              }"
+          fi
 
       - name: Deploy PR Preview Backend
         if: github.event_name == 'pull_request' && github.event.action != 'closed'
@@ -108,39 +120,40 @@ jobs:
           PR_NUMBER=${{ github.event.pull_request.number }}
           BRANCH_NAME=${{ github.head_ref }}
           PREVIEW_NAME="${BACKEND_APP}-pr-${PR_NUMBER}"
+          echo "🔍 Checking for existing backend preview $PREVIEW_NAME..."
 
-          echo "🔍 Deploying backend PR preview #${PR_NUMBER} as $PREVIEW_NAME..."
+          SERVICE_ID=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
+            "https://api.render.com/v1/services?limit=200" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
 
-          RESPONSE=$(curl -s -X POST "https://api.render.com/v1/services" \
-            -H "Authorization: Bearer $RENDER_API_KEY" \
-            -H "Content-Type: application/json" \
-            -d "{
-              \"ownerId\": \"$OWNER_ID\",
-              \"name\": \"$PREVIEW_NAME\",
-              \"type\": \"web_service\",
-              \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
-              \"branch\": \"$BRANCH_NAME\",
-              \"plan\": \"free\",
+          if [ -n "$SERVICE_ID" ]; then
+            echo "🔁 Existing backend service found ($SERVICE_ID). Triggering redeploy..."
+            curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{}"
+          else
+            echo "🆕 Creating new backend preview service..."
+            curl -s -X POST "https://api.render.com/v1/services" \
+              -H "Authorization: Bearer $RENDER_API_KEY" \
+              -H "Content-Type: application/json" \
+              -d "{
+                \"ownerId\": \"$OWNER_ID\",
+                \"name\": \"$PREVIEW_NAME\",
+                \"type\": \"web_service\",
+                \"repo\": \"https://github.com/Bethlehem-Tesfaye/Event-mangment\",
+                \"branch\": \"$BRANCH_NAME\",
+                \"plan\": \"starter\",
                 \"serviceDetails\": {
-                \"env\": \"node\",
-                \"buildCommand\": \"npm ci\",
-                \"startCommand\": \"npm start\",
-                \"rootDir\": \"server\",
-                \"envSpecificDetails\": {
-                  \"nodeVersion\": \"20\"
+                  \"env\": \"node\",
+                  \"rootDir\": \"server\",
+                  \"buildCommand\": \"cd server && npm install && npm run build\",
+                  \"startCommand\": \"cd server && npm start\",
+                  \"envSpecificDetails\": {
+                    \"nodeVersion\": \"20\"
+                  }
                 }
-              }
-            }")
-
-          echo "Render response:"
-          echo "$RESPONSE"
-
-      #############################
-      # Install jq for cleanup
-      #############################
-      - name: Install jq
-        if: github.event_name == 'pull_request' && github.event.action == 'closed'
-        run: sudo apt-get install -y jq
+              }"
+          fi
 
       #############################
       # Cleanup PR Preview on close
@@ -149,16 +162,13 @@ jobs:
         if: github.event_name == 'pull_request' && github.event.action == 'closed'
         run: |
           PR_NUMBER=${{ github.event.pull_request.number }}
-
           for APP in $FRONTEND_APP $BACKEND_APP; do
             PREVIEW_NAME="${APP}-pr-${PR_NUMBER}"
             echo "🧹 Deleting preview service $PREVIEW_NAME..."
-
             SERVICE_ID=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" \
-              "https://api.render.com/v1/services" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
-
+              "https://api.render.com/v1/services?limit=200" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
             if [ -n "$SERVICE_ID" ]; then
-              curl -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
+              curl -s -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
                 -H "Authorization: Bearer $RENDER_API_KEY"
             fi
           done
