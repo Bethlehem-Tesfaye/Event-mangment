@@ -60,7 +60,7 @@ jobs:
           if npm run | grep -q build; then npm run build; fi
 
       #############################
-      # Production Deployment (main branch)
+      # Production Deployment
       #############################
       - name: 🚀 Deploy Production Frontend
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -86,19 +86,18 @@ jobs:
 
           echo "🔍 Checking for existing frontend preview: $PREVIEW_NAME"
 
-          RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=200")
+          RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=100")
 
-          # ✅ Fix jq error safely
           if echo "$RESPONSE" | jq -e . >/dev/null 2>&1 && echo "$RESPONSE" | jq -e 'type=="array"' >/dev/null 2>&1; then
             SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
           else
-            echo "⚠️ Render API did not return valid JSON (maybe unauthorized or rate-limited):"
+            echo "⚠️ Invalid JSON from Render API!"
             echo "$RESPONSE"
             SERVICE_ID=""
           fi
 
           if [ -n "$SERVICE_ID" ]; then
-            echo "🔁 Existing frontend service found ($SERVICE_ID). Redeploying..."
+            echo "🔁 Redeploying existing frontend preview ($SERVICE_ID)..."
             curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
               -H "Authorization: Bearer $RENDER_API_KEY" \
               -H "Content-Type: application/json" -d "{}"
@@ -131,19 +130,18 @@ jobs:
 
           echo "🔍 Checking for existing backend preview: $PREVIEW_NAME"
 
-          RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=200")
+          RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=100")
 
-          # ✅ Fix jq error safely
           if echo "$RESPONSE" | jq -e . >/dev/null 2>&1 && echo "$RESPONSE" | jq -e 'type=="array"' >/dev/null 2>&1; then
             SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
           else
-            echo "⚠️ Render API did not return valid JSON (maybe unauthorized or rate-limited):"
+            echo "⚠️ Invalid JSON from Render API!"
             echo "$RESPONSE"
             SERVICE_ID=""
           fi
 
           if [ -n "$SERVICE_ID" ]; then
-            echo "🔁 Existing backend service found ($SERVICE_ID). Redeploying..."
+            echo "🔁 Redeploying existing backend preview ($SERVICE_ID)..."
             curl -s -X POST "https://api.render.com/v1/services/$SERVICE_ID/deploys" \
               -H "Authorization: Bearer $RENDER_API_KEY" \
               -H "Content-Type: application/json" -d "{}"
@@ -179,16 +177,11 @@ jobs:
           for APP in $FRONTEND_APP $BACKEND_APP; do
             PREVIEW_NAME="${APP}-pr-${PR_NUMBER}"
             echo "🧹 Deleting preview service: $PREVIEW_NAME"
-            RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=200")
-            if echo "$RESPONSE" | jq -e . >/dev/null 2>&1 && echo "$RESPONSE" | jq -e 'type=="array"' >/dev/null 2>&1; then
-              SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
-              if [ -n "$SERVICE_ID" ]; then
-                curl -s -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
-                  -H "Authorization: Bearer $RENDER_API_KEY"
-              fi
-            else
-              echo "⚠️ Invalid JSON from Render API during cleanup"
-              echo "$RESPONSE"
+            RESPONSE=$(curl -s -H "Authorization: Bearer $RENDER_API_KEY" "https://api.render.com/v1/services?limit=100")
+            SERVICE_ID=$(echo "$RESPONSE" | jq -r ".[] | select(.name==\"$PREVIEW_NAME\") | .id")
+            if [ -n "$SERVICE_ID" ]; then
+              curl -s -X DELETE "https://api.render.com/v1/services/$SERVICE_ID" \
+                -H "Authorization: Bearer $RENDER_API_KEY"
             fi
           done
 
