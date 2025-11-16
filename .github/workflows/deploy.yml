@@ -1,11 +1,12 @@
 name: Deploy Full Stack to Render
 
 on:
-  push:
-    branches:
-      - main
   pull_request:
-    types: [opened, reopened, synchronize, closed]
+    types:
+      - opened
+      - reopened
+      - synchronize
+      - closed
 
 permissions:
   contents: read
