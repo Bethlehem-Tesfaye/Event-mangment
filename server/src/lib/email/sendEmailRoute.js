@@ -1,7 +1,8 @@
+/* eslint-disable no-console */
 import { Receiver } from "@upstash/qstash";
-import transporter from "../lib/mailer.js";
-import { VerifyTemplate } from "../lib/email/template/VerifyTemplate.js";
-import { ResetTemplate } from "../lib/email/template/ResetTemplate.js";
+import transporter from "../mailer.js";
+import { VerifyTemplate } from "./template/VerifyTemplate.js";
+import { ResetTemplate } from "./template/ResetTemplate.js";
 
 const receiver = new Receiver({
   currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY,
@@ -21,7 +22,7 @@ const verifyMiddleware = async (req, res, next) => {
       body: bodyString
     });
 
-    next();
+    return next();
   } catch (err) {
     console.error("Signature verification failed:", err);
     return res.status(401).json({ error: "Invalid signature" });

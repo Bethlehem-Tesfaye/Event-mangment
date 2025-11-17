@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Client } from "@upstash/qstash";
 
 const qstash = new Client({
