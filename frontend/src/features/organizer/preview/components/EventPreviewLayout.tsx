@@ -12,7 +12,7 @@ export default function EventPreviewLayout({
   children: React.ReactNode;
 }) {
   return (
-    <div className="flex min-h-screen ">
+    <div className="flex min-h-screen  bg-gray-50 dark:bg-[#050505]  md:pl-56 ">
       <Sidebar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col">
         <Topbar />

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 import SideBar from "../../Dashboard/components/SideBar";
 import Topbar from "../../Dashboard/components/Topbar";
@@ -8,7 +8,7 @@ import EventsTabBar from "../components/EventsTabBar";
 import EventsList from "../../Dashboard/components/EventsList";
 import { Card } from "@/components/ui/card";
 import type { EventsTabBarTab } from "../types/eventsLists";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner"; // added
 import { Button } from "@/components/ui/button";
 import AttendeesEventsList from "@/features/organizer/attendees/components/AttendeesEventsList"; // added
@@ -26,6 +26,13 @@ export default function OrganizerEventsListPage() {
   const { data: events = [], isLoading, error } = useOrganizerEvents(tab);
   const updateEvent = useUpdateEvent();
   const navigate = useNavigate(); // added
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const sectionParam = params.get("section") as "events" | "attendees";
+    if (sectionParam) setSection(sectionParam);
+  }, [location.search]);
 
   // modal state for confirmation
   const [confirmModal, setConfirmModal] = useState<{
@@ -72,11 +79,11 @@ export default function OrganizerEventsListPage() {
   };
 
   return (
-    <div className="flex min-h-screen bg-muted">
+    <div className="flex min-h-screen  bg-gray-50 dark:bg-[#050505]">
       <SideBar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col md:pl-56">
         <Topbar />
-        <main className="p-6 flex-1 space-y-6">
+        <main className="flex-1 space-y-6 p-6 max-w-7xl w-full mx-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-4">
               {/* Events / Attendees tab toggle */}

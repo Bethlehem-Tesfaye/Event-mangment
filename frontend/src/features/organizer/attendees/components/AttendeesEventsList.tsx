@@ -3,6 +3,8 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Users, Download } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { api } from "@/lib/axios";
+import { toast } from "sonner";
 
 export default function AttendeesEventsList() {
   const { data: events, isLoading, error } = useOrganizerEvents("all");
@@ -26,13 +28,33 @@ export default function AttendeesEventsList() {
   if (!events?.length)
     return <p className="text-neutral-500 text-center py-12">No events yet.</p>;
 
+  const downloadCsv = async (eventId?: string) => {
+    if (!eventId) return;
+    try {
+      const res = await api.get(
+        `/organizer/events/${eventId}/attendees?format=csv`,
+        { responseType: "blob" }
+      );
+      const blob = new Blob([res.data], { type: "text/csv" });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `event-${eventId}-attendees.csv`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+      toast.success("Attendee List downloaded!");
+    } catch (err: any) {
+      toast.error("Failed to download CSV", err);
+    }
+  };
+
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
       {events.map((ev: any) => (
         <Card
           key={ev.id}
           className="cursor-pointer hover:shadow-lg transition rounded-2xl"
-          onClick={() => navigate(`/attendees/${ev.id}`)}
+          onClick={() => navigate(`/organizer/events/attendees/${ev.id}`)}
         >
           <CardHeader>
             <CardTitle className="text-xl truncate">{ev.title}</CardTitle>
@@ -53,7 +75,7 @@ export default function AttendeesEventsList() {
               className="w-5 h-5 text-neutral-500 hover:text-black dark:hover:text-white"
               onClick={(e) => {
                 e.stopPropagation();
-                window.location.href = `/organizer/events/${ev.id}/attendees?format=csv`;
+                downloadCsv(ev.id);
               }}
             />
           </CardContent>

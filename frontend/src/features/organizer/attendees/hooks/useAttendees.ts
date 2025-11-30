@@ -9,15 +9,20 @@ export type Attendee = {
   registered_at: string;
 };
 
-export function useEventAttendees(eventId?: number) {
+export function useEventAttendees(eventId?: string) {
   return useQuery<Attendee[], Error>({
     queryKey: ["event-attendees", eventId],
     queryFn: async () => {
-      const res = await api.get<{ data: { attendees: Attendee[] } }>(
-        `/organizer/events/${eventId}/attendees`,
-        { withCredentials: true }
-      );
-      return res.data.data.attendees;
+      try {
+        const res = await api.get<{ data: { attendees: Attendee[] } }>(
+          `/organizer/events/${eventId}/attendees`
+        );
+        return res.data.data.attendees;
+      } catch (err: any) {
+        // If server returns 404 (no attendees / not found), treat as empty list
+        if (err?.response?.status === 404) return [];
+        throw err;
+      }
     },
     enabled: !!eventId,
   });

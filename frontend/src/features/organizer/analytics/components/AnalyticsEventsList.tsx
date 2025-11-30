@@ -1,73 +1,53 @@
 import { useOrganizerEvents } from "@/features/organizer/Dashboard/hooks/useEvents";
-import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useNavigate } from "react-router-dom";
 
 export default function AnalyticsEventsList() {
   const { data: events, isLoading, error } = useOrganizerEvents("all");
-  const list = events ?? [];
   const navigate = useNavigate();
 
   if (isLoading) {
     return (
-      <div className="space-y-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {[1, 2, 3].map((i) => (
-          <div
-            key={i}
-            className="p-3 bg-white dark:bg-slate-800 rounded-lg shadow-sm"
-          >
-            <Skeleton className="h-6 w-1/3" />
-            <Skeleton className="h-4 w-1/4 mt-3" />
-          </div>
+          <Card key={i} className="p-6 rounded-2xl">
+            <Skeleton className="h-6 w-1/2 mb-4" />
+            <Skeleton className="h-4 w-1/3" />
+          </Card>
         ))}
       </div>
     );
   }
 
-  if (error) {
-    return <div className="text-red-500">Failed to load events.</div>;
-  }
+  if (error) return <p className="text-red-500">Failed to load events.</p>;
 
-  if (!list.length) {
-    return (
-      <div className="text-muted-foreground text-center py-8">
-        No events yet.
-      </div>
-    );
-  }
+  if (!events?.length)
+    return <p className="text-neutral-500 text-center py-12">No events yet.</p>;
 
   return (
-    <div className="space-y-3">
-      {list.map((ev: any) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+      {events.map((ev: any) => (
         <Card
           key={ev.id}
-          className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm cursor-pointer hover:shadow-md"
-          role="button"
-          tabIndex={0}
+          className="cursor-pointer hover:shadow-lg transition rounded-2xl"
           onClick={() => {
             const idToUse = ev.id ?? ev.uuid ?? ev.eventId ?? ev.event_id;
             navigate(`/organizer/events/${idToUse}/analytics`);
           }}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              const idToUse = ev.id ?? ev.uuid ?? ev.eventId ?? ev.event_id;
-              navigate(`/organizer/events/${idToUse}/analytics`);
-            }
-          }}
         >
-          <div className="flex items-center justify-between gap-4">
-            <div className="flex-1">
-              <div className="font-semibold text-lg">{ev.title}</div>
-              <div className="text-sm text-muted-foreground">
-                {ev.eventCategories
-                  ?.map((c: any) => c.category?.name)
-                  .join(", ") || ""}
-              </div>
-            </div>
-            <div className="text-sm text-muted-foreground">
+          <CardHeader>
+            <CardTitle className="text-xl truncate">{ev.title}</CardTitle>
+            <p className="text-sm text-neutral-500 dark:text-neutral-400">
+              {ev.eventCategories?.map((c: any) => c.category?.name).join(", ")}
+            </p>
+          </CardHeader>
+
+          <CardContent className="flex items-center justify-between pt-4">
+            <div className="text-sm text-neutral-500 dark:text-neutral-400">
               View analytics →
             </div>
-          </div>
+          </CardContent>
         </Card>
       ))}
     </div>

@@ -84,17 +84,13 @@ export const router = createBrowserRouter([
         element: <EventAnalyticsPage />,
       },
       {
+        path: "organizer/events/attendees/:eventId",
+        element: <EventAttendeesPage />,
+      },
+      {
         path: "registrations/:registrationId",
         element: <RegistrationDetailsPage />,
       },
-      {
-        path: "attendees/:eventId",
-        element: <EventAttendeesPage />,
-      },
-      // {
-      //   path: "analytics/:eventId",
-      //   element: <EventAnalyticsPage />,
-      // },
       { path: "user/myevents", element: <UserRegistrationsPage /> },
     ],
     errorElement: <NotFound />,
