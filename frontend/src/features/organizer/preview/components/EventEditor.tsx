@@ -293,18 +293,35 @@ export default function EventEditor({ id, onCreated }: Props) {
 
   const [newSpeaker, setNewSpeaker] = useState<any>(null);
   const [speakerError, setSpeakerError] = useState<string | null>(null);
+  const addingSpeakerRef = useRef(false); // <--- existing
+  const lastAddedSpeakerRef = useRef<{ hash: string; ts: number } | null>(null); // prevent near-duplicate rapid adds (race conditions)
+
   const handleAddSpeakerLocal = () => {
-    if (!newSpeaker) return;
+    // DEBUG: guard
+    if (!newSpeaker) {
+      console.debug("[dbg] handleAddSpeakerLocal called with no newSpeaker");
+      return;
+    }
+
+    console.groupCollapsed("[dbg] handleAddSpeakerLocal start");
+    console.debug("newSpeaker:", newSpeaker);
+    console.trace("addSpeaker call stack");
+
     const parsed = speakerSchema.safeParse({
       name: newSpeaker.name,
       bio: newSpeaker.bio,
       photoUrl: newSpeaker.photoUrl ?? undefined,
     });
+
     if (!parsed.success) {
-      setSpeakerError(parsed.error.issues.map((i) => i.message).join(", "));
+      const msg = parsed.error.issues.map((i) => i.message).join(", ");
+      console.debug("[dbg] speaker validation failed:", msg);
+      setSpeakerError(msg);
+      console.groupEnd();
       return;
     }
     setSpeakerError(null);
+
     const s: Speaker = {
       id: makeTempId(),
       name: parsed.data.name,
@@ -314,10 +331,24 @@ export default function EventEditor({ id, onCreated }: Props) {
       photoFile: newSpeaker.photoFile,
       photoPreview: newSpeaker.photoPreview,
     } as any;
-    setEditableEvent((prev) =>
-      prev ? { ...prev, speakers: [...(prev.speakers ?? []), s] } : prev
+
+    // Build next list and log it before calling setState (helps find duplicate source)
+    const current = editableEvent?.speakers ?? [];
+    const next = [...current, s];
+    console.debug("[dbg] speakers current length:", current.length);
+    console.debug("[dbg] speakers next length:", next.length);
+    console.debug(
+      "[dbg] speakers current ids:",
+      current.map((x: any) => x.id)
     );
+    console.debug(
+      "[dbg] speakers next ids:",
+      next.map((x: any) => x.id)
+    );
+
+    setEditableEvent((prev) => (prev ? { ...prev, speakers: next } : prev));
     setNewSpeaker(null);
+    console.groupEnd();
   };
 
   // React Hook Form for EventInfo (with Zod resolver)
@@ -465,21 +496,73 @@ export default function EventEditor({ id, onCreated }: Props) {
         }
 
         for (const s of editableEvent.speakers ?? []) {
+          // DEBUG: before creating each temp speaker on save
+          console.debug("[dbg] saving new speaker (will POST):", {
+            tempId: (s as any).id,
+            name: s.name,
+            photoPreview: (s as any).photoPreview,
+          });
           if ((s as any).isTemp) {
             if ((s as any).photoFile) {
               const form = new FormData();
               form.append("name", s.name);
               if (s.bio) form.append("bio", s.bio);
               form.append("photo", (s as any).photoFile);
-              await api.post(`/organizer/events/${createdId}/speakers`, form, {
-                headers: { "Content-Type": "multipart/form-data" },
-              });
+              console.debug(
+                "[dbg] POST /organizer/events/{id}/speakers with file for tempId",
+                (s as any).id
+              );
+              if (updateSpeaker) {
+                await updateSpeaker.mutateAsync({
+                  speakerId,
+                  data: form,
+                } as any);
+              } else {
+                await api.post(`/organizer/events/${id}/speakers`, form, {
+                  headers: { "Content-Type": "multipart/form-data" },
+                });
+              }
             } else {
-              await api.post(`/organizer/events/${createdId}/speakers`, {
+              console.debug(
+                "[dbg] POST /organizer/events/{id}/speakers JSON for tempId",
+                (s as any).id
+              );
+              await api.post(`/organizer/events/${id}/speakers`, {
                 name: s.name,
                 bio: s.bio,
                 photoUrl: s.photoUrl,
               });
+            }
+            continue;
+          }
+
+          const speakerId = Number((s as any).id);
+          const hasFile = (s as any).photoFile;
+          if (hasFile) {
+            const form = new FormData();
+            form.append("name", s.name);
+            if (s.bio) form.append("bio", s.bio);
+            form.append("photo", (s as any).photoFile);
+            if (updateSpeaker) {
+              await updateSpeaker.mutateAsync({ speakerId, data: form } as any);
+            } else {
+              await api.put(
+                `/organizer/events/${id}/speakers/${speakerId}`,
+                form,
+                {
+                  headers: { "Content-Type": "multipart/form-data" },
+                }
+              );
+            }
+          } else {
+            const payload: any = { name: s.name, bio: s.bio };
+            if (updateSpeaker) {
+              await updateSpeaker.mutateAsync({ speakerId, data: payload });
+            } else {
+              await api.put(
+                `/organizer/events/${id}/speakers/${speakerId}`,
+                payload
+              );
             }
           }
         }
@@ -519,6 +602,42 @@ export default function EventEditor({ id, onCreated }: Props) {
           await api.put(`/organizer/events/${id}`, eventPayload);
         }
 
+        // --- SYNC CATEGORIES (add new, remove old) ---
+        try {
+          const prev = originalCategoryIdsRef.current ?? [];
+          const next = (editableEvent.categories ?? [])
+            .map(Number)
+            .filter(Boolean);
+
+          const toAdd = next.filter((cid) => !prev.includes(cid));
+          const toRemove = prev.filter((cid) => !next.includes(cid));
+
+          // add new categories
+          for (const cid of toAdd) {
+            try {
+              await api.post(`/organizer/events/${id}/categories`, {
+                categoryId: cid,
+              });
+            } catch (e) {
+              console.error("Failed adding category", cid, e);
+            }
+          }
+
+          // remove deleted categories
+          for (const cid of toRemove) {
+            try {
+              await api.delete(`/organizer/events/${id}/categories/${cid}`);
+            } catch (e) {
+              console.error("Failed removing category", cid, e);
+            }
+          }
+
+          // update original ref so subsequent saves compare correctly
+          originalCategoryIdsRef.current = next;
+        } catch (e) {
+          console.error("Category sync failed", e);
+        }
+
         // Speakers & tickets sync (existing logic uses editableEvent)
         for (const s of editableEvent.speakers ?? []) {
           const isTemp = (s as any).isTemp;
@@ -528,10 +647,25 @@ export default function EventEditor({ id, onCreated }: Props) {
               form.append("name", s.name);
               if (s.bio) form.append("bio", s.bio);
               form.append("photo", (s as any).photoFile);
-              await api.post(`/organizer/events/${id}/speakers`, form, {
-                headers: { "Content-Type": "multipart/form-data" },
-              });
+              console.debug(
+                "[dbg] POST /organizer/events/{id}/speakers with file for tempId",
+                (s as any).id
+              );
+              if (updateSpeaker) {
+                await updateSpeaker.mutateAsync({
+                  speakerId,
+                  data: form,
+                } as any);
+              } else {
+                await api.post(`/organizer/events/${id}/speakers`, form, {
+                  headers: { "Content-Type": "multipart/form-data" },
+                });
+              }
             } else {
+              console.debug(
+                "[dbg] POST /organizer/events/{id}/speakers JSON for tempId",
+                (s as any).id
+              );
               await api.post(`/organizer/events/${id}/speakers`, {
                 name: s.name,
                 bio: s.bio,
@@ -606,6 +740,38 @@ export default function EventEditor({ id, onCreated }: Props) {
               ticketPayload
             );
           }
+        }
+
+        // --- ADDED: delete remote tickets that were marked for removal ---
+        if (ticketsToDelete.length > 0) {
+          for (const tid of ticketsToDelete) {
+            try {
+              if (deleteTicket && deleteTicket.mutateAsync) {
+                await deleteTicket.mutateAsync(tid);
+              } else {
+                await api.delete(`/organizer/events/${id}/tickets/${tid}`);
+              }
+            } catch (e) {
+              console.error("Failed deleting ticket", tid, e);
+            }
+          }
+          setTicketsToDelete([]); // clear after attempting deletes
+        }
+
+        // --- ADDED: remove remote speakers that were marked for deletion ---
+        if (speakersToDelete.length > 0) {
+          for (const sid of speakersToDelete) {
+            try {
+              if (deleteSpeaker && deleteSpeaker.mutateAsync) {
+                await deleteSpeaker.mutateAsync(sid);
+              } else {
+                await api.delete(`/organizer/events/${id}/speakers/${sid}`);
+              }
+            } catch (e) {
+              console.error("Failed deleting speaker", sid, e);
+            }
+          }
+          setSpeakersToDelete([]); // clear after attempting deletes
         }
 
         queryClient.invalidateQueries({ queryKey: ["organizer-event", id] });
@@ -701,17 +867,17 @@ export default function EventEditor({ id, onCreated }: Props) {
                   if (deleteSpeaker) deleteSpeaker.mutate(sid);
                 }}
                 onFileChange={(idOrNew, file) => {
-                  if (idOrNew === "new") return;
-                  if (isEdit && isRemoteId(idOrNew) && updateSpeaker) {
-                    const speakerId = Number(idOrNew);
-                    if (file) {
-                      const form = new FormData();
-                      form.append("photo", file);
-                      updateSpeaker.mutate({ speakerId, data: form } as any);
-                    }
+                  if (typeof idOrNew === "number") {
+                    // existing speaker
+                    handleChangeSpeaker(idOrNew, "photoFile", file);
+                  } else {
+                    // new speaker (idOrNew is the temp id)
+                    setNewSpeaker((prev: any) => {
+                      if (!prev) return null;
+                      return { ...prev, photoFile: file };
+                    });
                   }
                 }}
-                error={speakerError}
               />
             </CardContent>
           </Card>

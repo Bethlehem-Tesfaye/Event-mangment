@@ -29,27 +29,21 @@ export default function Topbar({ user, onLogout }: TopbarProps) {
   return (
     <header className="flex items-center justify-between h-14 px-6 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
       <div className="flex items-center gap-4">
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 h-10">
           <Logo />
-          <span className="text-lg font-semibold text-black dark:text-white ">
+          <span className="text-base font-semibold leading-none text-black dark:text-white">
             Eventlight
           </span>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          className="px-3 py-1 text-sm bg-gray-200 dark:bg-[#202127]"
-        >
-          Create Event
-        </Button>
         <Link to="/browse-event">
           <Button
             variant="ghost"
             className="px-7 py-1 text-sm  bg-gray-200 dark:bg-[#202127]"
           >
-            Browse
+            Discover Events
           </Button>
         </Link>
         <DropdownMenu open={open} onOpenChange={setOpen}>
