@@ -21,7 +21,7 @@ export function useCreateEvent() {
   });
 }
 
-export function useCreateTicket(eventId: number) {
+export function useCreateTicket(eventId: string) {
   return useMutation({
     mutationFn: async (data: TicketInput) => {
       const res = await api.post(`/organizer/events/${eventId}/tickets`, data);
@@ -30,7 +30,7 @@ export function useCreateTicket(eventId: number) {
   });
 }
 
-export function useCreateSpeaker(eventId: number) {
+export function useCreateSpeaker(eventId: string) {
   return useMutation({
     mutationFn: async (data: SpeakerInput) => {
       const res = await api.post(`/organizer/events/${eventId}/speakers`, data);
@@ -52,7 +52,7 @@ export function usePublishEvent() {
   });
 }
 
-export function useDeleteSpeaker(eventId: number) {
+export function useDeleteSpeaker(eventId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (speakerId: number) => {
@@ -66,14 +66,14 @@ export function useDeleteSpeaker(eventId: number) {
   });
 }
 
-export function useDeleteTicket(eventId: number) {
+export function useDeleteTicket(eventId: string) {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (ticketId: number) => {
       const res = await api.delete(
         `/organizer/events/${eventId}/tickets/${ticketId}`
       );
-      return res.data.data;
+      return res.data;
     },
     onSuccess: () =>
       queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] }),
@@ -105,6 +105,49 @@ export function useAssignCategoriesToEvent(eventId: number) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] });
     },
+  });
+}
+
+// --- NEW: update mutations for tickets/speakers ---
+export function useUpdateTicket(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      ticketId,
+      data,
+    }: {
+      ticketId: number;
+      data: Partial<TicketInput>;
+    }) => {
+      const res = await api.put(
+        `/organizer/events/${eventId}/tickets/${ticketId}`,
+        data
+      );
+      return res.data;
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] }),
+  });
+}
+
+export function useUpdateSpeaker(eventId: string) {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({
+      speakerId,
+      data,
+    }: {
+      speakerId: number;
+      data: Partial<SpeakerInput>;
+    }) => {
+      const res = await api.put(
+        `/organizer/events/${eventId}/speakers/${speakerId}`,
+        data
+      );
+      return res.data;
+    },
+    onSuccess: () =>
+      queryClient.invalidateQueries({ queryKey: ["organizer-event", eventId] }),
   });
 }
 

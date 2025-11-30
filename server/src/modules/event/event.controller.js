@@ -60,6 +60,10 @@ export const createEvent = async (req, res, next) => {
     if (req.file?.path) {
       eventData.eventBannerUrl = req.file.path;
     }
+    if (eventData.locationType === "in-person") {
+      eventData.locationType = "inPerson";
+    }
+
     const eventCreated = await eventService.createEvent({
       userId,
       ...eventData
@@ -90,6 +94,12 @@ export const updateEvent = async (req, res, next) => {
     if (req.file?.path) {
       eventData.eventBannerUrl = req.file.path;
     }
+
+    // normalize location token
+    if (eventData.locationType === "in-person") {
+      eventData.locationType = "inPerson";
+    }
+
     const updatedEvent = await eventService.updateEvent(eventId, userId, {
       ...eventData,
       status

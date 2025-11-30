@@ -7,7 +7,6 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import {
   LayoutDashboard,
   ChartColumnIncreasing,
-  ListOrdered,
   Settings,
   Calendar,
 } from "lucide-react";
@@ -42,12 +41,6 @@ export default function Sidebar({
       path: "/organizer/analytics",
     },
     {
-      key: "attendees",
-      label: "Attendees",
-      icon: <ListOrdered />,
-      path: "/organizer/attendees",
-    },
-    {
       key: "settings",
       label: "Settings",
       icon: <Settings />,
@@ -56,12 +49,12 @@ export default function Sidebar({
   ];
 
   const content = (
-    <aside className="w-56 min-h-screen bg-white dark:bg-black border-r border-gray-200 dark:border-gray-800 flex flex-col">
-      <div className="p-4 flex items-center gap-3 border-b border-transparent dark:border-gray-800">
+    <aside className="w-56 min-h-screen bg-white dark:bg-black  flex flex-col">
+      <div className="p-4 flex items-center gap-2 h-12 mt-1">
         <Logo />
-        <div className="text-sm font-medium text-black dark:text-white">
+        <span className="text-base font-semibold leading-none text-black dark:text-white">
           Organizer
-        </div>
+        </span>
       </div>
 
       <ScrollArea className="flex-1 p-3">

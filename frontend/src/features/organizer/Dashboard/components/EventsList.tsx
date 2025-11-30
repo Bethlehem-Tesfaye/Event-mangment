@@ -6,9 +6,11 @@ export default function EventsList({
   events,
   // added optional renderActions prop
   renderActions,
+  onRowClick,
 }: {
   events: any[];
   renderActions?: (ev: any) => React.ReactNode;
+  onRowClick?: (ev: any) => void;
 }) {
   if (!events.length) {
     return (
@@ -23,7 +25,16 @@ export default function EventsList({
       {events.map((event) => (
         <Card
           key={event.id}
-          className="flex flex-col sm:flex-row items-center gap-4 p-3 rounded-xl shadow-sm hover:shadow-md transition"
+          className="flex flex-col sm:flex-row items-center gap-4 p-3 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer"
+          onClick={() => onRowClick?.(event)}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              onRowClick?.(event);
+            }
+          }}
         >
           {/* Banner image */}
           <div className="flex-shrink-0 w-full sm:w-40 h-28 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
