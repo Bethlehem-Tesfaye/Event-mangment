@@ -6,6 +6,7 @@ import Sidebar from "../../Dashboard/components/SideBar";
 import Topbar from "../../Dashboard/components/Topbar";
 import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 export default function EventAnalyticsPage() {
   const { eventId } = useParams<{ eventId?: string }>();
@@ -13,12 +14,13 @@ export default function EventAnalyticsPage() {
 
   const { data, isLoading, error } = useEventAnalytics(id);
   const [route, setRoute] = useState("analytics");
+  const { user } = useCurrentUser();
 
   return (
     <div className="space-y-8 min-h-screen bg-gray-50 dark:bg-[#050505]  md:pl-56">
       <Sidebar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col gap-4">
-        <Topbar />
+        <Topbar user={user} />
         <main className="p-6 max-w-7xl w-full mx-auto flex flex-col flex-1 gap-6">
           <div className="flex items-center gap-4">
             <Link

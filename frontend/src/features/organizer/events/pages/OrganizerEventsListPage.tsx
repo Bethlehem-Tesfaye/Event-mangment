@@ -13,6 +13,7 @@ import { toast } from "sonner"; // added
 import { Button } from "@/components/ui/button";
 import AttendeesEventsList from "@/features/organizer/attendees/components/AttendeesEventsList"; // added
 import { Trash2, ArrowUpCircle } from "lucide-react";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 const TABS: EventsTabBarTab[] = [
   { label: "All", value: "all" },
@@ -27,6 +28,7 @@ export default function OrganizerEventsListPage() {
   const updateEvent = useUpdateEvent();
   const navigate = useNavigate(); // added
   const location = useLocation();
+  const { user } = useCurrentUser();
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -82,14 +84,14 @@ export default function OrganizerEventsListPage() {
     <div className="flex min-h-screen  bg-gray-50 dark:bg-[#050505]">
       <SideBar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col md:pl-56">
-        <Topbar />
+        <Topbar user={user} />
         <main className="flex-1 space-y-6 p-6 max-w-7xl w-full mx-auto">
           <div className="flex justify-between items-center mb-4">
             <div className="flex items-center gap-4">
               {/* Events / Attendees tab toggle */}
               <div className="bg-gray-100 rounded-md p-1 flex items-center dark:bg-[#202127]">
                 <button
-                  className={`px-3 py-1 rounded-md text-sm hover:bg-gray-700 ${
+                  className={`px-3 py-1 rounded-md text-sm  hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer ${
                     section === "events"
                       ? "bg-white shadow font-semibold dark:bg-gray-800"
                       : "text-gray-600 hover:bg-gray-50"
@@ -99,7 +101,7 @@ export default function OrganizerEventsListPage() {
                   Events
                 </button>
                 <button
-                  className={`px-3 py-1 rounded-md text-sm ml-1  hover:bg-gray-700 ${
+                  className={`px-3 py-1 rounded-md text-sm ml-1 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer ${
                     section === "attendees"
                       ? "bg-white shadow font-semibold dark:bg-gray-800"
                       : "text-gray-600 hover:bg-gray-50"

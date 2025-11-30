@@ -13,7 +13,7 @@ export default function EventsTabBar({
           <TabsTrigger
             key={t.value}
             value={t.value}
-            className="flex-1 md:min-w-[100px] text-center py-2 capitalize"
+            className="flex-1 md:min-w-[100px] text-center py-2 capitalize  cursor-pointer"
           >
             {t.label}
           </TabsTrigger>

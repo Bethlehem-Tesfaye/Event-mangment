@@ -41,7 +41,7 @@ export default function Topbar({ user, onLogout }: TopbarProps) {
         <Link to="/browse-event">
           <Button
             variant="ghost"
-            className="px-7 py-1 text-sm  bg-gray-200 dark:bg-[#202127]"
+            className="px-7 py-1 text-sm  bg-gray-200 dark:bg-[#202127] cursor-pointer"
           >
             Discover Events
           </Button>

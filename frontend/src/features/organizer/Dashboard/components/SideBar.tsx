@@ -58,7 +58,7 @@ export default function Sidebar({
       </div>
 
       <ScrollArea className="flex-1 p-3">
-        <nav className="flex flex-col gap-1">
+        <nav className="flex flex-col gap-1 cursor-pointer">
           {items.map((it) => {
             const isActive = active === it.key;
             return (
@@ -70,7 +70,7 @@ export default function Sidebar({
                   navigate(it.path);
                   setMobileOpen(false);
                 }}
-                className={`justify-start w-full px-3 py-2 rounded-md transition-colors text-sm
+                className={`justify-start w-full px-3 py-2 rounded-md transition-colors cursor-pointer text-sm
                   ${
                     isActive
                       ? "bg-gray-100 dark:bg-white/6 text-black dark:text-white font-semibold"

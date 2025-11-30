@@ -48,10 +48,14 @@ export default function Settings() {
                 value={currentTheme}
                 onChange={(e) => setTheme(e.target.value as "light" | "dark")}
                 disabled={!mounted}
-                className="rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white px-3 py-2 focus:ring-2 focus:ring-red-400 outline-none transition-all"
+                className="rounded-lg border cursor-pointer border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white px-3 py-2 focus:ring-2 focus:ring-red-400 outline-none transition-all"
               >
-                <option value="light">Light</option>
-                <option value="dark">Dark</option>
+                <option value="light" className=" cursor-pointer">
+                  Light
+                </option>
+                <option value="dark" className=" cursor-pointer">
+                  Dark
+                </option>
               </select>
 
               {currentTheme === "dark" ? (

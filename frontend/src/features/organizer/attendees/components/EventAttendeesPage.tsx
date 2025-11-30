@@ -7,10 +7,12 @@ import { useState } from "react";
 import { api } from "@/lib/axios";
 import Sidebar from "../../Dashboard/components/SideBar";
 import Topbar from "../../Dashboard/components/Topbar";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 export default function EventAttendeesPage() {
   const { eventId } = useParams<{ eventId?: string }>();
   const validEventId = eventId ?? undefined;
+  const { user } = useCurrentUser();
 
   const { data, isLoading, error } = useEventAttendees(validEventId);
 
@@ -33,7 +35,7 @@ export default function EventAttendeesPage() {
     <div className="space-y-6  min-h-screen bg-gray-50 dark:bg-[#050505]  md:pl-56">
       <Sidebar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col gap-4">
-        <Topbar />
+        <Topbar user={user} />
         <main className="p-6 max-w-7xl w-full mx-auto flex-1">
           <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="flex items-center gap-4">
