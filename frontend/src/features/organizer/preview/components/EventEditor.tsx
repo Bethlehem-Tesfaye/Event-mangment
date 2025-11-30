@@ -606,36 +606,77 @@ export default function EventEditor({ id, onCreated }: Props) {
         try {
           const prev = originalCategoryIdsRef.current ?? [];
           const next = (editableEvent.categories ?? [])
-            .map(Number)
+            .map((c) => Number(c))
             .filter(Boolean);
+
+          console.debug("[dbg] category sync start", { prev, next });
 
           const toAdd = next.filter((cid) => !prev.includes(cid));
           const toRemove = prev.filter((cid) => !next.includes(cid));
 
+          console.debug(
+            "[dbg] categories toAdd:",
+            toAdd,
+            "toRemove:",
+            toRemove
+          );
+
           // add new categories
           for (const cid of toAdd) {
             try {
-              await api.post(`/organizer/events/${id}/categories`, {
+              console.debug("[dbg] POST add category", {
+                eventId: id,
                 categoryId: cid,
               });
-            } catch (e) {
-              console.error("Failed adding category", cid, e);
+              const res = await api.post(`/organizer/events/${id}/categories`, {
+                categoryId: cid,
+              });
+              console.debug("[dbg] add category response", {
+                cid,
+                status: res?.status,
+                data: res?.data,
+              });
+            } catch (e: any) {
+              console.error(
+                "[dbg] Failed adding category",
+                cid,
+                e?.response?.data ?? e?.message ?? e
+              );
             }
           }
 
           // remove deleted categories
           for (const cid of toRemove) {
             try {
-              await api.delete(`/organizer/events/${id}/categories/${cid}`);
-            } catch (e) {
-              console.error("Failed removing category", cid, e);
+              console.debug("[dbg] DELETE remove category", {
+                eventId: id,
+                categoryId: cid,
+              });
+              const res = await api.delete(
+                `/organizer/events/${id}/categories/${cid}`
+              );
+              console.debug("[dbg] remove category response", {
+                cid,
+                status: res?.status,
+                data: res?.data,
+              });
+            } catch (e: any) {
+              console.error(
+                "[dbg] Failed removing category",
+                cid,
+                e?.response?.data ?? e?.message ?? e
+              );
             }
           }
 
           // update original ref so subsequent saves compare correctly
           originalCategoryIdsRef.current = next;
+          console.debug(
+            "[dbg] category sync done, originalCategoryIdsRef updated",
+            originalCategoryIdsRef.current
+          );
         } catch (e) {
-          console.error("Category sync failed", e);
+          console.error("[dbg] Category sync failed", e);
         }
 
         // Speakers & tickets sync (existing logic uses editableEvent)
