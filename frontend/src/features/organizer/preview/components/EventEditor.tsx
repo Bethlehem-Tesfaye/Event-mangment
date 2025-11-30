@@ -512,16 +512,10 @@ export default function EventEditor({ id, onCreated }: Props) {
                 "[dbg] POST /organizer/events/{id}/speakers with file for tempId",
                 (s as any).id
               );
-              if (updateSpeaker) {
-                await updateSpeaker.mutateAsync({
-                  speakerId,
-                  data: form,
-                } as any);
-              } else {
-                await api.post(`/organizer/events/${id}/speakers`, form, {
-                  headers: { "Content-Type": "multipart/form-data" },
-                });
-              }
+              // temp speakers should always be created (POST). updateSpeaker is for existing remote ids.
+              await api.post(`/organizer/events/${id}/speakers`, form, {
+                headers: { "Content-Type": "multipart/form-data" },
+              });
             } else {
               console.debug(
                 "[dbg] POST /organizer/events/{id}/speakers JSON for tempId",
@@ -604,15 +598,15 @@ export default function EventEditor({ id, onCreated }: Props) {
 
         // --- SYNC CATEGORIES (add new, remove old) ---
         try {
-          const prev = originalCategoryIdsRef.current ?? [];
-          const next = (editableEvent.categories ?? [])
-            .map((c) => Number(c))
+          const prev: number[] = originalCategoryIdsRef.current ?? [];
+          const next: number[] = (editableEvent.categories ?? [])
+            .map((c: any) => Number(c))
             .filter(Boolean);
 
           console.debug("[dbg] category sync start", { prev, next });
 
-          const toAdd = next.filter((cid) => !prev.includes(cid));
-          const toRemove = prev.filter((cid) => !next.includes(cid));
+          const toAdd: number[] = next.filter((cid) => !prev.includes(cid));
+          const toRemove: number[] = prev.filter((cid) => !next.includes(cid));
 
           console.debug(
             "[dbg] categories toAdd:",
@@ -692,16 +686,10 @@ export default function EventEditor({ id, onCreated }: Props) {
                 "[dbg] POST /organizer/events/{id}/speakers with file for tempId",
                 (s as any).id
               );
-              if (updateSpeaker) {
-                await updateSpeaker.mutateAsync({
-                  speakerId,
-                  data: form,
-                } as any);
-              } else {
-                await api.post(`/organizer/events/${id}/speakers`, form, {
-                  headers: { "Content-Type": "multipart/form-data" },
-                });
-              }
+              // temp speakers should always be created (POST). updateSpeaker is for existing remote ids.
+              await api.post(`/organizer/events/${id}/speakers`, form, {
+                headers: { "Content-Type": "multipart/form-data" },
+              });
             } else {
               console.debug(
                 "[dbg] POST /organizer/events/{id}/speakers JSON for tempId",
