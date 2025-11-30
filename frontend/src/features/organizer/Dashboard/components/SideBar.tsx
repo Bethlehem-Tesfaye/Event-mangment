@@ -49,7 +49,7 @@ export default function Sidebar({
   ];
 
   const content = (
-    <aside className="w-56 min-h-screen bg-white dark:bg-black  flex flex-col">
+    <aside className="w-56 h-full bg-white dark:bg-black flex flex-col">
       <div className="p-4 flex items-center gap-2 h-12 mt-1">
         <Logo />
         <span className="text-base font-semibold leading-none text-black dark:text-white">
@@ -94,15 +94,17 @@ export default function Sidebar({
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex">{content}</div>
+      {/* Desktop fixed sidebar */}
+      <div className="hidden md:flex fixed left-0 top-0 h-screen z-40">
+        {content}
+      </div>
 
       {/* Mobile sidebar */}
       <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
         <SheetTrigger asChild>
           <Button className="md:hidden fixed top-4 left-4 z-50">☰</Button>
         </SheetTrigger>
-        <SheetContent side="left" className="w-64 p-0">
+        <SheetContent side="left" className="w-64 p-0 md:hidden">
           {content}
         </SheetContent>
       </Sheet>

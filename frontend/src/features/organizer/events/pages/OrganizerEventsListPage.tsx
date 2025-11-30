@@ -74,7 +74,7 @@ export default function OrganizerEventsListPage() {
   return (
     <div className="flex min-h-screen bg-muted">
       <SideBar active={route} onNavigate={setRoute} />
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col md:pl-56">
         <Topbar />
         <main className="p-6 flex-1 space-y-6">
           <div className="flex justify-between items-center mb-4">

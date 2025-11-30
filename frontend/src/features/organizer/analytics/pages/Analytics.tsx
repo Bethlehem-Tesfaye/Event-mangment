@@ -7,7 +7,7 @@ export default function Analytics() {
   const [route, setRoute] = useState("analytics");
 
   return (
-    <div className="flex min-h-screen bg-muted">
+    <div className="flex min-h-screen bg-muted  md:pl-56">
       <SideBar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col">
         <Topbar />
