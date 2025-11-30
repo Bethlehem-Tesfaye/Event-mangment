@@ -32,7 +32,6 @@ export default function EventAttendeesAccordion({ event }: Props) {
       window.URL.revokeObjectURL(url);
     } catch (err) {
       console.error("CSV download failed", err);
-      // you can add toast here
     }
   };
 
@@ -41,10 +40,10 @@ export default function EventAttendeesAccordion({ event }: Props) {
 
   return (
     <Card className="p-4">
-      <div className="flex items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div className="flex-1">
           <div className="font-semibold text-lg">{event.title}</div>
-          <div className="text-sm text-muted-foreground">
+          <div className="text-sm text-neutral-500 dark:text-neutral-400">
             {event.eventCategories
               ?.map((c: any) => c.category?.name)
               .join(", ") || ""}
@@ -62,48 +61,50 @@ export default function EventAttendeesAccordion({ event }: Props) {
       </div>
 
       {open && (
-        <div className="mt-4">
+        <div className="mt-4 overflow-x-auto">
           {isLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-6 w-1/3" />
               <Skeleton className="h-5 w-full" />
             </div>
           ) : hasNoAttendees ? (
-            <div className="text-muted-foreground">No attendees.</div>
+            <div className="text-neutral-500 dark:text-neutral-400">
+              No attendees.
+            </div>
           ) : error ? (
             <div className="text-red-500">Failed to load attendees.</div>
           ) : data && data.length ? (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead>
-                  <tr className="text-left text-muted-foreground">
-                    <th className="pb-2">Name</th>
-                    <th className="pb-2">Email</th>
-                    <th className="pb-2">Ticket</th>
-                    <th className="pb-2">Quantity</th>
-                    <th className="pb-2">Registered At</th>
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="text-left text-neutral-500 dark:text-neutral-400">
+                  <th className="pb-2">Name</th>
+                  <th className="pb-2">Email</th>
+                  <th className="pb-2">Ticket</th>
+                  <th className="pb-2">Quantity</th>
+                  <th className="pb-2">Registered At</th>
+                </tr>
+              </thead>
+              <tbody>
+                {data.map((a) => (
+                  <tr
+                    key={`${a.email}-${a.registered_at}`}
+                    className="border-t border-neutral-200 dark:border-neutral-700"
+                  >
+                    <td className="py-2">{a.full_name}</td>
+                    <td className="py-2">{a.email}</td>
+                    <td className="py-2">{a.ticket_type}</td>
+                    <td className="py-2">{a.registered_quantity}</td>
+                    <td className="py-2">
+                      {new Date(a.registered_at).toLocaleString()}
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {data.map((a) => (
-                    <tr
-                      key={`${a.email}-${a.registered_at}`}
-                      className="border-t"
-                    >
-                      <td className="py-2">{a.full_name}</td>
-                      <td className="py-2">{a.email}</td>
-                      <td className="py-2">{a.ticket_type}</td>
-                      <td className="py-2">{a.registered_quantity}</td>
-                      <td className="py-2">
-                        {new Date(a.registered_at).toLocaleString()}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                ))}
+              </tbody>
+            </table>
           ) : (
-            <div className="text-muted-foreground">No attendees found.</div>
+            <div className="text-neutral-500 dark:text-neutral-400">
+              No attendees found.
+            </div>
           )}
         </div>
       )}

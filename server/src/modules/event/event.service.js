@@ -365,7 +365,7 @@ export const removeCategoryFromEvent = async ({ eventId, categoryId }) => {
 };
 
 export const getEventAnalytics = async (eventId, userId) => {
-  const event = await prisma.event.findUnique({
+  const event = await prisma.event.findFirst({
     where: { id: eventId, deletedAt: null }
   });
 
@@ -479,13 +479,19 @@ export const getOrganizerEvents = async (
         eventCategories: {
           where: { deletedAt: null },
           include: { category: true }
-        }
+        },
+        _count: { select: { registrations: true } }
       }
     }),
     prisma.event.count({ where })
   ]);
 
-  return { events, totalCount };
+  const eventsWithCounts = events.map((e) => ({
+    ...e,
+    attendeesCount: (e._count && e._count.registrations) || 0
+  }));
+
+  return { events: eventsWithCounts, totalCount };
 };
 
 export const getDashboardStatsService = async (userId) => {

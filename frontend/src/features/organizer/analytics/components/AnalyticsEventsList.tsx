@@ -1,10 +1,12 @@
 import { useOrganizerEvents } from "@/features/organizer/Dashboard/hooks/useEvents";
-import EventAnalyticsAccordion from "./EventAnalyticsAccordion";
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function AnalyticsEventsList() {
   const { data: events, isLoading, error } = useOrganizerEvents("all");
   const list = events ?? [];
+  const navigate = useNavigate();
 
   if (isLoading) {
     return (
@@ -37,7 +39,36 @@ export default function AnalyticsEventsList() {
   return (
     <div className="space-y-3">
       {list.map((ev: any) => (
-        <EventAnalyticsAccordion key={ev.id} event={ev} />
+        <Card
+          key={ev.id}
+          className="p-4 bg-white dark:bg-slate-800 rounded-lg shadow-sm cursor-pointer hover:shadow-md"
+          role="button"
+          tabIndex={0}
+          onClick={() => {
+            const idToUse = ev.id ?? ev.uuid ?? ev.eventId ?? ev.event_id;
+            navigate(`/organizer/events/${idToUse}/analytics`);
+          }}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              const idToUse = ev.id ?? ev.uuid ?? ev.eventId ?? ev.event_id;
+              navigate(`/organizer/events/${idToUse}/analytics`);
+            }
+          }}
+        >
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex-1">
+              <div className="font-semibold text-lg">{ev.title}</div>
+              <div className="text-sm text-muted-foreground">
+                {ev.eventCategories
+                  ?.map((c: any) => c.category?.name)
+                  .join(", ") || ""}
+              </div>
+            </div>
+            <div className="text-sm text-muted-foreground">
+              View analytics →
+            </div>
+          </div>
+        </Card>
       ))}
     </div>
   );

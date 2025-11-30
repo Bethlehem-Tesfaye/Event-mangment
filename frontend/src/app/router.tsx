@@ -19,6 +19,9 @@ import UserRegistrationsPage from "@/features/event/pages/UserRegistrations";
 import { VerifyNoticePage } from "@/features/auth/pages/VerifyNoticePage";
 import { EmailVerifiedPage } from "@/features/auth/pages/EmailVerifiedPage";
 import OAuthSuccessPage from "@/features/auth/pages/OAuthSuccessPage";
+import RegistrationDetailsPage from "@/features/event/pages/RegistrationDetailsPage";
+import EventAttendeesPage from "@/features/organizer/attendees/components/EventAttendeesPage";
+import EventAnalyticsPage from "@/features/organizer/analytics/components/EventAnalyticsPage";
 
 export const router = createBrowserRouter([
   {
@@ -76,6 +79,22 @@ export const router = createBrowserRouter([
       { path: "organizer/create-event", element: <CreateEventPage /> },
       { path: "organizer/analytics", element: <Analytics /> },
       { path: "organizer/attendees", element: <Attendees /> },
+      {
+        path: "organizer/events/:eventId/analytics",
+        element: <EventAnalyticsPage />,
+      },
+      {
+        path: "registrations/:registrationId",
+        element: <RegistrationDetailsPage />,
+      },
+      {
+        path: "attendees/:eventId",
+        element: <EventAttendeesPage />,
+      },
+      // {
+      //   path: "analytics/:eventId",
+      //   element: <EventAnalyticsPage />,
+      // },
       { path: "user/myevents", element: <UserRegistrationsPage /> },
     ],
     errorElement: <NotFound />,

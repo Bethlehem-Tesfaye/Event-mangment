@@ -56,11 +56,6 @@ export default function DashboardPage() {
           value: `$${statsData.totalRevenue}`,
           hint: "Total revenue",
         },
-        {
-          title: "Attendees",
-          value: statsData.totalTicketsSold,
-          hint: "Total attendees",
-        },
       ]
     : [];
 

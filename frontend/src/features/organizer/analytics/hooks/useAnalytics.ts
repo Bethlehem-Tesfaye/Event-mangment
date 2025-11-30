@@ -11,7 +11,7 @@ export type EventAnalytics = {
   }>;
 };
 
-export function useEventAnalytics(eventId?: number) {
+export function useEventAnalytics(eventId?: string) {
   return useQuery<EventAnalytics, Error>({
     queryKey: ["event-analytics", eventId],
     queryFn: async () => {
