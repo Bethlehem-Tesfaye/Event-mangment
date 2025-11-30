@@ -292,9 +292,7 @@ export default function EventEditor({ id, onCreated }: Props) {
   };
 
   const [newSpeaker, setNewSpeaker] = useState<any>(null);
-  const [speakerError, setSpeakerError] = useState<string | null>(null);
-  const addingSpeakerRef = useRef(false); // <--- existing
-  const lastAddedSpeakerRef = useRef<{ hash: string; ts: number } | null>(null); // prevent near-duplicate rapid adds (race conditions)
+  const [, setSpeakerError] = useState<string | null>(null);
 
   const handleAddSpeakerLocal = () => {
     // DEBUG: guard
