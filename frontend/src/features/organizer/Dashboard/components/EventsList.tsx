@@ -1,17 +1,30 @@
-import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import React from "react";
+import {
+  DropdownMenu,
+  DropdownMenuTrigger,
+  DropdownMenuContent,
+  DropdownMenuItem,
+} from "@/components/ui/dropdown-menu";
+import { MoreHorizontal } from "lucide-react";
 
-export default function EventsList({
-  events,
-  // added optional renderActions prop
-  renderActions,
-  onRowClick,
-}: {
+type EventsListProps = {
   events: any[];
   renderActions?: (ev: any) => React.ReactNode;
   onRowClick?: (ev: any) => void;
-}) {
+  onPublish?: (ev: any) => void;
+  onDelete?: (ev: any) => void;
+  setAction: boolean;
+};
+
+export default function EventsList({
+  events,
+  renderActions,
+  onRowClick,
+  onPublish,
+  onDelete,
+  setAction,
+}: EventsListProps) {
   if (!events.length) {
     return (
       <div className="text-muted-foreground text-center py-8">
@@ -21,92 +34,110 @@ export default function EventsList({
   }
 
   return (
-    <div className="flex flex-col gap-3">
-      {events.map((event) => (
-        <Card
-          key={event.id}
-          className="flex flex-col sm:flex-row items-center gap-4 p-3 rounded-xl shadow-sm hover:shadow-md transition cursor-pointer"
-          onClick={() => onRowClick?.(event)}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => {
-            if (e.key === "Enter" || e.key === " ") {
-              e.preventDefault();
-              onRowClick?.(event);
-            }
-          }}
-        >
-          {/* Banner image */}
-          <div className="flex-shrink-0 w-full sm:w-40 h-28 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-            {event.eventBannerUrl ? (
-              <img
-                src={event.eventBannerUrl}
-                alt={event.title}
-                className="object-cover w-full h-full"
-              />
-            ) : (
-              <span className="text-xs text-muted-foreground">No Banner</span>
-            )}
-          </div>
+    <div className="w-full overflow-x-auto opacity-100 rounded-[6px] shadow-none">
+      <table className="w-full text-sm border-separate border-spacing-y-[2px] p-4">
+        <thead className="text-muted-foreground text-left bg-gray-100 ">
+          <tr>
+            <th className="py-2 px-4 font-medium">Event Name</th>
+            <th className="py-2 px-4 font-medium">Status</th>
+            <th className="py-2 px-4 font-medium">Location Type</th>
+            <th className="py-2 px-4 font-medium">Event Date</th>
+            {setAction && <th className="py-2 px-4 font-medium">Actions</th>}
+          </tr>
+        </thead>
 
-          {/* Event info */}
-          <div className="flex-1 flex flex-col gap-2 w-full max-w-2xl mx-auto">
-            <div className="font-semibold text-lg truncate">{event.title}</div>
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Status badge */}
-              {event.status && (
-                <Badge
-                  variant={
-                    event.status === "published"
-                      ? "default"
-                      : event.status === "draft"
-                      ? "secondary"
-                      : "destructive"
-                  }
-                >
-                  {event.status.charAt(0).toUpperCase() + event.status.slice(1)}
-                </Badge>
-              )}
-              {/* Category badges */}
-              {event.eventCategories &&
-                event.eventCategories.map((ec: any) =>
-                  ec.category ? (
-                    <Badge key={ec.category.id} variant="outline">
-                      {ec.category.name}
-                    </Badge>
-                  ) : null
+        <tbody>
+          {events.map((event) => (
+            <tr
+              key={event.id}
+              className="bg-white shadow-sm rounded-lg hover:bg-muted/40 transition cursor-pointer"
+              onClick={() => onRowClick?.(event)}
+            >
+              {/* Event Name */}
+              <td className="py-4 px-4 font-medium">{event.title}</td>
+
+              {/* Status */}
+              <td className="py-4 px-4">
+                {event.status && (
+                  <Badge
+                    className={`${
+                      event.status === "published"
+                        ? "bg-pink-100 text-[oklch(0.645_0.246_16.439)]"
+                        : event.status === "draft"
+                        ? "bg-gray-100 text-gray-800"
+                        : "bg-red-100 text-[oklch(0.645_0.246_16.439)]"
+                    }`}
+                  >
+                    {event.status.charAt(0).toUpperCase() +
+                      event.status.slice(1)}
+                  </Badge>
                 )}
-            </div>
-            <div className="flex flex-wrap gap-4 text-xs text-muted-foreground">
-              <span>
-                <span className="font-medium">Event Date:</span>{" "}
-                {event.startDatetime
-                  ? new Date(event.startDatetime).toLocaleDateString()
-                  : "N/A"}
-                {event.endDatetime &&
-                  ` - ${new Date(event.endDatetime).toLocaleDateString()}`}
-              </span>
-              <span>
-                <span className="font-medium">Created:</span>{" "}
-                {event.createdAt
-                  ? new Date(event.createdAt).toLocaleDateString()
-                  : "N/A"}
-              </span>
-              <span>
-                <span className="font-medium">Location:</span>{" "}
+              </td>
+
+              {/* LocationType */}
+              <td className="py-4 px-4 text-muted-foreground">
                 {event.locationType === "online"
                   ? "Online"
                   : event.location || "N/A"}
-              </span>
-            </div>
-          </div>
+              </td>
 
-          {/* View/Edit buttons */}
-          <div className="mt-4 sm:mt-0 sm:ml-auto flex flex-col gap-2">
-            {renderActions ? renderActions(event) : null}
-          </div>
-        </Card>
-      ))}
+              {/* Event Date */}
+              <td className="py-4 px-4 text-muted-foreground">
+                {event.startDatetime
+                  ? new Date(event.startDatetime).toLocaleDateString()
+                  : "N/A"}
+              </td>
+
+              {/* Actions */}
+              <td className="py-4 px-4">
+                {/* If a custom renderActions is provided, render it directly (keeps current organizer page approach).
+                    Otherwise show a DropdownMenu and use onPublish/onDelete callbacks for menu items. */}
+                {renderActions ? (
+                  <div onClick={(e) => e.stopPropagation()}>
+                    {renderActions(event)}
+                  </div>
+                ) : onPublish || onDelete ? (
+                  <DropdownMenu>
+                    <DropdownMenuTrigger
+                      onClick={(e) => e.stopPropagation()}
+                      className="p-2 rounded hover:bg-muted"
+                    >
+                      <MoreHorizontal className="h-5 w-5 text-muted-foreground" />
+                    </DropdownMenuTrigger>
+
+                    <DropdownMenuContent align="end" className="w-32">
+                      {/* show Publish only when event isn't published and onPublish is supplied */}
+                      {event.status !== "published" && onPublish && (
+                        <DropdownMenuItem
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onPublish(event);
+                          }}
+                        >
+                          Publish
+                        </DropdownMenuItem>
+                      )}
+
+                      {/* show Delete only when event isn't cancelled and onDelete is supplied */}
+                      {event.status !== "cancelled" && onDelete && (
+                        <DropdownMenuItem
+                          className="text-red-500"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            onDelete(event);
+                          }}
+                        >
+                          Delete
+                        </DropdownMenuItem>
+                      )}
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                ) : null}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
     </div>
   );
 }

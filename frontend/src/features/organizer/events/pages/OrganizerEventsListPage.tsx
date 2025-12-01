@@ -6,13 +6,11 @@ import { useOrganizerEvents } from "../../Dashboard/hooks/useEvents";
 import { useUpdateEvent } from "../../Dashboard/hooks/useEvents";
 import EventsTabBar from "../components/EventsTabBar";
 import EventsList from "../../Dashboard/components/EventsList";
-import { Card } from "@/components/ui/card";
 import type { EventsTabBarTab } from "../types/eventsLists";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner"; // added
 import { Button } from "@/components/ui/button";
-import AttendeesEventsList from "@/features/organizer/attendees/components/AttendeesEventsList"; // added
-import { Trash2, ArrowUpCircle } from "lucide-react";
+import AttendeesEventsList from "@/features/organizer/attendees/components/AttendeesEventsList";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 const TABS: EventsTabBarTab[] = [
@@ -127,33 +125,50 @@ export default function OrganizerEventsListPage() {
               <EventsTabBar tabs={TABS} value={tab} onChange={setTab} />
 
               {isLoading ? (
-                <div className="flex flex-col gap-3">
-                  {[1, 2, 3, 4].map((i) => (
-                    <Card
-                      key={i}
-                      className="flex flex-col sm:flex-row items-center gap-4 p-3 rounded-xl shadow-sm"
-                    >
-                      {/* Banner skeleton */}
-                      <div className="flex-shrink-0 w-full sm:w-40 h-28 rounded-md overflow-hidden bg-gray-100 flex items-center justify-center">
-                        <Skeleton className="w-full h-full" />
-                      </div>
-                      {/* Info skeleton */}
-                      <div className="flex-1 flex flex-col gap-2 w-full max-w-2xl mx-auto">
-                        <Skeleton className="h-6 w-1/2 mb-2" />
-                        <div className="flex gap-2">
-                          <Skeleton className="h-5 w-20 rounded-full" />
-                          <Skeleton className="h-5 w-16 rounded-full" />
-                        </div>
-                        <Skeleton className="h-4 w-1/3" />
-                        <Skeleton className="h-4 w-1/4" />
-                        <Skeleton className="h-4 w-1/4" />
-                      </div>
-                      {/* Button skeleton */}
-                      <div className="mt-4 sm:mt-0 sm:ml-auto flex flex-col gap-2 w-20">
-                        <Skeleton className="h-8 w-full rounded-md" />
-                      </div>
-                    </Card>
-                  ))}
+                <div className="w-full overflow-x-auto opacity-100 rounded-[6px] shadow-none">
+                  <table className="w-full text-sm border-separate border-spacing-y-[2px] p-4">
+                    <thead className="text-muted-foreground text-left">
+                      <tr>
+                        <th className="py-2 px-4 font-medium">Event Name</th>
+                        <th className="py-2 px-4 font-medium">Status</th>
+                        <th className="py-2 px-4 font-medium">Location Type</th>
+                        <th className="py-2 px-4 font-medium">Event Date</th>
+                        <th className="py-2 px-4 font-medium">Actions</th>
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {[1, 2, 3, 4].map((i) => (
+                        <tr
+                          key={i}
+                          className="bg-white shadow-sm rounded-lg transition"
+                        >
+                          <td className="py-4 px-4 font-medium">
+                            <Skeleton className="h-5 w-48" />
+                          </td>
+
+                          <td className="py-4 px-4">
+                            <Skeleton className="h-5 w-20 rounded-full" />
+                          </td>
+
+                          <td className="py-4 px-4 text-muted-foreground">
+                            <Skeleton className="h-4 w-24" />
+                          </td>
+
+                          <td className="py-4 px-4 text-muted-foreground">
+                            <Skeleton className="h-4 w-28" />
+                          </td>
+
+                          <td className="py-4 px-4">
+                            <div className="flex items-center gap-2">
+                              <Skeleton className="h-8 w-8 rounded" />
+                              <Skeleton className="h-8 w-8 rounded" />
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
                 </div>
               ) : error ? (
                 <div className="text-red-500">Failed to load events.</div>
@@ -163,45 +178,13 @@ export default function OrganizerEventsListPage() {
                   onRowClick={(ev: any) =>
                     navigate(`/organizer/events/${ev.id}`)
                   }
-                  renderActions={(ev: any) => (
-                    <div className="flex items-center gap-2">
-                      {ev.status !== "published" && (
-                        <button
-                          title="Publish"
-                          aria-label="Publish event"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openConfirm(ev.id, "published", ev.title || "");
-                          }}
-                          className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-white/5 ${
-                            updateEvent.isPending
-                              ? "opacity-50 pointer-events-none"
-                              : ""
-                          }`}
-                        >
-                          <ArrowUpCircle size={18} />
-                        </button>
-                      )}
-
-                      {ev.status !== "cancelled" && (
-                        <button
-                          title="Delete"
-                          aria-label="Delete event"
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            openConfirm(ev.id, "cancelled", ev.title || "");
-                          }}
-                          className={`p-2 rounded hover:bg-gray-100 dark:hover:bg-white/5 ${
-                            updateEvent.isPending
-                              ? "opacity-50 pointer-events-none"
-                              : ""
-                          }`}
-                        >
-                          <Trash2 size={16} />
-                        </button>
-                      )}
-                    </div>
-                  )}
+                  onPublish={(ev: any) =>
+                    openConfirm(ev.id, "published", ev.title)
+                  }
+                  onDelete={(ev: any) =>
+                    openConfirm(ev.id, "cancelled", ev.title)
+                  }
+                  setAction={true}
                 />
               )}
             </>

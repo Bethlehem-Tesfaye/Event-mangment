@@ -77,9 +77,12 @@ export default function DashboardPage() {
 
           <section className="bg-white dark:bg-[#0b0b0b] rounded-md p-4 mt-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-medium text-black dark:text-white">
-                Your events
-              </h2>
+              <div className="flex flex-col gap-2">
+                <h2 className="text-lg font-medium text-black dark:text-white">
+                  Your events
+                </h2>
+                <h3>Manage your created events</h3>
+              </div>
               <Link
                 to="/organizer/events"
                 className="text-sm text-gray-700 dark:text-gray-300 hover:underline"
@@ -111,6 +114,7 @@ export default function DashboardPage() {
               <EventsList
                 events={displayedEvents}
                 onRowClick={(ev: any) => navigate(`/organizer/events/${ev.id}`)}
+                setAction={false}
               />
             )}
           </section>
@@ -126,6 +130,7 @@ export default function DashboardPage() {
               Contact support
             </Link>
           </p>
+          <p>© {new Date().getFullYear()} EventLight. All rights reserved.</p>
         </footer>
       </div>
     </div>
