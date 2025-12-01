@@ -1,6 +1,9 @@
 import { useLocation, useParams, Link } from "react-router-dom";
 import { useUserRegistrations } from "../hooks/useUserRegistrations";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useLogout } from "@/features/auth/hooks/useLogout";
+import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { Navbar } from "../componenets/Navbar";
 
 export default function RegistrationDetailsPage() {
   const { registrationId } = useParams();
@@ -27,107 +30,124 @@ export default function RegistrationDetailsPage() {
       </div>
     );
   }
+  const { mutate: logout, isPending: logoutLoading } = useLogout();
+  const { user } = useCurrentUser();
 
   const ev = registration.event;
   const ticket = registration.ticket;
+  const handleLogout = () => {
+    logout(undefined, {
+      onError: (err) => console.error("Logout failed:", err),
+    });
+  };
 
   return (
-    <div className="p-6 max-w-3xl mx-auto">
-      {/* HEADER */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-semibold tracking-tight mb-1">
-          {ev?.title ?? "Untitled Event"}
-        </h1>
+    <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">
+      <Navbar
+        onLogout={handleLogout}
+        logoutLoading={logoutLoading}
+        showSearch={false}
+        user={user as any}
+      />
+      <div className="p-6 max-w-3xl mx-auto">
+        {/* HEADER */}
+        <div className="mb-8">
+          <h1 className="text-3xl font-semibold tracking-tight mb-1">
+            {ev?.title ?? "Untitled Event"}
+          </h1>
 
-        {ev?.id && (
-          <Link
-            to={`/events/${ev.id}`}
-            className="
+          {ev?.id && (
+            <Link
+              to={`/events/${ev.id}`}
+              className="
               text-sm underline underline-offset-4
               text-neutral-700 dark:text-neutral-300
               hover:text-[oklch(0.645_0.246_16.439)]
               transition-colors
             "
-          >
-            View event details →
-          </Link>
-        )}
-      </div>
+            >
+              View event details →
+            </Link>
+          )}
+        </div>
 
-      {/* TICKET */}
-      <div
-        className="
+        {/* TICKET */}
+        <div
+          className="
           rounded-2xl border border-neutral-200 dark:border-[#202127]
           bg-white dark:bg-[#202127]
           shadow-sm p-6 relative
           overflow-hidden
         "
-      >
-        {/* Decorative perforation line */}
-        <div className="absolute left-0 right-0 top-1/3 h-px bg-neutral-300 dark:bg-neutral-700 opacity-60"></div>
+        >
+          {/* Decorative perforation line */}
+          <div className="absolute left-0 right-0 top-1/3 h-px bg-neutral-300 dark:bg-neutral-700 opacity-60"></div>
 
-        {/* Top section */}
-        <div className="pb-6">
-          <div className="text-sm text-neutral-500 dark:text-neutral-400">
-            Ticket Type
-          </div>
-          <div className="font-medium text-lg">{ticket?.type ?? "Ticket"}</div>
-        </div>
-
-        {/* Bottom section */}
-        <div className="pt-6 space-y-4">
-          <div className="flex justify-between">
-            <span className="text-neutral-500 dark:text-neutral-400">
-              Quantity
-            </span>
-            <span className="font-medium">
-              {registration.registeredQuantity}
-            </span>
+          {/* Top section */}
+          <div className="pb-6">
+            <div className="text-sm text-neutral-500 dark:text-neutral-400">
+              Ticket Type
+            </div>
+            <div className="font-medium text-lg">
+              {ticket?.type ?? "Ticket"}
+            </div>
           </div>
 
-          <div className="flex justify-between">
-            <span className="text-neutral-500 dark:text-neutral-400">
-              Price
-            </span>
-            <span className="font-medium">
-              {ticket?.price != null ? `$${ticket.price}` : "N/A"}
-            </span>
-          </div>
-
-          <div className="flex justify-between">
-            <span className="text-neutral-500 dark:text-neutral-400">
-              Registered At
-            </span>
-            <span className="font-medium">
-              {new Date(registration.registeredAt).toLocaleString()}
-            </span>
-          </div>
-
-          {registration.seat && (
+          {/* Bottom section */}
+          <div className="pt-6 space-y-4">
             <div className="flex justify-between">
               <span className="text-neutral-500 dark:text-neutral-400">
-                Seat
+                Quantity
               </span>
-              <span className="font-medium">{registration.seat}</span>
+              <span className="font-medium">
+                {registration.registeredQuantity}
+              </span>
             </div>
-          )}
-        </div>
-      </div>
 
-      {/* BACK BUTTON */}
-      <div className="mt-8">
-        <Link
-          to="/user/myevents"
-          className="
+            <div className="flex justify-between">
+              <span className="text-neutral-500 dark:text-neutral-400">
+                Price
+              </span>
+              <span className="font-medium">
+                {ticket?.price != null ? `$${ticket.price}` : "N/A"}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-neutral-500 dark:text-neutral-400">
+                Registered At
+              </span>
+              <span className="font-medium">
+                {new Date(registration.registeredAt).toLocaleString()}
+              </span>
+            </div>
+
+            {registration.seat && (
+              <div className="flex justify-between">
+                <span className="text-neutral-500 dark:text-neutral-400">
+                  Seat
+                </span>
+                <span className="font-medium">{registration.seat}</span>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* BACK BUTTON */}
+        <div className="mt-8">
+          <Link
+            to="/user/myevents"
+            className="
             text-sm px-4 py-2 rounded-lg border
             border-neutral-300 dark:border-neutral-700
             hover:border-[oklch(0.645_0.246_16.439)]
             hover:text-[oklch(0.645_0.246_16.439)]
             transition-colors
           "
-        >
-          ← Back to registrations
-        </Link>
+          >
+            ← Back to registrations
+          </Link>
+        </div>
       </div>
     </div>
   );

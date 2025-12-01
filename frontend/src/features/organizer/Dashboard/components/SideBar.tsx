@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import Logo from "@/components/custom/Logo";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
@@ -51,7 +50,7 @@ export default function Sidebar({
   const content = (
     <aside className="w-56 h-full bg-white dark:bg-black flex flex-col">
       <div className="p-4 flex items-center gap-2 h-12 mt-1">
-        <Logo />
+        {/* <Logo /> */}
         <span className="text-base font-semibold leading-none text-black dark:text-white">
           Organizer
         </span>

@@ -56,6 +56,11 @@ export default function DashboardPage() {
           value: `$${statsData.totalRevenue}`,
           hint: "Total revenue",
         },
+        {
+          title: "Attendees",
+          value: `${statsData.totalTicketsSold}`,
+          hint: "Total revenue",
+        },
       ]
     : [];
 
@@ -65,6 +70,9 @@ export default function DashboardPage() {
       <div className="flex-1 flex flex-col">
         <Topbar user={user} onLogout={handleLogout} />
         <main className="p-6 max-w-7xl w-full mx-auto flex-1">
+          <div className="mt-[50px] mb-6">
+            <p className="text-[24px] font-semibold">Overview</p>
+          </div>
           <StatCard stats={stats} loading={statsLoading} error={statsError} />
 
           <section className="bg-white dark:bg-[#0b0b0b] rounded-md p-4 mt-6 shadow-sm">
@@ -100,7 +108,10 @@ export default function DashboardPage() {
             ) : eventsError ? (
               <p className="text-red-500">Failed to load events.</p>
             ) : (
-              <EventsList events={displayedEvents} />
+              <EventsList
+                events={displayedEvents}
+                onRowClick={(ev: any) => navigate(`/organizer/events/${ev.id}`)}
+              />
             )}
           </section>
         </main>
