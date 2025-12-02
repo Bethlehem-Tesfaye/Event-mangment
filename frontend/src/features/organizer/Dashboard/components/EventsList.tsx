@@ -53,10 +53,8 @@ export default function EventsList({
               className="bg-white shadow-sm rounded-lg hover:bg-muted/40 transition cursor-pointer"
               onClick={() => onRowClick?.(event)}
             >
-              {/* Event Name */}
               <td className="py-4 px-4 font-medium">{event.title}</td>
 
-              {/* Status */}
               <td className="py-4 px-4">
                 {event.status && (
                   <Badge
@@ -90,8 +88,6 @@ export default function EventsList({
 
               {/* Actions */}
               <td className="py-4 px-4">
-                {/* If a custom renderActions is provided, render it directly (keeps current organizer page approach).
-                    Otherwise show a DropdownMenu and use onPublish/onDelete callbacks for menu items. */}
                 {renderActions ? (
                   <div onClick={(e) => e.stopPropagation()}>
                     {renderActions(event)}
@@ -106,7 +102,6 @@ export default function EventsList({
                     </DropdownMenuTrigger>
 
                     <DropdownMenuContent align="end" className="w-32">
-                      {/* show Publish only when event isn't published and onPublish is supplied */}
                       {event.status !== "published" && onPublish && (
                         <DropdownMenuItem
                           onClick={(e) => {
@@ -118,7 +113,6 @@ export default function EventsList({
                         </DropdownMenuItem>
                       )}
 
-                      {/* show Delete only when event isn't cancelled and onDelete is supplied */}
                       {event.status !== "cancelled" && onDelete && (
                         <DropdownMenuItem
                           className="text-red-500"

@@ -12,6 +12,7 @@ import { toast } from "sonner"; // added
 import { Button } from "@/components/ui/button";
 import AttendeesEventsList from "@/features/organizer/attendees/components/AttendeesEventsList";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
+import { Plus } from "lucide-react";
 
 const TABS: EventsTabBarTab[] = [
   { label: "All", value: "all" },
@@ -84,45 +85,56 @@ export default function OrganizerEventsListPage() {
       <div className="flex-1 flex flex-col md:pl-56">
         <Topbar user={user} />
         <main className="flex-1 space-y-6 p-6 max-w-7xl w-full mx-auto">
-          <div className="flex justify-between items-center mb-4">
-            <div className="flex items-center gap-4">
-              {/* Events / Attendees tab toggle */}
-              <div className="bg-gray-100 rounded-md p-1 flex items-center dark:bg-[#202127]">
-                <button
-                  className={`px-3 py-1 rounded-md text-sm  hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer ${
-                    section === "events"
-                      ? "bg-white shadow font-semibold dark:bg-gray-800"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setSection("events")}
-                >
-                  Events
-                </button>
-                <button
-                  className={`px-3 py-1 rounded-md text-sm ml-1 hover:bg-gray-300 dark:hover:bg-gray-700 cursor-pointer ${
-                    section === "attendees"
-                      ? "bg-white shadow font-semibold dark:bg-gray-800"
-                      : "text-gray-600 hover:bg-gray-50"
-                  }`}
-                  onClick={() => setSection("attendees")}
-                >
-                  Attendees
-                </button>
-              </div>
-            </div>
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-10 px-1">
+              {/* Events Tab */}
+              <button
+                onClick={() => setSection("events")}
+                className={`relative px-4 py-2 text-center text-sm font-medium rounded-md transition-colors
+        ${
+          section === "events"
+            ? "text-black dark:text-white dark:bg-gray-700"
+            : "text-gray-500 hover:text-black dark:hover:text-white"
+        }`}
+              >
+                Events
+                {section === "events" && (
+                  <span className="absolute left-1/2 -translate-x-1/2 -bottom-[2px] w-[140%] h-[2px] bg-blue-700 rounded-full"></span>
+                )}
+              </button>
 
-            {/* show create event button only on Events section */}
-            {section === "events" && (
-              <Link to="/organizer/create-event">
-                <Button>create event</Button>
-              </Link>
-            )}
+              {/* Attendees Tab */}
+              <button
+                onClick={() => setSection("attendees")}
+                className={`relative px-4 py-2 text-center text-sm font-medium rounded-md transition-colors
+        ${
+          section === "attendees"
+            ? "text-black dark:text-white dark:bg-gray-700"
+            : "text-gray-500 hover:text-black dark:hover:text-white"
+        }`}
+              >
+                Attendees
+                {section === "attendees" && (
+                  <span className="absolute left-1/2 -translate-x-1/2 -bottom-[2px] w-[140%] h-[2px] bg-blue-700 rounded-full"></span>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* when Events tab is active keep original Events UI */}
           {section === "events" ? (
-            <>
-              <EventsTabBar tabs={TABS} value={tab} onChange={setTab} />
+            <div className="ml-3">
+              <div className="flex justify-between items-center">
+                <EventsTabBar tabs={TABS} value={tab} onChange={setTab} />
+                {section === "events" && (
+                  <Link to="/organizer/create-event">
+                    <Button className="cursor-pointer">
+                      <Plus />
+                      Create Event
+                    </Button>
+                  </Link>
+                )}
+              </div>
 
               {isLoading ? (
                 <div className="w-full overflow-x-auto opacity-100 rounded-[6px] shadow-none">
@@ -173,24 +185,26 @@ export default function OrganizerEventsListPage() {
               ) : error ? (
                 <div className="text-red-500">Failed to load events.</div>
               ) : (
-                <EventsList
-                  events={events}
-                  onRowClick={(ev: any) =>
-                    navigate(`/organizer/events/${ev.id}`)
-                  }
-                  onPublish={(ev: any) =>
-                    openConfirm(ev.id, "published", ev.title)
-                  }
-                  onDelete={(ev: any) =>
-                    openConfirm(ev.id, "cancelled", ev.title)
-                  }
-                  setAction={true}
-                />
+                <div className="mt-4">
+                  <EventsList
+                    events={events}
+                    onRowClick={(ev: any) =>
+                      navigate(`/organizer/events/${ev.id}`)
+                    }
+                    onPublish={(ev: any) =>
+                      openConfirm(ev.id, "published", ev.title)
+                    }
+                    onDelete={(ev: any) =>
+                      openConfirm(ev.id, "cancelled", ev.title)
+                    }
+                    setAction={true}
+                  />
+                </div>
               )}
-            </>
+            </div>
           ) : (
             // Attendees tab content
-            <div>
+            <div className="ml-3 mt-16">
               <AttendeesEventsList />
             </div>
           )}

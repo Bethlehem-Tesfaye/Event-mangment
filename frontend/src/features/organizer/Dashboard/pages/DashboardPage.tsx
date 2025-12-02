@@ -11,6 +11,7 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import { ArrowRight } from "lucide-react";
 
 export default function DashboardPage() {
   const [route, setRoute] = useState<string>("dashboard");
@@ -85,9 +86,9 @@ export default function DashboardPage() {
               </div>
               <Link
                 to="/organizer/events"
-                className="text-sm text-gray-700 dark:text-gray-300 hover:underline"
+                className="text-sm text-gray-700 dark:text-gray-300 hover:underline flex justify-center items-center"
               >
-                See more →
+                See more <ArrowRight className="w-4 h-4" />
               </Link>
             </div>
 

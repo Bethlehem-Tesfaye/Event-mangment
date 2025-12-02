@@ -12,7 +12,7 @@ export default function CreateEventPage() {
   const { user } = useCurrentUser();
 
   return (
-    <div className="flex w-full dark:bg-black bg-white min-h-screen">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-[#050505]  md:pl-56">
       <Sidebar active={active} onNavigate={(key: string) => setActive(key)} />
       <div className="flex-1">
         <Topbar user={user} />
