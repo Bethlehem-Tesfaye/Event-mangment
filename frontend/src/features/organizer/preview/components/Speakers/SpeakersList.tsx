@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import type { Speaker } from "../../../types/organizer";
-import { PlusCircle, Camera, Edit2, Trash2 } from "lucide-react";
+import { PlusCircle, Camera, Edit2, Trash2, Mic } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createSpeakerSchema } from "@/schemas/speaker";
 
@@ -114,48 +114,77 @@ export default function SpeakersList({
   };
 
   return (
-    <Card className="shadow-none border dark:border-neutral-800">
-      <CardHeader className="flex items-center justify-between">
-        <CardTitle className="text-base">Speakers</CardTitle>
-        {editable && !newSpeaker && (
-          <Button
-            size="sm"
-            onClick={openAddModal}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-1"
-          >
-            <PlusCircle size={14} /> Add Speaker
-          </Button>
+    <Card className="shadow-none border dark:border-neutral-800 bg-transparent">
+      <CardHeader className="flex items-start justify-between gap-4 p-6">
+        <div>
+          <CardTitle className="text-2xl">Speakers</CardTitle>
+        </div>
+
+        {editable && speakers.length > 0 && (
+          <div className="ml-auto">
+            <Button
+              size="sm"
+              onClick={openAddModal}
+              className="inline-flex items-center gap-3 bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white px-5 py-5 rounded-lg"
+            >
+              <PlusCircle size={16} /> Add Speaker
+            </Button>
+          </div>
         )}
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-3">
-        {editable && (
+      <CardContent className="p-0">
+        {/* empty full-width state (matches Tickets) */}
+        {editable && speakers.length === 0 && !newSpeaker && (
+          <div className="w-full box-border p-6">
+            <div className="w-full rounded-md p-6 border-2 border-dashed border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#0b0b0b]">
+              <div className="flex flex-col items-center justify-center gap-6 w-full">
+                <Mic className="h-12 w-12 text-neutral-400 dark:text-neutral-300" />
+                <p className="text-lg text-neutral-600 dark:text-neutral-300 text-center">
+                  No speakers yet — add your first speaker
+                </p>
+                <Button
+                  size="sm"
+                  onClick={openAddModal}
+                  className="inline-flex items-center gap-3 bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white px-6 py-3 rounded-lg"
+                >
+                  <PlusCircle size={16} /> Add Speaker
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* editable table (like Tickets) */}
+        {editable && (speakers.length > 0 || newSpeaker) && (
           <div className="w-full overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="hidden sm:table-row text-neutral-600 dark:text-neutral-300">
-                  <th className="text-left px-3 py-2 w-1/3">Name</th>
-                  <th className="text-left px-3 py-2 w-1/2">Bio</th>
-                  <th className="text-left px-3 py-2 w-1/6">Photo</th>
-                  <th className="text-right px-3 py-2 w-1/6">Actions</th>
+              <thead className="text-neutral-600 dark:text-neutral-300 border-b">
+                <tr>
+                  <th className="text-left px-6 py-4">Name</th>
+                  <th className="text-left px-6 py-4">Bio</th>
+                  <th className="text-left px-6 py-4">Photo</th>
+                  <th className="text-right px-6 py-4">Actions</th>
                 </tr>
               </thead>
+
               <tbody>
                 {speakers.map((s) => (
                   <tr
                     key={s.id}
                     className="border-b last:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-900"
                   >
-                    <td className="px-3 py-3 align-top">
-                      <div className="sm:hidden font-semibold">Name</div>
-                      <div>{s.name}</div>
+                    <td className="px-6 py-2">
+                      <div className="font-medium">{s.name}</div>
                     </td>
-                    <td className="px-3 py-3 align-top">
-                      <div className="sm:hidden font-semibold">Bio</div>
-                      <div className="truncate">{s.bio ?? "—"}</div>
+
+                    <td className="px-6 py-2">
+                      <div className="truncate max-w-[40ch]">
+                        {s.bio == "" ? "—" : s.bio}
+                      </div>
                     </td>
-                    <td className="px-3 py-3 align-top">
-                      <div className="sm:hidden font-semibold">Photo</div>
+
+                    <td className="px-6 py-2">
                       {(s as any).photoPreview ?? s.photoUrl ? (
                         <img
                           src={(s as any).photoPreview ?? s.photoUrl ?? ""}
@@ -168,7 +197,8 @@ export default function SpeakersList({
                         </div>
                       )}
                     </td>
-                    <td className="px-3 py-3 text-right align-top">
+
+                    <td className="px-6 py-4 text-right">
                       <div className="inline-flex gap-2 items-center justify-end">
                         <Button
                           size="sm"
@@ -179,7 +209,7 @@ export default function SpeakersList({
                         >
                           <Edit2
                             size={16}
-                            className="text-neutral-400 hover:text-neutral-600"
+                            className="text-neutral-500 hover:text-neutral-700"
                           />
                         </Button>
                         <Button
@@ -191,7 +221,7 @@ export default function SpeakersList({
                         >
                           <Trash2
                             size={16}
-                            className="text-neutral-400 hover:text-red-500"
+                            className="text-neutral-500 hover:text-red-500"
                           />
                         </Button>
                       </div>
@@ -203,35 +233,38 @@ export default function SpeakersList({
           </div>
         )}
 
+        {/* non-editable list view */}
         {!editable && (
-          <div className="flex flex-col gap-2">
-            {speakers.map((s) => (
-              <div
-                key={s.id}
-                className="grid grid-cols-12 gap-2 items-center py-2"
-              >
-                <div className="col-span-5">{s.name}</div>
-                <div className="col-span-5">{s.bio ?? "—"}</div>
-                <div className="col-span-1">
-                  {(s as any).photoPreview ?? s.photoUrl ? (
-                    <img
-                      src={(s as any).photoPreview ?? s.photoUrl ?? ""}
-                      alt={s.name ?? "speaker"}
-                      className="h-10 w-10 rounded-full object-cover border"
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-sm text-neutral-500 border">
-                      {initials(s.name)}
-                    </div>
-                  )}
+          <div className="p-6">
+            <div className="flex flex-col gap-3">
+              {speakers.map((s) => (
+                <div
+                  key={s.id}
+                  className="grid grid-cols-12 gap-4 items-center py-3 border-b last:border-b-0"
+                >
+                  <div className="col-span-4 font-medium">{s.name}</div>
+                  <div className="col-span-6 truncate">{s.bio ?? "—"}</div>
+                  <div className="col-span-1">
+                    {(s as any).photoPreview ?? s.photoUrl ? (
+                      <img
+                        src={(s as any).photoPreview ?? s.photoUrl ?? ""}
+                        alt={s.name ?? "speaker"}
+                        className="h-10 w-10 rounded-full object-cover border"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-sm text-neutral-500 border">
+                        {initials(s.name)}
+                      </div>
+                    )}
+                  </div>
+                  <div className="col-span-1 text-right"></div>
                 </div>
-                <div className="col-span-1 text-right"></div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
         )}
 
-        {/* Modal for add/edit speaker */}
+        {/* modal (unchanged) */}
         {modalOpen && newSpeaker && editable && (
           <div className="fixed inset-0 z-50 flex items-center justify-center">
             <div
@@ -383,7 +416,7 @@ export default function SpeakersList({
                   size="sm"
                   onClick={handleSaveFromModal}
                   disabled={Boolean(Object.keys(newSpeakerErrors).length)}
-                  className="rounded px-4 py-1 bg-orange-500 hover:bg-orange-600 text-white"
+                  className="rounded px-4 py-1 bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white"
                 >
                   {editingId ? "Save" : "Add Speaker"}
                 </Button>
@@ -392,7 +425,7 @@ export default function SpeakersList({
           </div>
         )}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm p-6">{error}</p>}
       </CardContent>
     </Card>
   );

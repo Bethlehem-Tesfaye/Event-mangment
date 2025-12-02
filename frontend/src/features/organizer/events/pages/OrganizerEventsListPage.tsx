@@ -91,13 +91,13 @@ export default function OrganizerEventsListPage() {
                 className={`relative px-4 py-2 text-center text-sm font-medium rounded-md transition-colors
         ${
           section === "events"
-            ? "text-black dark:text-white dark:bg-gray-700"
+            ? "text-black dark:text-white "
             : "text-gray-500 hover:text-black dark:hover:text-white"
         }`}
               >
                 Events
                 {section === "events" && (
-                  <span className="absolute left-1/2 -translate-x-1/2 -bottom-[2px] w-[140%] h-[2px] bg-blue-700 rounded-full"></span>
+                  <span className="absolute left-1/2 -translate-x-1/2 -bottom-[2px] w-[140%] h-[2px] bg-red-700 rounded-full"></span>
                 )}
               </button>
 
@@ -106,13 +106,13 @@ export default function OrganizerEventsListPage() {
                 className={`relative px-4 py-2 text-center text-sm font-medium rounded-md transition-colors
         ${
           section === "attendees"
-            ? "text-black dark:text-white dark:bg-gray-700"
+            ? "text-black dark:text-white"
             : "text-gray-500 hover:text-black dark:hover:text-white"
         }`}
               >
                 Attendees
                 {section === "attendees" && (
-                  <span className="absolute left-1/2 -translate-x-1/2 -bottom-[2px] w-[140%] h-[2px] bg-blue-700 rounded-full"></span>
+                  <span className="absolute left-1/2 -translate-x-1/2 -bottom-[2px] w-[140%] h-[2px] bg-red-700 rounded-full"></span>
                 )}
               </button>
             </div>
@@ -185,7 +185,7 @@ export default function OrganizerEventsListPage() {
                       {[1, 2, 3, 4].map((i) => (
                         <tr
                           key={i}
-                          className="bg-white shadow-sm rounded-lg transition"
+                          className="bg-white dark:dark:bg-[#202127]  shadow-sm rounded-lg transition"
                         >
                           <td className="py-4 px-4 font-medium">
                             <Skeleton className="h-5 w-48" />
@@ -205,7 +205,6 @@ export default function OrganizerEventsListPage() {
 
                           <td className="py-4 px-4">
                             <div className="flex items-center gap-2">
-                              <Skeleton className="h-8 w-8 rounded" />
                               <Skeleton className="h-8 w-8 rounded" />
                             </div>
                           </td>

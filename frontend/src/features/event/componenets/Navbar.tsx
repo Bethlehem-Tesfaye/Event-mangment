@@ -32,6 +32,7 @@ import PulseLoader from "@/components/custom/PulseLoader";
 
 import type { NavbarProps } from "../types/event";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useProfile } from "@/features/profile/hooks/useProfile";
 
 export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   const {
@@ -45,6 +46,11 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   } = props;
 
   const { user: authUser, isPending: authLoading } = useCurrentUser();
+
+  const { profile } = useProfile({
+    onSuccess: (data) => console.log("Updated!", data),
+    onError: (err) => console.error(err),
+  });
   const effectiveUser = propUser ?? authUser;
   const isLoggedIn = !!effectiveUser;
 
@@ -151,7 +157,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                     <Skeleton className="h-8 w-8 rounded-full bg-gray-400" />
                   ) : (
                     <>
-                      <AvatarImage src="/avatar.png" alt="You" />
+                      <AvatarImage src={profile?.picture ?? ""} alt="You" />
                       <AvatarFallback className="rounded-full bg-gray-300">
                         {effectiveUser?.email?.[0].toUpperCase() || "U"}
                       </AvatarFallback>

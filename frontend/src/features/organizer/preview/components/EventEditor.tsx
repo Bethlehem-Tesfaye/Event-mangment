@@ -22,6 +22,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
 import { useForm, FormProvider } from "react-hook-form";
+import { Check, Plus } from "lucide-react";
 
 const ticketSchema = z.object({
   type: z.string().min(1),
@@ -846,7 +847,17 @@ export default function EventEditor({ id, onCreated }: Props) {
               }}
               disabled={saving}
             >
-              {isEdit ? "Save" : "Create"}
+              {isEdit ? (
+                <>
+                  <Check />
+                  Save Event
+                </>
+              ) : (
+                <>
+                  <Plus />
+                  Create Event
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -868,7 +879,6 @@ export default function EventEditor({ id, onCreated }: Props) {
         <div className="flex flex-col gap-4 mb-4">
           <Card className="flex-1">
             <CardContent>
-              <div className="mb-2 font-medium">Tickets</div>
               <TicketsList
                 tickets={editableEvent.tickets ?? []}
                 editable={true}
@@ -887,7 +897,6 @@ export default function EventEditor({ id, onCreated }: Props) {
 
           <Card className="flex-1">
             <CardContent>
-              <div className="mb-2 font-medium">Speakers</div>
               <SpeakersList
                 speakers={editableEvent.speakers ?? []}
                 editable={true}

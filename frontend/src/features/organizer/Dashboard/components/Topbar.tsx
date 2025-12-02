@@ -1,4 +1,3 @@
-import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
@@ -10,8 +9,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Logo from "@/components/custom/Logo";
 import { Link } from "react-router-dom";
-import { ChevronDown, ChevronUp } from "lucide-react";
+import { ChevronDown, ChevronUp, Compass } from "lucide-react";
 import { useState } from "react";
+import { useProfile } from "@/features/profile/hooks/useProfile";
 
 interface User {
   email?: string;
@@ -26,8 +26,13 @@ interface TopbarProps {
 
 export default function Topbar({ user, onLogout }: TopbarProps) {
   const [open, setOpen] = useState(false);
+
+  const { profile } = useProfile({
+    onSuccess: (data) => console.log("Updated!", data),
+    onError: (err) => console.error(err),
+  });
   return (
-    <header className="flex items-center justify-between h-14 px-6 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
+    <header className="flex items-center justify-between h-16 px-6 bg-white dark:bg-black border-b border-gray-200 dark:border-gray-800">
       <div className="flex items-center gap-4">
         <div className="flex items-center gap-2 h-10">
           <Logo />
@@ -38,19 +43,24 @@ export default function Topbar({ user, onLogout }: TopbarProps) {
       </div>
 
       <div className="flex items-center gap-3">
-        <Link to="/browse-event">
-          <Button
-            variant="ghost"
-            className="px-7 py-1 text-sm  bg-gray-200 dark:bg-[#202127] cursor-pointer"
-          >
+        <Link
+          to="/browse-event"
+          className="flex  items-center gap-1 cursor-pointer bg-gray-100 px-4 py-2 rounded-sm dark:bg-[#202127]"
+          aria-label="Create an event"
+        >
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-transparent">
+            <Compass className="w-5 h-5 text-gray-700 dark:text-gray-300" />
+          </span>
+          <span className="text-xs text-gray-600 dark:text-gray-400 font-medium">
             Discover Events
-          </Button>
+          </span>
         </Link>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer px-2 py-1">
               <Avatar className="cursor-pointer">
-                <AvatarImage src="/avatar.png" alt="You" />
+                <AvatarImage src={profile?.picture ?? ""} alt="You" />
+
                 <AvatarFallback>
                   {user?.email ? user.email[0].toUpperCase() : "U"}
                 </AvatarFallback>

@@ -49,21 +49,21 @@ export default function AttendeesEventsList() {
   };
 
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
       {events.map((ev: any) => (
         <Card
           key={ev.id}
-          className="cursor-pointer hover:shadow-lg transition rounded-2xl"
+          className="relative cursor-pointer hover:shadow-lg transition w-[410px] h-[160px] rounded-[10px]"
           onClick={() => navigate(`/organizer/events/attendees/${ev.id}`)}
         >
-          <CardHeader>
+          <CardHeader className="pl-5">
             <CardTitle className="text-xl truncate">{ev.title}</CardTitle>
             <p className="text-sm text-neutral-500 dark:text-neutral-400">
               {ev.eventCategories?.map((c: any) => c.category?.name).join(", ")}
             </p>
           </CardHeader>
 
-          <CardContent className="flex items-center justify-between pt-4">
+          <CardContent className="flex items-center justify-between pt-4 pl-5">
             <div className="flex items-center gap-2">
               <Users className="w-5 h-5" />
               <span>

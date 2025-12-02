@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import type { Ticket } from "../../../types/organizer";
-import { PlusCircle, Edit2, Trash2 } from "lucide-react";
+import type { Ticket as TicketType } from "../../../types/organizer";
+import { PlusCircle, Edit2, Trash2, Ticket } from "lucide-react";
 import { useMemo, useState } from "react";
 import { createTicketSchema } from "@/schemas/ticket";
 
@@ -15,7 +15,7 @@ export default function TicketsList({
   onRemoveLocal,
   error,
 }: {
-  tickets: Ticket[];
+  tickets: TicketType[];
   editable: boolean;
   newTicket: any;
   setNewTicket: (v: any) => void;
@@ -27,6 +27,13 @@ export default function TicketsList({
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | string | null>(null);
+
+  // small helper to format price like the design
+  const fmtCurrency = (v: any) =>
+    new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(Number(v ?? 0));
 
   const newTicketErrors = useMemo(() => {
     if (!newTicket) return {};
@@ -65,7 +72,7 @@ export default function TicketsList({
     setModalOpen(true);
   };
 
-  const openEditModal = (t: Ticket) => {
+  const openEditModal = (t: TicketType) => {
     setNewTicket({
       id: t.id,
       type: t.type ?? "",
@@ -95,45 +102,87 @@ export default function TicketsList({
   };
 
   return (
-    <Card className="shadow-none border dark:border-neutral-800">
-      <CardHeader className="flex items-center justify-between">
-        <CardTitle className="text-base">Tickets</CardTitle>
-        {editable && !newTicket && (
-          <Button
-            size="sm"
-            onClick={openAddModal}
-            className="inline-flex items-center gap-2 rounded-lg px-3 py-1"
-          >
-            <PlusCircle size={14} /> Add Ticket
-          </Button>
+    <Card className="shadow-none border dark:border-neutral-800 bg-transparent">
+      <CardHeader className="flex items-start justify-between gap-4 p-6">
+        <div>
+          <CardTitle className="text-2xl">Tickets</CardTitle>
+        </div>
+
+        {editable && tickets.length > 0 && (
+          <div className="ml-auto">
+            <Button
+              size="sm"
+              onClick={openAddModal}
+              className="inline-flex items-center gap-3 bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white px-5 py-5 rounded-lg shadow-md"
+            >
+              <PlusCircle size={16} /> Add Ticket
+            </Button>
+          </div>
         )}
       </CardHeader>
 
-      <CardContent className="flex flex-col gap-3">
-        {editable && (
+      <CardContent className="p-0">
+        {editable && tickets.length === 0 && !newTicket && (
+          <div className="w-full box-border p-6">
+            <div className="w-full rounded-md p-6 border-2 border-dashed border-neutral-200 dark:border-neutral-700 bg-white dark:bg-[#0b0b0b]">
+              <div className="flex flex-col items-center justify-center gap-6 w-full">
+                <Ticket className="h-12 w-12 text-neutral-400 dark:text-neutral-300" />
+                <p className="text-lg text-neutral-600 dark:text-neutral-300 text-center">
+                  No tickets yet — create your first ticket
+                </p>
+                <Button
+                  size="sm"
+                  onClick={openAddModal}
+                  className="inline-flex items-center gap-3 bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white px-6 py-3 rounded-lg"
+                >
+                  <PlusCircle size={16} /> Add Ticket
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {editable && (tickets.length > 0 || newTicket) && (
           <div className="w-full overflow-x-auto">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="hidden sm:table-row text-neutral-600 dark:text-neutral-300">
-                  <th className="text-left px-3 py-2 w-1/3">Type</th>
-                  <th className="text-left px-3 py-2 w-1/6">Qty</th>
-                  <th className="text-left px-3 py-2 w-1/6">Price</th>
-                  <th className="text-left px-3 py-2 w-1/6">Max/User</th>
-                  <th className="text-right px-3 py-2 w-1/6">Actions</th>
+              <thead className="text-neutral-600 dark:text-neutral-300 border-b">
+                <tr>
+                  <th className="text-left px-6 py-4">Type</th>
+                  <th className="text-left px-6 py-4">Qty</th>
+                  <th className="text-left px-6 py-4">Price</th>
+                  <th className="text-left px-6 py-4">Max/User</th>
+                  <th className="text-right px-6 py-4">Actions</th>
                 </tr>
               </thead>
+
               <tbody>
                 {tickets.map((t) => (
                   <tr
                     key={t.id}
                     className="border-b last:border-b-0 hover:bg-neutral-50 dark:hover:bg-neutral-900"
                   >
-                    <td className="px-3 py-3">{t.type}</td>
-                    <td className="px-3 py-3">{t.totalQuantity}</td>
-                    <td className="px-3 py-3">{t.price}</td>
-                    <td className="px-3 py-3">{t.maxPerUser ?? "—"}</td>
-                    <td className="px-3 py-3 text-right">
-                      <div className="inline-flex gap-2">
+                    <td className="px-6 py-4">
+                      <div className="font-medium">{t.type}</div>
+                    </td>
+
+                    <td className="px-6 py-2">
+                      <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-sm">
+                        {t.totalQuantity}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-2">
+                      <div className="text-base">{fmtCurrency(t.price)}</div>
+                    </td>
+
+                    <td className="px-6 py-2">
+                      <span className="inline-flex items-center justify-center px-3 py-1 rounded-full bg-neutral-100 dark:bg-neutral-800 text-sm">
+                        {t.maxPerUser ?? "—"}
+                      </span>
+                    </td>
+
+                    <td className="px-6 py-2 text-right">
+                      <div className="inline-flex gap-2 items-center justify-end">
                         <Button
                           size="sm"
                           variant="ghost"
@@ -143,7 +192,7 @@ export default function TicketsList({
                         >
                           <Edit2
                             size={16}
-                            className="text-neutral-400 hover:text-neutral-600"
+                            className="text-neutral-500 hover:text-neutral-700"
                           />
                         </Button>
                         <Button
@@ -155,7 +204,7 @@ export default function TicketsList({
                         >
                           <Trash2
                             size={16}
-                            className="text-neutral-400 hover:text-red-500"
+                            className="text-neutral-500 hover:text-red-500"
                           />
                         </Button>
                       </div>
@@ -168,19 +217,20 @@ export default function TicketsList({
         )}
 
         {!editable && (
-          <div className="flex flex-col gap-2">
-            {tickets.map((t) => (
-              <div
-                key={t.id}
-                className="grid grid-cols-5 gap-2 items-center py-2"
-              >
-                <div className="col-span-2">{t.type}</div>
-                <div className="">{t.totalQuantity}</div>
-                <div className="">{t.price}</div>
-                <div className="">{t.maxPerUser ?? "—"}</div>
-                <div className="text-right"></div>
-              </div>
-            ))}
+          <div className="p-6">
+            <div className="flex flex-col gap-3">
+              {tickets.map((t) => (
+                <div
+                  key={t.id}
+                  className="grid grid-cols-5 gap-4 items-center py-3 border-b last:border-b-0"
+                >
+                  <div className="col-span-2 font-medium">{t.type}</div>
+                  <div className="">{t.totalQuantity}</div>
+                  <div className="">{fmtCurrency(t.price)}</div>
+                  <div className="">{t.maxPerUser ?? "—"}</div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
@@ -327,7 +377,7 @@ export default function TicketsList({
                   size="sm"
                   onClick={handleSaveFromModal}
                   disabled={Boolean(Object.keys(newTicketErrors).length)}
-                  className="rounded px-4 py-1 bg-orange-500 hover:bg-orange-600 text-white"
+                  className="rounded px-4 py-1bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white"
                 >
                   {editingId ? "Save Ticket" : "Save Ticket"}
                 </Button>
@@ -336,7 +386,7 @@ export default function TicketsList({
           </div>
         )}
 
-        {error && <p className="text-red-500 text-sm">{error}</p>}
+        {error && <p className="text-red-500 text-sm p-6">{error}</p>}
       </CardContent>
     </Card>
   );

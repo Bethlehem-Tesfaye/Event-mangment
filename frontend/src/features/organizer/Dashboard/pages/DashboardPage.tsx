@@ -9,13 +9,13 @@ import {
   useOrganizerDashboardStats,
 } from "../hooks/useEvents";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useCurrentUser } from "../../../auth/hooks/useCurrentUser"; // new hook
+import { useCurrentUser } from "../../../auth/hooks/useCurrentUser";
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { ArrowRight } from "lucide-react";
 
 export default function DashboardPage() {
   const [route, setRoute] = useState<string>("dashboard");
-  const { user } = useCurrentUser(); // replaced useAuth
+  const { user } = useCurrentUser();
   const { mutate: logout } = useLogout();
   const navigate = useNavigate();
 
@@ -25,7 +25,6 @@ export default function DashboardPage() {
     error: eventsError,
   } = useOrganizerEvents();
 
-  // only show up to 4 events in the dashboard preview
   const displayedEvents = events.slice(0, 4);
 
   const {
@@ -93,21 +92,48 @@ export default function DashboardPage() {
             </div>
 
             {eventsLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <div
-                    key={i}
-                    className="flex items-center justify-between gap-4 p-4 bg-card rounded-md"
-                  >
-                    <div className="flex-1">
-                      <Skeleton className="h-6 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-1/2" />
-                    </div>
-                    <div className="w-40">
-                      <Skeleton className="h-8 w-full rounded-md" />
-                    </div>
-                  </div>
-                ))}
+              <div className="w-full overflow-x-auto opacity-100 rounded-[6px] shadow-none">
+                <table className="w-full text-sm border-separate border-spacing-y-[2px] p-4">
+                  <thead className="text-muted-foreground text-left">
+                    <tr>
+                      <th className="py-2 px-4 font-medium">Event Name</th>
+                      <th className="py-2 px-4 font-medium">Status</th>
+                      <th className="py-2 px-4 font-medium">Location Type</th>
+                      <th className="py-2 px-4 font-medium">Event Date</th>
+                    </tr>
+                  </thead>
+
+                  <tbody>
+                    {[1, 2, 3, 4].map((i) => (
+                      <tr
+                        key={i}
+                        className="bg-white dark:bg-[#202127]  shadow-sm rounded-lg transition"
+                      >
+                        <td className="py-4 px-4 font-medium">
+                          <Skeleton className="h-5 w-48" />
+                        </td>
+
+                        <td className="py-4 px-4">
+                          <Skeleton className="h-5 w-20 rounded-full" />
+                        </td>
+
+                        <td className="py-4 px-4 text-muted-foreground">
+                          <Skeleton className="h-4 w-24" />
+                        </td>
+
+                        <td className="py-4 px-4 text-muted-foreground">
+                          <Skeleton className="h-4 w-28" />
+                        </td>
+
+                        <td className="py-4 px-4">
+                          <div className="flex items-center gap-2">
+                            <Skeleton className="h-8 w-8 rounded" />
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
               </div>
             ) : eventsError ? (
               <p className="text-red-500">Failed to load events.</p>
