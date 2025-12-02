@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Trash2, Camera } from "lucide-react";
+import { Trash2, Camera, Edit2 } from "lucide-react";
 import type { Speaker } from "../../../types/organizer";
 import { useEffect, useState } from "react";
 import { createSpeakerSchema } from "@/schemas/speaker";
@@ -10,6 +10,7 @@ export default function SpeakerRow({
   onChange,
   onDelete,
   onFileChange,
+  onEdit,
 }: {
   speaker: Speaker;
   editable: boolean;
@@ -17,6 +18,7 @@ export default function SpeakerRow({
   onDelete: (id: number | string) => void;
   onRemoteDelete?: (id: number) => void;
   onFileChange?: (id: number | string | "new", file?: File | null) => void;
+  onEdit?: (id: number | string) => void;
 }) {
   const handleDelete = () => {
     const id = speaker.id as any;
@@ -165,14 +167,27 @@ export default function SpeakerRow({
 
       <div className="col-span-1 text-right flex justify-end gap-2">
         {editable && (
-          <Button
-            size="sm"
-            variant="destructive"
-            onClick={handleDelete}
-            title="Delete"
-          >
-            <Trash2 size={14} />
-          </Button>
+          <>
+            {onEdit && (
+              <Button
+                size="sm"
+                variant="ghost"
+                onClick={() => onEdit(speaker.id)}
+                className="p-1 rounded"
+                title="Edit"
+              >
+                <Edit2 size={14} />
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="destructive"
+              onClick={handleDelete}
+              title="Delete"
+            >
+              <Trash2 size={14} />
+            </Button>
+          </>
         )}
       </div>
     </div>
