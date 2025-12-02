@@ -4,11 +4,10 @@ import SideBar from "../../Dashboard/components/SideBar";
 import Topbar from "../../Dashboard/components/Topbar";
 import { useOrganizerEvents } from "../../Dashboard/hooks/useEvents";
 import { useUpdateEvent } from "../../Dashboard/hooks/useEvents";
-import EventsTabBar from "../components/EventsTabBar";
 import EventsList from "../../Dashboard/components/EventsList";
 import type { EventsTabBarTab } from "../types/eventsLists";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { toast } from "sonner"; // added
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import AttendeesEventsList from "@/features/organizer/attendees/components/AttendeesEventsList";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
@@ -19,13 +18,14 @@ const TABS: EventsTabBarTab[] = [
   { label: "Published", value: "published" },
   { label: "Draft", value: "draft" },
 ];
+
 export default function OrganizerEventsListPage() {
   const [route, setRoute] = useState("events");
   const [tab, setTab] = useState("all");
-  const [section, setSection] = useState<"events" | "attendees">("events"); // added
+  const [section, setSection] = useState<"events" | "attendees">("events");
   const { data: events = [], isLoading, error } = useOrganizerEvents(tab);
   const updateEvent = useUpdateEvent();
-  const navigate = useNavigate(); // added
+  const navigate = useNavigate();
   const location = useLocation();
   const { user } = useCurrentUser();
 
@@ -35,7 +35,6 @@ export default function OrganizerEventsListPage() {
     if (sectionParam) setSection(sectionParam);
   }, [location.search]);
 
-  // modal state for confirmation
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
     eventId: number | string | null;
@@ -87,7 +86,6 @@ export default function OrganizerEventsListPage() {
         <main className="flex-1 space-y-6 p-6 max-w-7xl w-full mx-auto">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-10 px-1">
-              {/* Events Tab */}
               <button
                 onClick={() => setSection("events")}
                 className={`relative px-4 py-2 text-center text-sm font-medium rounded-md transition-colors
@@ -103,7 +101,6 @@ export default function OrganizerEventsListPage() {
                 )}
               </button>
 
-              {/* Attendees Tab */}
               <button
                 onClick={() => setSection("attendees")}
                 className={`relative px-4 py-2 text-center text-sm font-medium rounded-md transition-colors
@@ -121,19 +118,54 @@ export default function OrganizerEventsListPage() {
             </div>
           </div>
 
-          {/* when Events tab is active keep original Events UI */}
           {section === "events" ? (
             <div className="ml-3">
               <div className="flex justify-between items-center">
-                <EventsTabBar tabs={TABS} value={tab} onChange={setTab} />
-                {section === "events" && (
+                <div className="flex-1" />
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <label
+                      htmlFor="status-filter"
+                      className="text-xs text-neutral-600 hidden"
+                    >
+                      Status
+                    </label>
+                    <div className="relative">
+                      <select
+                        id="status-filter"
+                        value={tab}
+                        onChange={(e) => setTab(e.target.value)}
+                        className="appearance-none bg-white dark:bg-[#0b0b0b] border border-neutral-200 dark:border-neutral-800 rounded-md px-3 py-2 pr-8 text-sm shadow-sm"
+                      >
+                        {TABS.map((t) => (
+                          <option key={t.value} value={t.value}>
+                            {t.label}
+                          </option>
+                        ))}
+                      </select>
+                      <svg
+                        className="pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-neutral-400"
+                        viewBox="0 0 20 20"
+                        fill="none"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          d="M6 8l4 4 4-4"
+                          stroke="currentColor"
+                          strokeWidth="1.5"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        />
+                      </svg>
+                    </div>
+                  </div>
+
                   <Link to="/organizer/create-event">
-                    <Button className="cursor-pointer">
-                      <Plus />
-                      Create Event
+                    <Button className="cursor-pointer inline-flex items-center gap-2">
+                      <Plus /> Create Event
                     </Button>
                   </Link>
-                )}
+                </div>
               </div>
 
               {isLoading ? (
@@ -203,7 +235,6 @@ export default function OrganizerEventsListPage() {
               )}
             </div>
           ) : (
-            // Attendees tab content
             <div className="ml-3 mt-16">
               <AttendeesEventsList />
             </div>
@@ -211,7 +242,6 @@ export default function OrganizerEventsListPage() {
         </main>
       </div>
 
-      {/* Simple confirmation modal (unchanged) */}
       {confirmModal.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center">
           <div

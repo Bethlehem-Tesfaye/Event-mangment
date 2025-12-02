@@ -35,7 +35,7 @@ export default function EventsList({
 
   return (
     <div className="w-full overflow-x-auto opacity-100 rounded-[6px] shadow-none">
-      <table className="w-full text-sm border-separate border-spacing-y-[2px] p-4">
+      <table className="w-full text-sm border-separate border-spacing-y-[2px]">
         <thead className="text-muted-foreground text-left bg-gray-100 ">
           <tr>
             <th className="py-2 px-4 font-medium">Event Name</th>

@@ -22,11 +22,9 @@ export default function TicketRow({
     onDelete(id);
   };
 
-  // per-field validation errors
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    // run schema validation for current ticket values and map issues to fields
     const parsed = createTicketSchema.safeParse({
       type: ticket.type ?? "",
       price: Number(ticket.price ?? ""),
@@ -42,10 +40,8 @@ export default function TicketRow({
       parsed.error.issues.forEach((iss) => {
         const p = iss.path?.[0];
         if (typeof p === "string") {
-          // prefer first message for the field
           if (!map[p]) map[p] = iss.message;
         } else {
-          // fallback general error
           map["_"] = (map["_"] ? map["_"] + " • " : "") + iss.message;
         }
       });
@@ -147,7 +143,6 @@ export default function TicketRow({
             </Button>
           </>
         )}
-        {/* show any non-field specific validation */}
         {errors._ && (
           <p className="text-red-500 text-sm mt-1 col-span-12">{errors._}</p>
         )}

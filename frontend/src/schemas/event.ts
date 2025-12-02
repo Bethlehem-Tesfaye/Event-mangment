@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-// Backend compatible (create)
 export const createEventSchema = z.object({
   title: z.string(),
   description: z.string().optional(),
@@ -12,7 +11,6 @@ export const createEventSchema = z.object({
   eventBannerUrl: z.string().url().optional(),
 });
 
-// Backend compatible (update)
 export const updateEventSchema = z.object({
   title: z.string().optional(),
   description: z.string().optional(),
@@ -40,14 +38,12 @@ export const updateEventSchema = z.object({
   status: z.enum(["draft", "published", "cancelled"]).optional(),
 });
 
-// FRONTEND-FRIENDLY (React Hook Form) with custom messages
 export const eventFormSchema = z
   .object({
     title: z.string().min(1, "Title is required"),
 
     description: z.string().optional(),
 
-    // require a non-empty selection and validate allowed values
     locationType: z
       .string()
       .min(1, "Select location type")
@@ -57,7 +53,6 @@ export const eventFormSchema = z
 
     location: z.string().optional(),
 
-    // inputs are strings from <input>; validate parsable date and show message
     startDatetime: z
       .string()
       .min(1, "Start date/time is required")
@@ -74,7 +69,6 @@ export const eventFormSchema = z
         { message: "Invalid end date" }
       ),
 
-    // duration kept as string in form; ensure numeric when provided
     duration: z
       .string()
       .optional()
@@ -83,11 +77,25 @@ export const eventFormSchema = z
       }),
 
     eventBannerPreview: z.string().optional(),
-    eventBannerUrl: z.string().url("Invalid URL").optional(),
+    eventBannerUrl: z
+      .string()
+      .optional()
+      .refine(
+        (v) => {
+          if (v === undefined || v === "") return true;
+          if (typeof v === "string" && v.startsWith("blob:")) return true;
+          try {
+            const u = new URL(v);
+            return u.protocol === "http:" || u.protocol === "https:";
+          } catch {
+            return false;
+          }
+        },
+        { message: "Invalid URL" }
+      ),
     eventBannerFile: z.any().optional(),
   })
   .superRefine((vals, ctx) => {
-    // cross-field: end must be after start (if both provided)
     const s = vals.startDatetime ? new Date(vals.startDatetime).getTime() : NaN;
     const e = vals.endDatetime ? new Date(vals.endDatetime).getTime() : NaN;
     if (!Number.isNaN(s) && !Number.isNaN(e)) {

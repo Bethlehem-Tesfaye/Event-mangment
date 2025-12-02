@@ -365,10 +365,15 @@ export default function EventEditor({ id, onCreated }: Props) {
       eventBannerFile: null as File | null,
     },
   });
-
-  // Reset form values when editableEvent loads/changes
+  const lastResetIdRef = useRef<string | number | null>(null);
   useEffect(() => {
     if (!editableEvent) return;
+    const idKey =
+      typeof editableEvent.id !== "undefined" && editableEvent.id !== null
+        ? String(editableEvent.id)
+        : "__new__";
+    if (lastResetIdRef.current === idKey) return;
+
     methods.reset({
       title: editableEvent.title ?? "",
       description: editableEvent.description ?? "",
@@ -385,8 +390,10 @@ export default function EventEditor({ id, onCreated }: Props) {
       eventBannerUrl: editableEvent.eventBannerUrl ?? "",
       eventBannerFile: editableEvent.eventBannerFile ?? null,
     });
+
+    lastResetIdRef.current = idKey;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editableEvent]);
+  }, [editableEvent?.id, editableEvent]);
 
   const handleSave = async () => {
     if (!editableEvent) return;
@@ -507,19 +514,18 @@ export default function EventEditor({ id, onCreated }: Props) {
               if (s.bio) form.append("bio", s.bio);
               form.append("photo", (s as any).photoFile);
               console.debug(
-                "[dbg] POST /organizer/events/{id}/speakers with file for tempId",
+                "[dbg] POST /organizer/events/{createdId}/speakers with file for tempId",
                 (s as any).id
               );
-              // temp speakers should always be created (POST). updateSpeaker is for existing remote ids.
-              await api.post(`/organizer/events/${id}/speakers`, form, {
+              await api.post(`/organizer/events/${createdId}/speakers`, form, {
                 headers: { "Content-Type": "multipart/form-data" },
               });
             } else {
               console.debug(
-                "[dbg] POST /organizer/events/{id}/speakers JSON for tempId",
+                "[dbg] POST /organizer/events/{createdId}/speakers JSON for tempId",
                 (s as any).id
               );
-              await api.post(`/organizer/events/${id}/speakers`, {
+              await api.post(`/organizer/events/${createdId}/speakers`, {
                 name: s.name,
                 bio: s.bio,
                 photoUrl: s.photoUrl,

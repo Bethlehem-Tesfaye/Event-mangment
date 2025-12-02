@@ -2,6 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Calendar, Clock, Edit3, Info } from "lucide-react";
+import { useState } from "react";
 import {
   Controller,
   useFormContext,
@@ -53,7 +54,7 @@ export default function EventInfo({
   onChangeField,
   labels,
   fieldTypes,
-  form, // optional: pass react-hook-form methods (UseFormReturn) or wrap parent with FormProvider
+  form,
 }: {
   bannerSrc?: string;
   editable: boolean;
@@ -65,7 +66,6 @@ export default function EventInfo({
 }) {
   const ACCENT = "oklch(0.645 0.246 16.439)";
 
-  // Try to read context methods if none passed (will be null if no provider)
   let ctxMethods: UseFormReturn<any> | null = null;
   try {
     ctxMethods = useFormContext();
@@ -97,11 +97,106 @@ export default function EventInfo({
       editableEvent.eventBannerUrl ??
       "";
 
-  // helper to read error message for a field (safe)
   const getError = (name: string) =>
     methods?.formState?.errors && (methods.formState.errors as any)[name]
       ? String((methods.formState.errors as any)[name]?.message ?? "")
       : "";
+
+  function DropzoneWrapper() {
+    const [isDragging, setIsDragging] = useState(false);
+
+    const handleFile = (f: File | null) => {
+      if (methods) {
+        setValue?.("eventBannerFile", f ?? null, { shouldDirty: true });
+        const url = f ? URL.createObjectURL(f) : null;
+        setValue?.("eventBannerPreview", url ?? null, { shouldDirty: true });
+        setValue?.("eventBannerUrl", undefined as any, { shouldDirty: true });
+        methods.clearErrors?.("eventBannerUrl");
+      } else {
+        if (f) {
+          const url = URL.createObjectURL(f);
+          onChangeField("eventBannerFile", f);
+          onChangeField("eventBannerPreview", url);
+          onChangeField("eventBannerUrl", null);
+        } else {
+          onChangeField("eventBannerFile", null);
+          onChangeField("eventBannerPreview", null);
+          onChangeField("eventBannerUrl", null);
+        }
+      }
+    };
+
+    return (
+      <div className="w-full h-48 sm:h-56 flex items-center justify-center">
+        <div
+          className="relative w-full h-full rounded-lg border-2 border-dashed border-red-300 dark:border-red-600 bg-white/60 dark:bg-neutral-900/30 flex items-center justify-center group"
+          onDragEnter={() => setIsDragging(true)}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDragging(true);
+          }}
+          onDragLeave={() => setIsDragging(false)}
+          onDrop={(e) => {
+            e.preventDefault();
+            setIsDragging(false);
+            const f = e.dataTransfer?.files?.[0] ?? null;
+            handleFile(f);
+          }}
+        >
+          {bannerPreview ? (
+            <img
+              src={bannerPreview}
+              alt="Event banner preview"
+              className="absolute inset-0 w-full h-full object-cover rounded-lg"
+            />
+          ) : null}
+
+          <input
+            type="file"
+            accept="image/*"
+            className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+            onChange={(e) => {
+              const f = e.target.files?.[0] ?? null;
+              handleFile(f);
+            }}
+          />
+
+          <div
+            className={
+              "relative z-10 flex flex-col items-center gap-2 text-center pointer-events-none transition-opacity duration-200 " +
+              (bannerPreview || isDragging
+                ? "opacity-0 group-hover:opacity-100"
+                : "opacity-100 group-hover:opacity-100")
+            }
+          >
+            <svg
+              className="w-7 h-7 text-neutral-500 dark:text-neutral-300"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <rect x="3" y="3" width="18" height="14" rx="2" />
+              <path d="M8 21l4-4 4 4" />
+            </svg>
+            <div className="text-sm text-neutral-600 dark:text-neutral-300">
+              Drag &amp; drop or
+            </div>
+            <div className="mt-1">
+              <span className="inline-block bg-white dark:bg-neutral-800 border border-red-300 text-red-600 dark:text-red-400 px-3 py-1 rounded-md text-sm shadow-sm">
+                Browse Files
+              </span>
+            </div>
+            <div className="text-xs text-neutral-400 mt-1">
+              Max file size: 5MB
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <Card className="dark:bg-neutral-900 bg-white shadow-md rounded-2xl overflow-hidden">
@@ -130,51 +225,12 @@ export default function EventInfo({
         <div className="lg:col-span-2">
           <div className="rounded-xl overflow-hidden bg-neutral-50 dark:bg-neutral-800 border dark:border-neutral-700">
             {editable ? (
-              <div className="w-full h-48 sm:h-56 relative">
-                <img
-                  src={bannerPreview}
-                  alt="Event banner"
-                  className="w-full h-48 sm:h-56 object-cover"
-                />
-                <div className="absolute inset-0 flex items-end p-3">
-                  <label className="bg-white/90 dark:bg-black/70 rounded-md px-3 py-1 text-sm cursor-pointer">
-                    Upload banner
-                    <input
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={(e) => {
-                        const f = e.target.files?.[0] ?? null;
-                        if (methods) {
-                          // RHF flow: update form state
-                          setValue?.("eventBannerFile", f ?? null, {
-                            shouldDirty: true,
-                          });
-                          const url = f ? URL.createObjectURL(f) : null;
-                          setValue?.("eventBannerPreview", url ?? null, {
-                            shouldDirty: true,
-                          });
-                        } else {
-                          // legacy flow: call onChangeField
-                          if (f) {
-                            const url = URL.createObjectURL(f);
-                            onChangeField("eventBannerFile", f);
-                            onChangeField("eventBannerPreview", url);
-                          } else {
-                            onChangeField("eventBannerFile", null);
-                            onChangeField("eventBannerPreview", null);
-                          }
-                        }
-                      }}
-                    />
-                  </label>
-                </div>
-              </div>
+              <DropzoneWrapper />
             ) : bannerSrc || editableEvent.eventBannerUrl ? (
               <img
                 src={bannerSrc ?? editableEvent.eventBannerUrl}
                 alt="Event banner"
-                className="w-full h-48 sm:h-56 object-cover"
+                className="w-full h-48 sm:h-56 object-cover rounded-lg"
               />
             ) : (
               <div className="w-full h-48 sm:h-56 flex items-center justify-center text-neutral-500 dark:text-neutral-400">
