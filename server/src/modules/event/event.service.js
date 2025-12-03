@@ -217,17 +217,20 @@ export const purchaseTicket = async ({
   return updatedReg;
 };
 
-export const createEvent = async ({
-  userId,
-  title,
-  description,
-  locationType,
-  location,
-  startDatetime,
-  endDatetime,
-  duration,
-  eventBannerUrl
-}) => {
+export const createEvent = async (
+  {
+    userId,
+    title,
+    description,
+    locationType,
+    location,
+    startDatetime,
+    endDatetime,
+    duration,
+    eventBannerUrl
+  },
+  io
+) => {
   const event = await prisma.event.create({
     data: {
       userId,
@@ -242,6 +245,22 @@ export const createEvent = async ({
       status: "draft"
     }
   });
+  await prisma.notification.create({
+    data: {
+      userId,
+      type: "event_created",
+      title: "Event Created",
+      message: `Your event "${title}" was created successfully.`
+    }
+  });
+
+  io.to(`user:${userId}`).emit("notification:new", {
+    type: "event_created",
+    title: "Event Created",
+    message: `Your event "${title}" was created successfully.`,
+    createdAt: new Date()
+  });
+
   return event;
 };
 

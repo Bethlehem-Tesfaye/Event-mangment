@@ -9,9 +9,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Logo from "@/components/custom/Logo";
 import { Link } from "react-router-dom";
-import { ChevronDown, ChevronUp, Compass } from "lucide-react";
-import { useState } from "react";
+import { Bell, ChevronDown, ChevronUp, Compass } from "lucide-react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  useNotification,
+  useReadAllNotification,
+} from "@/features/notification/hooks/useNotification";
+import { socket } from "@/lib/socket";
 import { useProfile } from "@/features/profile/hooks/useProfile";
+import { toast } from "sonner";
 
 interface User {
   email?: string;
@@ -26,6 +33,39 @@ interface TopbarProps {
 
 export default function Topbar({ user, onLogout }: TopbarProps) {
   const [open, setOpen] = useState(false);
+  const { data: notifications = [] } = useNotification();
+  const unreadCount = (notifications || []).filter((n: any) => !n.read).length;
+  const queryClient = useQueryClient();
+  const readAllMutation = useReadAllNotification();
+
+  const handleBellClick = () => {
+    readAllMutation.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.setQueryData(["notification"], (old: any[] | undefined) => {
+          return (old || []).map((n) => ({ ...n, read: true }));
+        });
+      },
+    });
+  };
+
+  useEffect(() => {
+    if (!socket.connected) socket.connect();
+
+    const onNew = (notif: any) => {
+      console.log("socket -> notification:new payload:", notif);
+      queryClient.setQueryData(["notification"], (old: any[] | undefined) => {
+        return [notif, ...(old || [])];
+      });
+      toast.message("New notification received", {
+        description: notif?.message ?? JSON.stringify(notif),
+      });
+    };
+
+    socket.on("notification:new", onNew);
+    return () => {
+      socket.off("notification:new", onNew);
+    };
+  }, [queryClient]);
 
   const { profile } = useProfile({
     onSuccess: (data) => console.log("Updated!", data),
@@ -55,6 +95,16 @@ export default function Topbar({ user, onLogout }: TopbarProps) {
             Discover Events
           </span>
         </Link>
+        <div className="relative" onClick={handleBellClick}>
+          <Link to="/notifications" className="inline-block">
+            <Bell />
+          </Link>
+          {unreadCount > 0 && (
+            <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-red-600 rounded-full">
+              {unreadCount > 99 ? "99+" : unreadCount}
+            </span>
+          )}
+        </div>
         <DropdownMenu open={open} onOpenChange={setOpen}>
           <DropdownMenuTrigger asChild>
             <div className="flex items-center gap-2 cursor-pointer px-2 py-1">

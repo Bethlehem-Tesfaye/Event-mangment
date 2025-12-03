@@ -64,10 +64,13 @@ export const createEvent = async (req, res, next) => {
       eventData.locationType = "inPerson";
     }
 
-    const eventCreated = await eventService.createEvent({
-      userId,
-      ...eventData
-    });
+    const eventCreated = await eventService.createEvent(
+      {
+        userId,
+        ...eventData
+      },
+      req.app.get("io")
+    );
     return res.status(201).json({ data: eventCreated });
   } catch (err) {
     return next(err);
