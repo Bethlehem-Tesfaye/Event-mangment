@@ -19,16 +19,23 @@ const port = process.env.PORT || 4000;
 
 const app = express();
 const server = http.createServer(app);
+
+const allowedOrigins = [
+  process.env.CLIENT_URL,
+  "https://frontend-event-mangment-pr-60.onrender.com",
+  "https://sever-event-mangment-pr-60.onrender.com"
+];
+
 app.use(
   cors({
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true
   })
 );
 
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL,
+    origin: allowedOrigins,
     credentials: true,
     methods: ["GET", "POST"]
   }
@@ -84,12 +91,12 @@ app.get("/test/socket", (req, res) => {
   res.send("Emitted!");
 });
 
-app.use(
-  cors({
-    origin: process.env.CLIENT_URL || true,
-    credentials: true
-  })
-);
+// app.use(
+//   cors({
+//     origin: process.env.CLIENT_URL || true,
+//     credentials: true
+//   })
+// );
 app.use(cookieParser());
 app.use(express.json());
 
