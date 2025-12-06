@@ -129,38 +129,8 @@ export const purchaseTicket = async (
       throw new CustomError("Email is required for guest purchase", 400);
     emailForReceipt = String(attendeeEmail).trim().toLowerCase();
   }
-  if (userId && emailForReceipt) {
-    await prisma.registration.updateMany({
-      where: {
-        attendeeEmail: emailForReceipt,
-        userId: null
-      },
-      data: { userId }
-    });
-  }
-  const userRegistrations = await prisma.registration.findMany({
-    where: {
-      ticketType: ticket.id,
-      deletedAt: null,
-      OR: [
-        userId ? { userId } : undefined,
-        emailForReceipt ? { attendeeEmail: emailForReceipt } : undefined
-      ].filter(Boolean)
-    }
-  });
 
-  const totalQuantity =
-    userRegistrations.reduce((sum, r) => sum + r.registeredQuantity, 0) +
-    quantity;
-
-  if (totalQuantity > ticket.maxPerUser) {
-    throw new CustomError(
-      `Max ${ticket.maxPerUser} tickets allowed per user/email`,
-      400
-    );
-  }
-
-  // Transaction: create registration + update ticket count
+  // create registration + update ticket in transaction
   const reg = await prisma.$transaction(async (tx) => {
     const created = await tx.registration.create({
       data: {
@@ -181,11 +151,7 @@ export const purchaseTicket = async (
     return created;
   });
 
-  // QR generation (reuse your logic)
-  const qrDir = path.join(process.cwd(), "uploads", "qrcodes");
-  if (!fs.existsSync(qrDir)) fs.mkdirSync(qrDir, { recursive: true });
-
-  const qrPath = path.join(qrDir, `ticket-${reg.id}.png`);
+  // QR DATA
   const qrData = JSON.stringify({
     registrationId: reg.id,
     eventId: ticket.eventId,
@@ -193,23 +159,22 @@ export const purchaseTicket = async (
     attendeeName,
     attendeeEmail: emailForReceipt
   });
-  await QRCode.toFile(qrPath, qrData);
 
-  const updatedReg = await prisma.registration.update({
-    where: { id: reg.id },
-    data: { qrCodeUrl: `/uploads/qrcodes/ticket-${reg.id}.png` }
-  });
+  // Production-safe QR buffer
+  const qrBuffer = await QRCode.toBuffer(qrData);
+  const qrBase64 = qrBuffer.toString("base64");
 
-  // Send email
+  // Email job via QStash
   await publishEmailJob({
     type: "ticket",
     email: emailForReceipt,
     attendeeName,
-    qrPath,
     eventId,
-    ticketId: ticket.id
+    ticketId: ticket.id,
+    qrBase64 // important
   });
 
+  // Notify event owner
   const event = await prisma.event.findUnique({
     where: { id: ticket.eventId },
     select: { id: true, title: true, userId: true }
@@ -254,7 +219,7 @@ export const purchaseTicket = async (
     }
   }
 
-  return updatedReg;
+  return reg;
 };
 
 export const createEvent = async (
