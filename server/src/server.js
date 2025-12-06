@@ -98,7 +98,17 @@ app.get("/test/socket", (req, res) => {
 //   })
 // );
 app.use(cookieParser());
-app.use(express.json());
+app.use(
+  express.json({
+    verify: (req, _res, buf) => {
+      try {
+        req.rawBody = buf && buf.length ? buf.toString() : "";
+      } catch (e) {
+        req.rawBody = "";
+      }
+    }
+  })
+);
 
 app.use(requestLogger);
 
