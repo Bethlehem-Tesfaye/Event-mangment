@@ -23,6 +23,7 @@ import RegistrationDetailsPage from "@/features/event/pages/RegistrationDetailsP
 import EventAttendeesPage from "@/features/organizer/attendees/components/EventAttendeesPage";
 import EventAnalyticsPage from "@/features/organizer/analytics/components/EventAnalyticsPage";
 import NotificationPage from "@/features/notification/pages/NotificationPage";
+import BrowseNotificationPage from "@/features/notification/pages/BrowseNotificationPage";
 
 export const router = createBrowserRouter([
   {
@@ -93,7 +94,8 @@ export const router = createBrowserRouter([
         element: <RegistrationDetailsPage />,
       },
       { path: "user/myevents", element: <UserRegistrationsPage /> },
-      { path: "notifications", element: <NotificationPage /> },
+      { path: "organizer/notifications", element: <NotificationPage /> },
+      { path: "notifications", element: <BrowseNotificationPage /> },
     ],
     errorElement: <NotFound />,
   },

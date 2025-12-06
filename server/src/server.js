@@ -12,6 +12,7 @@ import requestLogger from "./middleware/requestLogger.js";
 import logger from "./utils/logger.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import { sendEmailRoute } from "./lib/email/sendEmailRoute.js";
+import { sendReminderRoute } from "./lib/email/sendReminderRoute.js";
 import { auth } from "./modules/auth/auth.js";
 
 dotenv.config();
@@ -118,6 +119,7 @@ app.get("/", (req, res) => {
 app.use(passport.initialize());
 // app.use("/workflow/email", emailWorkflow);
 app.post("/api/send-email", ...sendEmailRoute);
+app.post("/api/reminders/send", ...sendReminderRoute);
 app.use("/api/v1", routes);
 app.use("/api/auth", authRoutes);
 app.use(errorMiddleware);

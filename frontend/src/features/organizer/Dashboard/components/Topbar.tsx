@@ -96,7 +96,7 @@ export default function Topbar({ user, onLogout }: TopbarProps) {
           </span>
         </Link>
         <div className="relative" onClick={handleBellClick}>
-          <Link to="/notifications" className="inline-block">
+          <Link to="/organizer/notifications" className="inline-block">
             <Bell />
           </Link>
           {unreadCount > 0 && (

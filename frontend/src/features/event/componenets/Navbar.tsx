@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -25,6 +25,7 @@ import {
   Calendar,
   ChevronDown,
   ChevronUp,
+  Bell as BellIcon,
 } from "lucide-react";
 
 import Logo from "@/components/custom/Logo";
@@ -33,6 +34,10 @@ import PulseLoader from "@/components/custom/PulseLoader";
 import type { NavbarProps } from "../types/event";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 import { useProfile } from "@/features/profile/hooks/useProfile";
+import { useNotification } from "@/features/notification/hooks/useNotification";
+import { socket } from "@/lib/socket";
+import { useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   const {
@@ -46,15 +51,40 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   } = props;
 
   const { user: authUser, isPending: authLoading } = useCurrentUser();
-
   const { profile } = useProfile({
     onSuccess: (data) => console.log("Updated!", data),
     onError: (err) => console.error(err),
   });
+
+  const { data: notifications = [] } = useNotification();
+  const queryClient = useQueryClient();
+
   const effectiveUser = propUser ?? authUser;
   const isLoggedIn = !!effectiveUser;
 
   const [open, setOpen] = useState(false);
+
+  const unreadCount = (notifications || []).filter((n: any) => !n.read).length;
+
+  useEffect(() => {
+    // ensure socket connected and listen for notification:new
+    if (!socket.connected) socket.connect();
+
+    const onNew = (notif: any) => {
+      console.log("socket -> notification:new payload:", notif);
+      queryClient.setQueryData(["notification"], (old: any[] | undefined) => {
+        return [notif, ...(old || [])];
+      });
+      toast.message("New notification received", {
+        description: notif?.message ?? JSON.stringify(notif),
+      });
+    };
+
+    socket.on("notification:new", onNew);
+    return () => {
+      socket.off("notification:new", onNew);
+    };
+  }, [queryClient]);
 
   return (
     <>
@@ -147,6 +177,18 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                 </NavigationMenuItem>
               </NavigationMenuList>
             </NavigationMenu>
+          </div>
+
+          {/* Notification bell for browsing UI */}
+          <div className="relative mr-2">
+            <Link to="/notifications" className="inline-block">
+              <BellIcon className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+            </Link>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -right-1 inline-flex items-center justify-center px-1.5 py-0.5 text-xs font-semibold leading-none text-white bg-red-600 rounded-full">
+                {unreadCount > 99 ? "99+" : unreadCount}
+              </span>
+            )}
           </div>
 
           <DropdownMenu onOpenChange={setOpen}>

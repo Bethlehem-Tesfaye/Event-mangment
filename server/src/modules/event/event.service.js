@@ -3,7 +3,10 @@ import path from "path";
 import fs from "fs";
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
-import { publishEmailJob } from "../../utils/qstashPublisher.js";
+import {
+  publishEmailJob,
+  publishReminderJob
+} from "../../utils/qstashPublisher.js";
 import cloudinary from "../../lib/cloudinary.js";
 
 export const getEvents = async ({
@@ -189,6 +192,30 @@ export const purchaseTicket = async (
     qrBase64,
     qrUrl
   });
+
+  // Schedule reminder
+  try {
+    const event = await prisma.event.findUnique({
+      where: { id: ticket.eventId },
+      select: { id: true, title: true, userId: true, startDatetime: true }
+    });
+
+    if (event) {
+      await publishReminderJob({
+        email: emailForReceipt,
+        userId: userId || null,
+        eventId: event.id,
+        eventTitle: event.title,
+        attendeeName,
+        eventDate: event.startDatetime
+      });
+    }
+  } catch (schedErr) {
+    console.error(
+      "Failed to schedule reminder:",
+      schedErr?.message || schedErr
+    );
+  }
 
   // Notify event owner
   const event = await prisma.event.findUnique({
