@@ -64,9 +64,9 @@ export default function EventsList({
               key={event.id}
               onClick={() => onRowClick?.(event)}
               className="transition cursor-pointer
-                         odd:bg-white even:bg-white/98
+                         odd:bg-white even:bg-gray-50
                          dark:odd:bg-[#121217] dark:even:bg-[#0f0f11]
-                         hover:bg-muted/40 dark:hover:bg-[#202127]"
+                         hover:bg-gray-100 dark:hover:bg-[#202127]"
             >
               <td className="py-4 px-4 font-medium text-neutral-900 dark:text-neutral-100">
                 {event.title}
