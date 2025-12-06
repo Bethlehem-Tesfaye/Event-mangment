@@ -4,6 +4,7 @@ import fs from "fs";
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";
+import cloudinary from "../../lib/cloudinary.js";
 
 export const getEvents = async ({
   limit = 20,
@@ -160,9 +161,23 @@ export const purchaseTicket = async (
     attendeeEmail: emailForReceipt
   });
 
-  // Production-safe QR buffer
   const qrBuffer = await QRCode.toBuffer(qrData);
   const qrBase64 = qrBuffer.toString("base64");
+
+  // upload QR to Cloudinary and get a public URL (fallback to null)
+  let qrUrl = null;
+  try {
+    const uploadRes = await cloudinary.uploader.upload(
+      `data:image/png;base64,${qrBase64}`,
+      { folder: "tickets", use_filename: true }
+    );
+    qrUrl = uploadRes?.secure_url || uploadRes?.url || null;
+  } catch (err) {
+    console.error(
+      "Cloudinary upload failed for ticket QR:",
+      err?.message || err
+    );
+  }
 
   // Email job via QStash
   await publishEmailJob({
@@ -171,7 +186,8 @@ export const purchaseTicket = async (
     attendeeName,
     eventId,
     ticketId: ticket.id,
-    qrBase64 // important
+    qrBase64,
+    qrUrl
   });
 
   // Notify event owner

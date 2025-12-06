@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { Receiver } from "@upstash/qstash";
 import transporter from "../mailer.js";
 
@@ -45,14 +46,23 @@ export const sendEmailRoute = [
 
       if (!payload.type || !payload.email) {
         console.warn("Missing required payload fields", { payload });
-        // respond 400 so QStash sees client error and won't retry
         return res.status(400).json({ error: "Invalid payload" });
       }
 
       let attachments = [];
 
+      // default html
+      let html = `<p>Hello,</p><p>This is a ${payload.type} email.</p>`;
+
       if (payload.type === "ticket") {
-        if (payload.qrBase64) {
+        // Prefer hosted image URL (Cloudinary)
+        if (payload.qrUrl) {
+          html = `
+            <p>Hello ${payload.attendeeName || ""},</p>
+            <p>Your ticket is below — show this at the event:</p>
+            <p><img src="${payload.qrUrl}" alt="Ticket QR" style="max-width:320px"/></p>
+          `;
+        } else if (payload.qrBase64) {
           try {
             const qrBuffer = Buffer.from(payload.qrBase64, "base64");
             attachments.push({
@@ -60,28 +70,23 @@ export const sendEmailRoute = [
               cid: "qrimage",
               content: qrBuffer
             });
+            html = `
+              <p>Hello ${payload.attendeeName || ""}, your ticket is attached (if available).</p>
+              <p>Scan the QR code at the event.</p>
+              <img src="cid:qrimage"/>
+            `;
           } catch (err) {
             console.error(
-              "Failed to decode qrBase64, will send email without attachment:",
+              "Failed to decode qrBase64, sending without attachment:",
               err?.message || err
             );
-            // continue without attachment
+            // keep default html
           }
         } else {
           console.warn(
-            "qrBase64 missing; sending ticket email without attachment"
+            "No qrUrl or qrBase64 present; sending ticket email without QR"
           );
         }
-      }
-
-      // build HTML per type (minimal)
-      let html = `<p>Hello,</p><p>This is a ${payload.type} email.</p>`;
-      if (payload.type === "ticket") {
-        html = `
-          <p>Hello ${payload.attendeeName || ""}, your ticket is attached (if available).</p>
-          <p>Scan the QR code at the event.</p>
-          ${attachments.length ? '<img src="cid:qrimage"/>' : ""}
-        `;
       }
 
       const info = await transporter.sendMail({
@@ -98,7 +103,6 @@ export const sendEmailRoute = [
       return res.json({ ok: true });
     } catch (err) {
       console.error("Email handler error:", err?.message || err, err?.stack);
-      // return 500 so QStash will show delivery failure in dashboard
       return res
         .status(500)
         .json({ error: "Email failed", detail: err?.message || "unknown" });

@@ -4,28 +4,24 @@ import logger from "../utils/logger.js";
 
 dotenv.config();
 
-// create SMTP client
 const smtpClient = nodemailer.createTransport({
   host: process.env.SMTP_HOST,
   port: Number(process.env.SMTP_PORT) || 465,
-  secure: Number(process.env.SMTP_PORT) === 465, // true for 465, false for others
+  secure: Number(process.env.SMTP_PORT) === 465,
   auth: {
     user: process.env.SMTP_USER,
     pass: process.env.SMTP_PASS
   },
-  // optional: some environments need this
-  tls: {
-    rejectUnauthorized: false
-  }
+  tls: { rejectUnauthorized: false }
 });
 
 const transporter = {
   async sendMail({ to, subject, html, attachments }) {
-    // map attachments to nodemailer format (use path where possible so nodemailer streams file)
     const files = attachments?.map((a) => ({
       filename: a.filename,
       path: a.path,
-      cid: a.cid // allow inline images with cid if provided
+      cid: a.cid,
+      content: a.content
     }));
 
     const from = process.env.SENDER_EMAIL || process.env.SMTP_USER;
