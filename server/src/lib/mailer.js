@@ -1,58 +1,53 @@
 import dotenv from "dotenv";
 import nodemailer from "nodemailer";
+import { google } from "googleapis";
 import logger from "../utils/logger.js";
 
 dotenv.config();
 
-const smtpClient = nodemailer.createTransport({
-  host: process.env.SMTP_HOST,
-  port: Number(process.env.SMTP_PORT) || 465,
-  secure: Number(process.env.SMTP_PORT) === 465,
-  auth: {
-    user: process.env.SMTP_USER,
-    pass: process.env.SMTP_PASS
-  },
-  tls: { rejectUnauthorized: false }
+const oAuth2Client = new google.auth.OAuth2(
+  process.env.GOOGLE_CLIENT_ID,
+  process.env.GOOGLE_CLIENT_SECRET
+);
+
+oAuth2Client.setCredentials({
+  refresh_token: process.env.GOOGLE_REFRESH_TOKEN
 });
 
-const transporter = {
-  async sendMail({ to, subject, html, attachments }) {
-    const files = attachments?.map((a) => ({
-      filename: a.filename,
-      path: a.path,
-      cid: a.cid,
-      content: a.content
-    }));
+const transporter = nodemailer.createTransport({
+  service: "gmail",
+  auth: {
+    type: "OAuth2",
+    user: process.env.SENDER_EMAIL,
+    clientId: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    refreshToken: process.env.GOOGLE_REFRESH_TOKEN
+  }
+});
 
-    const from = process.env.SENDER_EMAIL || process.env.SMTP_USER;
+export const sendMail = async ({ to, subject, html, attachments }) => {
+  try {
+    const { token: accessToken } = await oAuth2Client.getAccessToken();
 
-    try {
-      const info = await smtpClient.sendMail({
-        from,
-        to,
-        subject,
-        html,
-        attachments: files
-      });
+    const info = await transporter.sendMail({
+      from: process.env.SENDER_EMAIL,
+      to,
+      subject,
+      html,
+      attachments,
+      auth: { type: "OAuth2", user: process.env.SENDER_EMAIL, accessToken }
+    });
 
-      logger.info("Email sent successfully via SMTP", {
-        to,
-        subject,
-        messageId: info.messageId,
-        response: info.response
-      });
-
-      return info;
-    } catch (err) {
-      logger.error("SMTP send failed", {
-        to,
-        subject,
-        message: err?.message,
-        stack: err?.stack
-      });
-      throw err;
-    }
+    logger.info("Email sent via Gmail OAuth2", {
+      to,
+      subject,
+      messageId: info.messageId
+    });
+    return info;
+  } catch (err) {
+    logger.error("Email sending failed", { error: err });
+    throw err;
   }
 };
 
-export default transporter;
+export default { sendMail };
