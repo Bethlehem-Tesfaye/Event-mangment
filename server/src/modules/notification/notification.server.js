@@ -1,4 +1,3 @@
-import { tr } from "zod/v4/locales";
 import prisma from "../../lib/prisma.js";
 
 export const getNotification = async (userId) => {

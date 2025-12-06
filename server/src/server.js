@@ -1,5 +1,7 @@
 import dotenv from "dotenv";
 import express from "express";
+import http from "http";
+import { Server } from "socket.io";
 import cors from "cors";
 import passport from "passport";
 import cookieParser from "cookie-parser";
@@ -10,8 +12,6 @@ import requestLogger from "./middleware/requestLogger.js";
 import logger from "./utils/logger.js";
 import authRoutes from "./modules/auth/auth.routes.js";
 import { sendEmailRoute } from "./lib/email/sendEmailRoute.js";
-import http from "http";
-import { Server } from "socket.io";
 import { auth } from "./modules/auth/auth.js";
 
 dotenv.config();
@@ -36,13 +36,11 @@ const io = new Server(server, {
 app.set("io", io);
 
 io.use(async (socket, next) => {
-  console.log("🟡 New socket connection attempt");
+  logger.info("New socket connection attempt");
 
-  const cookie = socket.handshake.headers.cookie;
-  console.log("➡️ Cookie sent from client:", cookie);
-
+  const { cookie } = socket.handshake.headers || {};
   if (!cookie) {
-    console.log("❌ No cookie found in handshake");
+    logger.warn("No cookie found in socket handshake");
     return next(new Error("Unauthorized: No cookie"));
   }
 
@@ -51,35 +49,38 @@ io.use(async (socket, next) => {
       headers: { cookie }
     });
 
-    console.log("➡️ Session returned:", session);
+    logger.debug("Session returned from auth provider");
 
     if (!session?.user) {
-      console.log("❌ Session invalid");
+      logger.warn("Socket authentication failed: session invalid");
       return next(new Error("Unauthorized: Session invalid"));
     }
+    /* eslint-disable-next-line no-param-reassign */
+    socket.data.user = session.user;
+    logger.info(`Socket auth success for user ${socket.data.user.id}`);
 
-    socket.user = session.user;
-    console.log("🟢 AUTH SUCCESS for user:", socket.user.id);
-
-    next();
+    return next();
   } catch (err) {
-    console.log("🔥 BetterAuth getSession FAILED:", err);
-    next(new Error("Authentication failed"));
+    logger.error("Error while retrieving session for socket auth", {
+      error: err
+    });
+    return next(new Error("Authentication failed"));
   }
 });
 
 io.on("connection", (socket) => {
-  console.log("User connected:", socket.user.id);
+  logger.info(`User connected: ${socket.data.user.id}`);
 
-  socket.join(`user:${socket.user.id}`);
+  socket.join(`user:${socket.data.user.id}`);
   socket.emit("notification", { message: "Socket connected successfully!" });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.user.id);
+    logger.info(`User disconnected: ${socket.data.user.id}`);
   });
 });
 app.get("/test/socket", (req, res) => {
   io.emit("notification", { message: "Backend test emit!" });
+  logger.info("Test socket emit triggered");
   res.send("Emitted!");
 });
 
@@ -92,7 +93,6 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 
-// attach request logger early so all requests are logged
 app.use(requestLogger);
 
 app.get("/", (req, res) => {

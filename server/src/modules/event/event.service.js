@@ -1,6 +1,6 @@
 import QRCode from "qrcode";
 import path from "path";
-import fs, { stat } from "fs";
+import fs from "fs";
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";
@@ -210,56 +210,48 @@ export const purchaseTicket = async (
     ticketId: ticket.id
   });
 
-  try {
-    const event = await prisma.event.findUnique({
-      where: { id: ticket.eventId },
-      select: { id: true, title: true, userId: true }
-    });
+  const event = await prisma.event.findUnique({
+    where: { id: ticket.eventId },
+    select: { id: true, title: true, userId: true }
+  });
 
-    if (event && event.userId) {
-      let buyerName = attendeeName || emailForReceipt || "A user";
-      if (userId) {
-        const buyer = await prisma.user.findUnique({
-          where: { id: userId },
-          select: {
-            email: true,
-            profile: { select: { firstName: true, lastName: true } }
-          }
-        });
-        const full =
-          `${buyer?.profile?.firstName || ""} ${buyer?.profile?.lastName || ""}`.trim();
-        if (full) buyerName = full;
-        else if (buyer?.email) buyerName = buyer.email;
-      }
-
-      const notifMessage = `${buyerName} purchased ${quantity} ticket${quantity > 1 ? "s" : ""} to your event \"${event.title}\".`;
-      const notification = await prisma.notification.create({
-        data: {
-          userId: event.userId,
-          type: "ticket_purchased",
-          title: "Ticket Purchased",
-          message: notifMessage,
-          eventId: event.id
+  if (event && event.userId) {
+    let buyerName = attendeeName || emailForReceipt || "A user";
+    if (userId) {
+      const buyer = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          profile: { select: { firstName: true, lastName: true } }
         }
       });
-
-      try {
-        if (io && typeof io.to === "function") {
-          io.to(`user:${event.userId}`).emit("notification:new", {
-            id: notification.id,
-            eventId: event.id,
-            type: "ticket_purchased",
-            title: notification.title,
-            message: notification.message,
-            createdAt: notification.createdAt
-          });
-        }
-      } catch (e) {
-        console.error("Failed to emit ticket_purchased notification:", e);
-      }
+      const full =
+        `${buyer?.profile?.firstName || ""} ${buyer?.profile?.lastName || ""}`.trim();
+      if (full) buyerName = full;
+      else if (buyer?.email) buyerName = buyer.email;
     }
-  } catch (e) {
-    console.error("Error creating notification for ticket purchase:", e);
+
+    const notifMessage = `${buyerName} purchased ${quantity} ticket${quantity > 1 ? "s" : ""} to your event "${event.title}".`;
+    const notification = await prisma.notification.create({
+      data: {
+        userId: event.userId,
+        type: "ticket_purchased",
+        title: "Ticket Purchased",
+        message: notifMessage,
+        eventId: event.id
+      }
+    });
+
+    if (io && typeof io.to === "function") {
+      io.to(`user:${event.userId}`).emit("notification:new", {
+        id: notification.id,
+        eventId: event.id,
+        type: "ticket_purchased",
+        title: notification.title,
+        message: notification.message,
+        createdAt: notification.createdAt
+      });
+    }
   }
 
   return updatedReg;
@@ -408,13 +400,13 @@ export const updateEvent = async (eventId, userId, data, io) => {
         type: `event_${status}`,
         title: `Event ${status}`,
         message: `Your event "${event.title}" was  ${status} successfully.`,
-        eventId: eventId
+        eventId
       }
     });
 
     io.to(`user:${userId}`).emit("notification:new", {
       id: notification.id,
-      eventId: eventId,
+      eventId,
       type: `event_${status}`,
       title: notification.title,
       message: notification.message,
