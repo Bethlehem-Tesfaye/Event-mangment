@@ -99,14 +99,10 @@ export const getEventTickets = async (eventId) => {
   return tickets;
 };
 
-export const purchaseTicket = async ({
-  eventId,
-  ticketId,
-  userId,
-  attendeeName,
-  attendeeEmail,
-  quantity
-}) => {
+export const purchaseTicket = async (
+  { eventId, ticketId, userId, attendeeName, attendeeEmail, quantity },
+  io
+) => {
   const ticket = await prisma.ticket.findFirst({
     where: {
       id: parseInt(ticketId, 10),
@@ -214,20 +210,67 @@ export const purchaseTicket = async ({
     ticketId: ticket.id
   });
 
+  const event = await prisma.event.findUnique({
+    where: { id: ticket.eventId },
+    select: { id: true, title: true, userId: true }
+  });
+
+  if (event && event.userId) {
+    let buyerName = attendeeName || emailForReceipt || "A user";
+    if (userId) {
+      const buyer = await prisma.user.findUnique({
+        where: { id: userId },
+        select: {
+          email: true,
+          profile: { select: { firstName: true, lastName: true } }
+        }
+      });
+      const full =
+        `${buyer?.profile?.firstName || ""} ${buyer?.profile?.lastName || ""}`.trim();
+      if (full) buyerName = full;
+      else if (buyer?.email) buyerName = buyer.email;
+    }
+
+    const notifMessage = `${buyerName} purchased ${quantity} ticket${quantity > 1 ? "s" : ""} to your event "${event.title}".`;
+    const notification = await prisma.notification.create({
+      data: {
+        userId: event.userId,
+        type: "ticket_purchased",
+        title: "Ticket Purchased",
+        message: notifMessage,
+        eventId: event.id
+      }
+    });
+
+    if (io && typeof io.to === "function") {
+      io.to(`user:${event.userId}`).emit("notification:new", {
+        id: notification.id,
+        eventId: event.id,
+        type: "ticket_purchased",
+        title: notification.title,
+        message: notification.message,
+        createdAt: notification.createdAt
+      });
+    }
+  }
+
   return updatedReg;
 };
 
-export const createEvent = async ({
-  userId,
-  title,
-  description,
-  locationType,
-  location,
-  startDatetime,
-  endDatetime,
-  duration,
-  eventBannerUrl
-}) => {
+export const createEvent = async (
+  {
+    userId,
+    title,
+    description,
+    locationType,
+    location,
+    startDatetime,
+    endDatetime,
+    duration,
+    eventBannerUrl
+  },
+  io
+) => {
   const event = await prisma.event.create({
     data: {
       userId,
@@ -242,6 +285,25 @@ export const createEvent = async ({
       status: "draft"
     }
   });
+  const notification = await prisma.notification.create({
+    data: {
+      userId,
+      type: "event_created",
+      title: "Event Created",
+      message: `Your event "${title}" was created successfully.`,
+      eventId: event.id
+    }
+  });
+
+  io.to(`user:${userId}`).emit("notification:new", {
+    id: notification.id,
+    eventId: event.id,
+    type: "event_created",
+    title: notification.title,
+    message: notification.message,
+    createdAt: notification.createdAt
+  });
+
   return event;
 };
 
@@ -264,13 +326,13 @@ export const getEventDetailById = async (eventId) => {
 };
 // Update event
 
-export const updateEvent = async (eventId, userId, data) => {
+export const updateEvent = async (eventId, userId, data, io) => {
   const event = await prisma.event.findFirst({
     where: { id: eventId, userId }
   });
   if (!event) throw new CustomError("Event not found", 404);
 
-  const { status } = data;
+  const { status } = data || {};
 
   if (status) {
     const validTransitions = {
@@ -330,6 +392,27 @@ export const updateEvent = async (eventId, userId, data) => {
       updatedAt: new Date()
     }
   });
+
+  if (status) {
+    const notification = await prisma.notification.create({
+      data: {
+        userId,
+        type: `event_${status}`,
+        title: `Event ${status}`,
+        message: `Your event "${event.title}" was  ${status} successfully.`,
+        eventId
+      }
+    });
+
+    io.to(`user:${userId}`).emit("notification:new", {
+      id: notification.id,
+      eventId,
+      type: `event_${status}`,
+      title: notification.title,
+      message: notification.message,
+      createdAt: notification.createdAt
+    });
+  }
 
   return updatedEvent;
 };
@@ -430,11 +513,24 @@ export const getEventAttendeesService = async (eventId) => {
   }
 
   const attendees = registrations.map((r) => {
-    const fullName = r.user
-      ? `${r.user.profile?.firstName || ""} ${r.user.profile?.lastName || ""}`.trim()
-      : r.attendeeName || "N/A";
+    let fullName = "";
+    const profileFirst = r.user?.profile?.firstName?.trim();
+    const profileLast = r.user?.profile?.lastName?.trim();
 
-    const email = r.user ? r.user.email : r.attendeeEmail || "N/A";
+    if (profileFirst || profileLast) {
+      fullName =
+        `${profileFirst || ""}${profileFirst && profileLast ? " " : ""}${profileLast || ""}`.trim();
+    } else if (r.attendeeName) {
+      fullName = String(r.attendeeName).trim();
+    } else if (r.user?.email) {
+      fullName = r.user.email;
+    } else if (r.attendeeEmail) {
+      fullName = r.attendeeEmail;
+    } else {
+      fullName = "N/A";
+    }
+
+    const email = r.user?.email || r.attendeeEmail || "N/A";
 
     return {
       full_name: fullName,

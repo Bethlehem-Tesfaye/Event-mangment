@@ -79,7 +79,7 @@ export default function EventAttendeesPage() {
                       key={`${a.email}-${a.registered_at}`}
                       className="border-t border-neutral-200 dark:border-neutral-700"
                     >
-                      <td className="py-2">{a.full_name}</td>
+                      <td className="py-2">{a.full_name || "N/A"}</td>
                       <td className="py-2">{a.email}</td>
                       <td className="py-2">{a.ticket_type}</td>
                       <td className="py-2">{a.registered_quantity}</td>
