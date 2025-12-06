@@ -1,5 +1,5 @@
 import { Receiver } from "@upstash/qstash";
-import transporter from "../mailer.js";
+import mailer from "../mailer.js";
 
 const receiver = new Receiver({
   currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY,
@@ -46,7 +46,7 @@ export const sendEmailRoute = [
         }
       }
 
-      const info = await transporter.sendMail({
+      const info = await mailer.sendMail({
         to: payload.email,
         subject: payload.type === "ticket" ? "Your Ticket" : "Notification",
         html,
