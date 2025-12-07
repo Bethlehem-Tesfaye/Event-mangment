@@ -23,6 +23,7 @@ import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
 import { useForm, FormProvider } from "react-hook-form";
 import { Check, Plus } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 
 const ticketSchema = z.object({
   type: z.string().min(1),
@@ -63,6 +64,7 @@ export default function EventEditor({ id, onCreated }: Props) {
   const updateSpeaker: any = eventIdStr ? useUpdateSpeaker(eventIdStr) : null;
   const deleteTicket: any = eventIdStr ? useDeleteTicket(eventIdStr) : null;
   const deleteSpeaker: any = eventIdStr ? useDeleteSpeaker(eventIdStr) : null;
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!eventRemote) {
@@ -839,7 +841,6 @@ export default function EventEditor({ id, onCreated }: Props) {
           <div className="flex gap-2">
             <Button
               onClick={() => {
-                // validate & then save — log validation errors to console for testing
                 methods.handleSubmit(
                   () => handleSave(),
                   (errors) => console.log("validation errors", errors)
@@ -859,6 +860,24 @@ export default function EventEditor({ id, onCreated }: Props) {
                 </>
               )}
             </Button>
+            {isEdit && id && (
+              <Button
+                variant="outline"
+                onClick={() => {
+                  try {
+                    navigate({
+                      pathname: "/organizer/preview",
+                      search: `?id=${encodeURIComponent(String(id))}`,
+                    });
+                  } catch (e) {
+                    console.error("Failed to open preview:", e);
+                  }
+                }}
+                disabled={saving}
+              >
+                Preview Event
+              </Button>
+            )}
           </div>
         </div>
 

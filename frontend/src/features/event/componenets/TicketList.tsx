@@ -3,14 +3,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Ticket } from "../types/event";
 import PurchaseModal from "./PurchaseModal";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useLocation } from "react-router-dom";
 
 interface TicketListProps {
   tickets: Ticket[];
   loading?: boolean;
+  showCheckout?: boolean;
 }
 
-export default function TicketList({ tickets, loading }: TicketListProps) {
-  const { user } = useCurrentUser(); // replaced useAuth
+export default function TicketList({
+  tickets,
+  loading,
+  showCheckout = true,
+}: TicketListProps) {
+  const { user } = useCurrentUser();
+  const location = useLocation();
+
+  const showCheckoutEffective =
+    showCheckout && !String(location.pathname).includes("/organizer");
+
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
 
@@ -65,20 +76,22 @@ export default function TicketList({ tickets, loading }: TicketListProps) {
         </div>
       </div>
 
-      <button
-        className={`mt-4 w-full py-2 rounded-md font-semibold transition text-[12px] ${
-          selectedTicket
-            ? "bg-primary text-white border border-red-700"
-            : "bg-gray-300 text-gray-600 cursor-not-allowed"
-        }`}
-        disabled={!selectedTicket}
-        onClick={handleCheckout}
-      >
-        Continue to Checkout
-      </button>
+      {showCheckoutEffective && (
+        <button
+          className={`mt-4 w-full py-2 rounded-md font-semibold transition text-[12px] ${
+            selectedTicket
+              ? "bg-primary text-white border border-red-700"
+              : "bg-gray-300 text-gray-600 cursor-not-allowed"
+          }`}
+          disabled={!selectedTicket}
+          onClick={handleCheckout}
+        >
+          Continue to Checkout
+        </button>
+      )}
 
       <PurchaseModal
-        key={user?.id ?? "guest"} // still works, now comes from useCurrentUser
+        key={user?.id ?? "guest"}
         open={modalOpen}
         onClose={handleCloseModal}
         ticket={selectedTicket}
