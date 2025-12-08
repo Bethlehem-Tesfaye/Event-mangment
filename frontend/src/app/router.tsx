@@ -25,6 +25,8 @@ import EventAnalyticsPage from "@/features/organizer/analytics/components/EventA
 import NotificationPage from "@/features/notification/pages/NotificationPage";
 import BrowseNotificationPage from "@/features/notification/pages/BrowseNotificationPage";
 import OrganizerEventPreviewPage from "@/features/organizer/preview/pages/OrganizerEventPreviewPage";
+import ForgotPassword from "@/features/auth/pages/ForgotPassword";
+import ResetPassword from "@/features/auth/pages/ResetPassword";
 
 export const router = createBrowserRouter([
   {
@@ -67,6 +69,14 @@ export const router = createBrowserRouter([
   {
     path: "/auth/success",
     element: <OAuthSuccessPage />,
+  },
+  {
+    path: "/forgot-password",
+    element: <ForgotPassword />,
+  },
+  {
+    path: "/reset-password",
+    element: <ResetPassword />,
   },
 
   // Protected routes (profile + organizer)
