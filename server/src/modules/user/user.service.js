@@ -1,7 +1,7 @@
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
-import transporter from "../../lib/mailer.js";
+import { sendMail } from "../../lib/mailer.js";
 import logger from "../../utils/logger.js";
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
@@ -71,7 +71,7 @@ export const registerUser = async ({ email, password }) => {
     </div>
   `;
   try {
-    await transporter.sendMail({
+    await sendMail({
       to: user.email,
       subject: "Verify your EventLight account",
       html
@@ -245,7 +245,7 @@ export const resendVerification = async (email) => {
   const html = `<p>Please verify</p><a href="${verificationLink}">Verify</a>`;
 
   try {
-    await transporter.sendMail({
+    await sendMail({
       to: user.email,
       subject: "Resend: Verify your EventLight account",
       html

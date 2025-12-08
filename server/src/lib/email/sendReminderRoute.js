@@ -1,6 +1,6 @@
 import { Receiver } from "@upstash/qstash";
-import mailer from "../mailer.js";
-import prisma from "../../lib/prisma.js";
+import { sendMail } from "../mailer.js";
+import prisma from "../prisma.js";
 
 const receiver = new Receiver({
   currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY,
@@ -15,15 +15,11 @@ export const sendReminderRoute = [
       await receiver.verify({ signature, body: bodyString });
       return next();
     } catch (err) {
-      console.error(
-        "Reminder signature verification failed:",
-        err?.message || err
-      );
       return res.status(401).json({ error: "Invalid signature" });
     }
   },
 
-  async (req, res) => {
+  async (req, res, next) => {
     try {
       const { email, eventId, eventTitle, attendeeName, userId } =
         req.body || {};
@@ -37,7 +33,7 @@ export const sendReminderRoute = [
         <p>This is a reminder that the event <b>${eventTitle || ""}</b> is happening in 24 hours.</p>
       `;
 
-      await mailer.sendMail({
+      await sendMail({
         to: email,
         subject: `Reminder: ${eventTitle || "Your event"} is Tomorrow`,
         html
@@ -55,10 +51,7 @@ export const sendReminderRoute = [
           }
         });
       } catch (dbErr) {
-        console.error(
-          "Failed to create reminder notification:",
-          dbErr?.message || dbErr
-        );
+        return next(dbErr);
       }
 
       const io = req.app.get("io");
@@ -77,7 +70,6 @@ export const sendReminderRoute = [
 
       return res.json({ ok: true });
     } catch (err) {
-      console.error("Reminder handler failed:", err?.message || err);
       return res.status(500).json({ error: "Failed to send reminder" });
     }
   }

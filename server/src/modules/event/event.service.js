@@ -1,6 +1,4 @@
 import QRCode from "qrcode";
-import path from "path";
-import fs from "fs";
 import prisma from "../../lib/prisma.js";
 import CustomError from "../../utils/customError.js";
 import {
@@ -176,9 +174,8 @@ export const purchaseTicket = async (
     );
     qrUrl = uploadRes?.secure_url || uploadRes?.url || null;
   } catch (err) {
-    console.error(
-      "Cloudinary upload failed for ticket QR:",
-      err?.message || err
+    process.stderr.write(
+      `Cloudinary upload failed: ${err?.message ?? String(err)}\n`
     );
   }
 
@@ -211,9 +208,8 @@ export const purchaseTicket = async (
       });
     }
   } catch (schedErr) {
-    console.error(
-      "Failed to schedule reminder:",
-      schedErr?.message || schedErr
+    process.stderr.write(
+      `Failed to schedule reminder: ${schedErr?.message ?? String(schedErr)}\n`
     );
   }
 

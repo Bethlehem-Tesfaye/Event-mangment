@@ -1,5 +1,5 @@
 import { Receiver } from "@upstash/qstash";
-import mailer from "../mailer.js";
+import { sendMail } from "../mailer.js";
 
 const receiver = new Receiver({
   currentSigningKey: process.env.QSTASH_CURRENT_SIGNING_KEY,
@@ -14,7 +14,6 @@ export const sendEmailRoute = [
       await receiver.verify({ signature, body: bodyString });
       return next();
     } catch (err) {
-      console.error("Signature verification failed:", err?.message || err);
       return res.status(401).json({ error: "Invalid signature" });
     }
   },
@@ -25,7 +24,7 @@ export const sendEmailRoute = [
       if (!payload.type || !payload.email)
         return res.status(400).json({ error: "Invalid payload" });
 
-      let attachments = [];
+      const attachments = [];
       let html = `<p>Hello,</p><p>This is a ${payload.type} email.</p>`;
 
       if (payload.type === "ticket") {
@@ -46,17 +45,14 @@ export const sendEmailRoute = [
         }
       }
 
-      const info = await mailer.sendMail({
+      await sendMail({
         to: payload.email,
         subject: payload.type === "ticket" ? "Your Ticket" : "Notification",
         html,
         attachments: attachments.length ? attachments : undefined
       });
-
-      console.log("Email sent:", { messageId: info.messageId });
       return res.json({ ok: true });
     } catch (err) {
-      console.error("Email handler error:", err?.message || err);
       return res.status(500).json({ error: "Email failed" });
     }
   }

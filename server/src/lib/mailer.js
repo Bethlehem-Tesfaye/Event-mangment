@@ -14,7 +14,6 @@ oAuth2Client.setCredentials({
   refresh_token: process.env.GOOGLE_REFRESH_TOKEN
 });
 
-// Helper: base64url encode
 const base64UrlEncode = (strOrBuffer) =>
   Buffer.from(strOrBuffer)
     .toString("base64")
@@ -22,26 +21,17 @@ const base64UrlEncode = (strOrBuffer) =>
     .replace(/\//g, "_")
     .replace(/=+$/, "");
 
-/**
- * Build a raw MIME message (multipart/mixed).
- * Supports:
- *  - html body
- *  - attachments: { filename, mimeType, content (Buffer), cid (optional) }
- * If an attachment has `cid`, it will include a Content-ID header so you can use <img src="cid:..."> in html.
- */
 function buildRawMessage({ from, to, subject, html, attachments = [] }) {
   const boundary = `----=_Boundary_${Date.now()}`;
   const lines = [];
 
-  // Headers
   lines.push(`From: ${from}`);
   lines.push(`To: ${to}`);
   lines.push(`Subject: ${subject}`);
   lines.push(`MIME-Version: 1.0`);
   lines.push(`Content-Type: multipart/mixed; boundary="${boundary}"`);
-  lines.push(""); // blank line
+  lines.push("");
 
-  // HTML part
   lines.push(`--${boundary}`);
   lines.push(`Content-Type: text/html; charset="UTF-8"`);
   lines.push(`Content-Transfer-Encoding: 7bit`);
@@ -51,14 +41,19 @@ function buildRawMessage({ from, to, subject, html, attachments = [] }) {
 
   // Attachments
   for (const att of attachments) {
-    const contentBuffer = Buffer.isBuffer(att.content)
-      ? att.content
-      : typeof att.content === "string"
-        ? // if provided as data URL like "data:image/png;base64,..." or bare base64
-          att.content.startsWith("data:")
-          ? Buffer.from(att.content.split(",")[1], "base64")
-          : Buffer.from(att.content, "base64")
-        : Buffer.from("", "base64");
+    let contentBuffer;
+    if (Buffer.isBuffer(att.content)) {
+      contentBuffer = att.content;
+    } else if (typeof att.content === "string") {
+      if (att.content.startsWith("data:")) {
+        const parts = att.content.split(",");
+        contentBuffer = Buffer.from(parts[1] || "", "base64");
+      } else {
+        contentBuffer = Buffer.from(att.content, "base64");
+      }
+    } else {
+      contentBuffer = Buffer.from("", "base64");
+    }
 
     lines.push(`--${boundary}`);
     lines.push(
