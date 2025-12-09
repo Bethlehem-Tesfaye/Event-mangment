@@ -33,7 +33,7 @@ export const publishReminderJob = async (payload) => {
       delaySeconds = Math.max(Math.floor(diffMs / 1000), 10);
     }
     // FOR TESTING use short delay (30s)
-    const delay = process.env.NODE_ENV === "development" ? "30s" : "30s";
+    const delay = process.env.NODE_ENV === "development" ? "30s" : delaySeconds;
 
     const res = await qstash.publishJSON({
       url: process.env.REMINDER_API_URL,

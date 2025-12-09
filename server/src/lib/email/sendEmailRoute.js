@@ -79,16 +79,14 @@ export const sendEmailRoute = [
                       : `<p style="color:#666">Reset link not provided.</p>`
                   }
                 </div>`;
+      } else if (payload.html) {
+        html = payload.html;
+      } else if (payload.message) {
+        html = `<p>Hello ${payload.username || ""},</p><p>${payload.message}</p>`;
+      } else if (payload.text) {
+        html = `<p>${payload.text}</p>`;
       } else {
-        if (payload.html) {
-          html = payload.html;
-        } else if (payload.message) {
-          html = `<p>Hello ${payload.username || ""},</p><p>${payload.message}</p>`;
-        } else if (payload.text) {
-          html = `<p>${payload.text}</p>`;
-        } else {
-          html = `<p>Hello,</p><p>This is a ${payload.type} email.</p>`;
-        }
+        html = `<p>Hello,</p><p>This is a ${payload.type} email.</p>`;
       }
 
       await sendMail({
