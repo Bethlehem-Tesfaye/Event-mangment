@@ -675,6 +675,46 @@ export default function EventInfo({
                   </div>
                 </div>
               </div>
+
+              {/* Have speakers? toggle */}
+              <div className="flex items-center gap-3">
+                {methods ? (
+                  <Controller
+                    control={control!}
+                    name="hasSpeakers"
+                    defaultValue={(editableEvent.speakers ?? []).length > 0}
+                    render={({ field }) => (
+                      <label className="inline-flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          checked={Boolean(field.value)}
+                          onChange={(e) => field.onChange(e.target.checked)}
+                          className="h-4 w-4"
+                        />
+                        <span className="text-sm">
+                          I have speakers for this event
+                        </span>
+                      </label>
+                    )}
+                  />
+                ) : (
+                  <label className="inline-flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      checked={Boolean(
+                        (editableEvent.speakers ?? []).length > 0
+                      )}
+                      onChange={(e) =>
+                        onChangeField("hasSpeakers", e.target.checked)
+                      }
+                      className="h-4 w-4"
+                    />
+                    <span className="text-sm">
+                      I have speakers for this event
+                    </span>
+                  </label>
+                )}
+              </div>
             </div>
           )}
         </CardContent>

@@ -143,6 +143,16 @@ export default function EventEditor({ id, onCreated }: Props) {
   const makeTempId = () =>
     `temp-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 
+  const extractIdFromResponse = (res: any) =>
+    String(
+      res?.data?.data?.id ??
+        res?.data?.id ??
+        res?.data?.ticket?.id ??
+        res?.data?.speaker?.id ??
+        res?.data?.event?.id ??
+        ""
+    );
+
   const handleChangeField = (k: string, v: any) =>
     setEditableEvent((prev) => (prev ? { ...prev, [k]: v } : prev));
 
@@ -289,7 +299,18 @@ export default function EventEditor({ id, onCreated }: Props) {
     setTicketError(null);
     const t: Ticket = { id: makeTempId(), ...parsed.data, isTemp: true } as any;
     setEditableEvent((prev) =>
-      prev ? { ...prev, tickets: [...(prev.tickets ?? []), t] } : prev
+      prev
+        ? { ...prev, tickets: [...(prev.tickets ?? []), t] }
+        : ({
+            id: undefined as any,
+            title: "",
+            status: "draft",
+            description: "",
+            location: "",
+            tickets: [t],
+            speakers: [],
+            categories: [],
+          } as OrganizerEvent)
     );
     setNewTicket(null);
   };
@@ -333,26 +354,38 @@ export default function EventEditor({ id, onCreated }: Props) {
       photoPreview: newSpeaker.photoPreview,
     } as any;
 
-    // Build next list and log it before calling setState (helps find duplicate source)
-    const current = editableEvent?.speakers ?? [];
-    const next = [...current, s];
-    console.debug("[dbg] speakers current length:", current.length);
-    console.debug("[dbg] speakers next length:", next.length);
-    console.debug(
-      "[dbg] speakers current ids:",
-      current.map((x: any) => x.id)
-    );
-    console.debug(
-      "[dbg] speakers next ids:",
-      next.map((x: any) => x.id)
-    );
+    // append speaker using functional update to avoid stale-state races
+    setEditableEvent((prev) => {
+      const current = prev?.speakers ?? [];
+      const next = [...current, s];
+      console.debug("[dbg] speakers current length:", current.length);
+      console.debug("[dbg] speakers next length:", next.length);
+      console.debug(
+        "[dbg] speakers current ids:",
+        current.map((x: any) => x.id)
+      );
+      console.debug(
+        "[dbg] speakers next ids:",
+        next.map((x: any) => x.id)
+      );
+      return prev
+        ? { ...prev, speakers: next }
+        : ({
+            id: undefined as any,
+            title: "",
+            status: "draft",
+            description: "",
+            location: "",
+            tickets: [],
+            speakers: [s],
+            categories: [],
+          } as OrganizerEvent);
+    });
 
-    setEditableEvent((prev) => (prev ? { ...prev, speakers: next } : prev));
     setNewSpeaker(null);
     console.groupEnd();
   };
 
-  // React Hook Form for EventInfo (with Zod resolver)
   const methods = useForm({
     resolver: zodResolver(eventFormSchema),
     defaultValues: {
@@ -366,8 +399,9 @@ export default function EventEditor({ id, onCreated }: Props) {
       eventBannerPreview: "",
       eventBannerUrl: "",
       eventBannerFile: null as File | null,
+      hasSpeakers: true,
     },
-  });
+  } as any);
   const lastResetIdRef = useRef<string | number | null>(null);
   useEffect(() => {
     if (!editableEvent) return;
@@ -392,7 +426,8 @@ export default function EventEditor({ id, onCreated }: Props) {
         editableEvent.eventBannerPreview ?? editableEvent.eventBannerUrl ?? "",
       eventBannerUrl: editableEvent.eventBannerUrl ?? "",
       eventBannerFile: editableEvent.eventBannerFile ?? null,
-    });
+      hasSpeakers: (editableEvent.speakers ?? []).length > 0,
+    } as any);
 
     lastResetIdRef.current = idKey;
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -401,7 +436,6 @@ export default function EventEditor({ id, onCreated }: Props) {
   const handleSave = async () => {
     if (!editableEvent) return;
 
-    // Validate tickets before attempting save
     const tickets = editableEvent.tickets ?? [];
     if (tickets.length > 0) {
       const ticketErrors: string[] = [];
@@ -432,9 +466,7 @@ export default function EventEditor({ id, onCreated }: Props) {
       }
 
       if (ticketErrors.length > 0) {
-        // show combined ticket validation error in UI (TicketsList reads ticketError prop)
         setTicketError(ticketErrors.join(" • "));
-        // optionally scroll to top so user can see the error area
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       } else {
@@ -445,8 +477,22 @@ export default function EventEditor({ id, onCreated }: Props) {
     setSaving(true);
 
     try {
-      // Read values from RHF form (methods always exists here)
-      const fv = methods.getValues();
+      const fv = methods.getValues() as any;
+      const hasSpeakers =
+        fv.hasSpeakers ?? (editableEvent.speakers ?? []).length > 0;
+      const speakersToProcess = hasSpeakers ? editableEvent.speakers ?? [] : [];
+
+      let remoteSpeakerIdsToDelete: number[] = [];
+      if (!hasSpeakers && isEdit && editableEvent.speakers?.length) {
+        remoteSpeakerIdsToDelete = (editableEvent.speakers ?? [])
+          .filter((s: any) => isRemoteId(s.id))
+          .map((s: any) => Number(s.id));
+        if (remoteSpeakerIdsToDelete.length > 0) {
+          setSpeakersToDelete((prev) =>
+            Array.from(new Set([...prev, ...remoteSpeakerIdsToDelete]))
+          );
+        }
+      }
 
       // Prepare payload using form values first, falling back to editableEvent
       const eventPayload: any = {
@@ -491,6 +537,7 @@ export default function EventEditor({ id, onCreated }: Props) {
           created.data?.data?.id ?? created.data?.id ?? created.data?.event?.id
         );
 
+        // replace temp speaker ids with server ids as we create them
         for (const cid of (editableEvent.categories ?? [])
           .map(Number)
           .filter(Boolean)) {
@@ -502,37 +549,58 @@ export default function EventEditor({ id, onCreated }: Props) {
             console.error("Error adding category (create)", cid, e);
           }
         }
-
-        for (const s of editableEvent.speakers ?? []) {
-          // DEBUG: before creating each temp speaker on save
-          console.debug("[dbg] saving new speaker (will POST):", {
-            tempId: (s as any).id,
-            name: s.name,
-            photoPreview: (s as any).photoPreview,
-          });
+        // Use speakersToProcess so if hasSpeakers was unchecked we skip creating speakers
+        for (const s of speakersToProcess) {
           if ((s as any).isTemp) {
-            if ((s as any).photoFile) {
-              const form = new FormData();
-              form.append("name", s.name);
-              if (s.bio) form.append("bio", s.bio);
-              form.append("photo", (s as any).photoFile);
-              console.debug(
-                "[dbg] POST /organizer/events/{createdId}/speakers with file for tempId",
-                (s as any).id
-              );
-              await api.post(`/organizer/events/${createdId}/speakers`, form, {
-                headers: { "Content-Type": "multipart/form-data" },
-              });
-            } else {
-              console.debug(
-                "[dbg] POST /organizer/events/{createdId}/speakers JSON for tempId",
-                (s as any).id
-              );
-              await api.post(`/organizer/events/${createdId}/speakers`, {
-                name: s.name,
-                bio: s.bio,
-                photoUrl: s.photoUrl,
-              });
+            try {
+              if ((s as any).photoFile) {
+                const form = new FormData();
+                form.append("name", s.name);
+                if (s.bio) form.append("bio", s.bio);
+                form.append("photo", (s as any).photoFile);
+                const res = await api.post(
+                  `/organizer/events/${createdId}/speakers`,
+                  form
+                );
+                const newId = extractIdFromResponse(res);
+                // update local state to replace temp id with server id
+                setEditableEvent((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        speakers: (prev.speakers ?? []).map((sp) =>
+                          sp.id === (s as any).id
+                            ? { ...sp, id: newId, isTemp: false }
+                            : sp
+                        ),
+                      }
+                    : prev
+                );
+              } else {
+                const res = await api.post(
+                  `/organizer/events/${createdId}/speakers`,
+                  {
+                    name: s.name,
+                    bio: s.bio,
+                    photoUrl: s.photoUrl,
+                  }
+                );
+                const newId = extractIdFromResponse(res);
+                setEditableEvent((prev) =>
+                  prev
+                    ? {
+                        ...prev,
+                        speakers: (prev.speakers ?? []).map((sp) =>
+                          sp.id === (s as any).id
+                            ? { ...sp, id: newId, isTemp: false }
+                            : sp
+                        ),
+                      }
+                    : prev
+                );
+              }
+            } catch (e) {
+              console.error("Failed creating speaker", s, e);
             }
             continue;
           }
@@ -549,10 +617,7 @@ export default function EventEditor({ id, onCreated }: Props) {
             } else {
               await api.put(
                 `/organizer/events/${id}/speakers/${speakerId}`,
-                form,
-                {
-                  headers: { "Content-Type": "multipart/form-data" },
-                }
+                form
               );
             }
           } else {
@@ -568,17 +633,38 @@ export default function EventEditor({ id, onCreated }: Props) {
           }
         }
 
+        // create tickets and replace temp ids with server ids
         for (const t of editableEvent.tickets ?? []) {
           if ((t as any).isTemp) {
-            await api.post(`/organizer/events/${createdId}/tickets`, {
-              type: t.type,
-              price: Number(t.price),
-              totalQuantity: Number(t.totalQuantity),
-              maxPerUser:
-                t.maxPerUser !== undefined && t.maxPerUser !== null
-                  ? Number(t.maxPerUser)
-                  : undefined,
-            });
+            try {
+              const res = await api.post(
+                `/organizer/events/${createdId}/tickets`,
+                {
+                  type: t.type,
+                  price: Number(t.price),
+                  totalQuantity: Number(t.totalQuantity),
+                  maxPerUser:
+                    t.maxPerUser !== undefined && t.maxPerUser !== null
+                      ? Number(t.maxPerUser)
+                      : undefined,
+                }
+              );
+              const newId = extractIdFromResponse(res);
+              setEditableEvent((prev) =>
+                prev
+                  ? {
+                      ...prev,
+                      tickets: (prev.tickets ?? []).map((tk) =>
+                        tk.id === (t as any).id
+                          ? { ...tk, id: newId, isTemp: false }
+                          : tk
+                      ),
+                    }
+                  : prev
+              );
+            } catch (e) {
+              console.error("Failed creating ticket", t, e);
+            }
           }
         }
 
@@ -591,7 +677,6 @@ export default function EventEditor({ id, onCreated }: Props) {
 
       // Editing existing event
       if (isEdit && id) {
-        // categories removal/add handled earlier in existing code
         if (hasBannerFile) {
           const form = new FormData();
           Object.entries(eventPayload).forEach(([k, v]) => {
@@ -603,7 +688,6 @@ export default function EventEditor({ id, onCreated }: Props) {
           await api.put(`/organizer/events/${id}`, eventPayload);
         }
 
-        // --- SYNC CATEGORIES (add new, remove old) ---
         try {
           const prev: number[] = originalCategoryIdsRef.current ?? [];
           const next: number[] = (editableEvent.categories ?? [])
@@ -680,8 +764,7 @@ export default function EventEditor({ id, onCreated }: Props) {
           console.error("[dbg] Category sync failed", e);
         }
 
-        // Speakers & tickets sync (existing logic uses editableEvent)
-        for (const s of editableEvent.speakers ?? []) {
+        for (const s of speakersToProcess) {
           const isTemp = (s as any).isTemp;
           if (isTemp) {
             if ((s as any).photoFile) {
@@ -693,20 +776,61 @@ export default function EventEditor({ id, onCreated }: Props) {
                 "[dbg] POST /organizer/events/{id}/speakers with file for tempId",
                 (s as any).id
               );
-              // temp speakers should always be created (POST). updateSpeaker is for existing remote ids.
-              await api.post(`/organizer/events/${id}/speakers`, form, {
-                headers: { "Content-Type": "multipart/form-data" },
-              });
+              {
+                try {
+                  const res = await api.post(
+                    `/organizer/events/${id}/speakers`,
+                    form
+                  );
+                  const newId = extractIdFromResponse(res);
+                  setEditableEvent((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          speakers: (prev.speakers ?? []).map((sp) =>
+                            sp.id === (s as any).id
+                              ? { ...sp, id: newId, isTemp: false }
+                              : sp
+                          ),
+                        }
+                      : prev
+                  );
+                } catch (e) {
+                  console.error("Failed creating speaker (edit)", s, e);
+                }
+              }
             } else {
               console.debug(
                 "[dbg] POST /organizer/events/{id}/speakers JSON for tempId",
                 (s as any).id
               );
-              await api.post(`/organizer/events/${id}/speakers`, {
-                name: s.name,
-                bio: s.bio,
-                photoUrl: s.photoUrl,
-              });
+              {
+                try {
+                  const res = await api.post(
+                    `/organizer/events/${id}/speakers`,
+                    {
+                      name: s.name,
+                      bio: s.bio,
+                      photoUrl: s.photoUrl,
+                    }
+                  );
+                  const newId = extractIdFromResponse(res);
+                  setEditableEvent((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          speakers: (prev.speakers ?? []).map((sp) =>
+                            sp.id === (s as any).id
+                              ? { ...sp, id: newId, isTemp: false }
+                              : sp
+                          ),
+                        }
+                      : prev
+                  );
+                } catch (e) {
+                  console.error("Failed creating speaker (edit)", s, e);
+                }
+              }
             }
             continue;
           }
@@ -723,10 +847,7 @@ export default function EventEditor({ id, onCreated }: Props) {
             } else {
               await api.put(
                 `/organizer/events/${id}/speakers/${speakerId}`,
-                form,
-                {
-                  headers: { "Content-Type": "multipart/form-data" },
-                }
+                form
               );
             }
           } else {
@@ -794,9 +915,11 @@ export default function EventEditor({ id, onCreated }: Props) {
           setTicketsToDelete([]); // clear after attempting deletes
         }
 
-        // --- ADDED: remove remote speakers that were marked for deletion ---
-        if (speakersToDelete.length > 0) {
-          for (const sid of speakersToDelete) {
+        const toDeleteSpeakers = Array.from(
+          new Set([...(speakersToDelete ?? []), ...remoteSpeakerIdsToDelete])
+        );
+        if (toDeleteSpeakers.length > 0) {
+          for (const sid of toDeleteSpeakers) {
             try {
               if (deleteSpeaker && deleteSpeaker.mutateAsync) {
                 await deleteSpeaker.mutateAsync(sid);
@@ -914,34 +1037,37 @@ export default function EventEditor({ id, onCreated }: Props) {
             </CardContent>
           </Card>
 
-          <Card className="flex-1">
-            <CardContent>
-              <SpeakersList
-                speakers={editableEvent.speakers ?? []}
-                editable={true}
-                newSpeaker={newSpeaker}
-                setNewSpeaker={setNewSpeaker}
-                onAddLocal={handleAddSpeakerLocal}
-                onChangeSpeaker={handleChangeSpeaker}
-                onRemoveLocal={(_type, id) => handleRemoveLocal("speaker", id)}
-                onRemoteDelete={(sid: number) => {
-                  if (deleteSpeaker) deleteSpeaker.mutate(sid);
-                }}
-                onFileChange={(idOrNew, file) => {
-                  if (typeof idOrNew === "number") {
-                    // existing speaker
-                    handleChangeSpeaker(idOrNew, "photoFile", file);
-                  } else {
-                    // new speaker (idOrNew is the temp id)
-                    setNewSpeaker((prev: any) => {
-                      if (!prev) return null;
-                      return { ...prev, photoFile: file };
-                    });
+          {methods.watch?.("hasSpeakers") ??
+          (editableEvent.speakers ?? []).length > 0 ? (
+            <Card className="flex-1">
+              <CardContent>
+                <SpeakersList
+                  speakers={editableEvent.speakers ?? []}
+                  editable={true}
+                  newSpeaker={newSpeaker}
+                  setNewSpeaker={setNewSpeaker}
+                  onAddLocal={handleAddSpeakerLocal}
+                  onChangeSpeaker={handleChangeSpeaker}
+                  onRemoveLocal={(_type, id) =>
+                    handleRemoveLocal("speaker", id)
                   }
-                }}
-              />
-            </CardContent>
-          </Card>
+                  onRemoteDelete={(sid: number) => {
+                    if (deleteSpeaker) deleteSpeaker.mutate(sid);
+                  }}
+                  onFileChange={(idOrNew, file) => {
+                    if (typeof idOrNew === "number") {
+                      handleChangeSpeaker(idOrNew, "photoFile", file);
+                    } else {
+                      setNewSpeaker((prev: any) => {
+                        if (!prev) return null;
+                        return { ...prev, photoFile: file };
+                      });
+                    }
+                  }}
+                />
+              </CardContent>
+            </Card>
+          ) : null}
         </div>
 
         {/* Categories */}

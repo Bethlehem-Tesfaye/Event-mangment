@@ -366,11 +366,8 @@ export const updateEvent = async (eventId, userId, data, io) => {
         throw new CustomError("Incomplete event data", 400);
       }
 
-      const [cat, spk, tkt] = await Promise.all([
+      const [cat, tkt] = await Promise.all([
         prisma.eventCategory.findFirst({
-          where: { eventId: event.id, deletedAt: null }
-        }),
-        prisma.eventSpeaker.findFirst({
           where: { eventId: event.id, deletedAt: null }
         }),
         prisma.ticket.findFirst({
@@ -378,9 +375,9 @@ export const updateEvent = async (eventId, userId, data, io) => {
         })
       ]);
 
-      if (!cat || !spk || !tkt) {
+      if (!cat || !tkt) {
         throw new CustomError(
-          "Event must have category, speaker, and ticket to publish",
+          "Event must have category and ticket to publish",
           400
         );
       }
