@@ -22,8 +22,14 @@ const TABS: EventsTabBarTab[] = [
 export default function OrganizerEventsListPage() {
   const [route, setRoute] = useState("events");
   const [tab, setTab] = useState("all");
+  const [queryInput, setQueryInput] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [section, setSection] = useState<"events" | "attendees">("events");
-  const { data: events = [], isLoading, error } = useOrganizerEvents(tab);
+  const {
+    data: events = [],
+    isLoading,
+    error,
+  } = useOrganizerEvents(tab, searchQuery);
   const updateEvent = useUpdateEvent();
   const navigate = useNavigate();
   const location = useLocation();
@@ -34,6 +40,14 @@ export default function OrganizerEventsListPage() {
     const sectionParam = params.get("section") as "events" | "attendees";
     if (sectionParam) setSection(sectionParam);
   }, [location.search]);
+
+  // update searchQuery on every keystroke with debounce so useOrganizerEvents refetches
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setSearchQuery(queryInput.trim());
+    }, 300); // 300ms debounce
+    return () => clearTimeout(t);
+  }, [queryInput]);
 
   const [confirmModal, setConfirmModal] = useState<{
     open: boolean;
@@ -123,6 +137,15 @@ export default function OrganizerEventsListPage() {
               <div className="flex justify-between items-center">
                 <div className="flex-1" />
                 <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="search"
+                      value={queryInput}
+                      onChange={(e) => setQueryInput(e.target.value)}
+                      placeholder="Search events"
+                      className="min-w-[220px] px-3 py-2 border rounded-md text-sm bg-white dark:bg-[#0b0b0b] dark:border-neutral-800"
+                    />
+                  </div>
                   <div className="flex items-center gap-2">
                     <label
                       htmlFor="status-filter"

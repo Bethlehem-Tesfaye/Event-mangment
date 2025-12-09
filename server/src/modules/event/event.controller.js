@@ -211,14 +211,15 @@ export const getAllCategoriesController = async (req, res, next) => {
 export const listOrganizerEvents = async (req, res, next) => {
   try {
     const { userId } = req;
-    const { limit = 20, offset = 0, status } = req.query;
+    const { limit = 20, offset = 0, status, search } = req.query;
 
     const { events, totalCount } = await eventService.getOrganizerEvents(
       userId,
       {
         limit: Number(limit),
         offset: Number(offset),
-        status
+        status,
+        search
       }
     );
 

@@ -3,14 +3,17 @@ import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/axios";
 import type { OrganizerEvent, Analytics } from "../../types/organizer";
 
-export function useOrganizerEvents(status?: string) {
+export function useOrganizerEvents(status?: string, search?: string) {
   return useQuery({
-    queryKey: ["organizer-events", status],
+    queryKey: ["organizer-events", status, search],
     queryFn: async () => {
+      const params = new URLSearchParams();
+      if (status && status !== "all") params.set("status", status);
+      if (search) params.set("search", String(search));
+
+      const query = params.toString() ? `?${params.toString()}` : "";
       const res = await api.get<{ data: OrganizerEvent[] }>(
-        `/organizer/events${
-          status && status !== "all" ? `?status=${status}` : ""
-        }`
+        `/organizer/events${query}`
       );
       return res.data.data;
     },

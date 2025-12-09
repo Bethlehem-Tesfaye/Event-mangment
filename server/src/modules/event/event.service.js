@@ -560,11 +560,15 @@ export const getAllCategories = async () => {
 
 export const getOrganizerEvents = async (
   userId,
-  { limit = 20, offset = 0, status } = {}
+  { limit = 20, offset = 0, status, search } = {}
 ) => {
   if (!userId) throw new CustomError("User ID is required", 400);
 
-  const where = { userId, deletedAt: null };
+  const where = {
+    userId,
+    deletedAt: null,
+    title: search ? { contains: search, mode: "insensitive" } : undefined
+  };
   if (status) where.status = status;
 
   const [events, totalCount] = await Promise.all([
