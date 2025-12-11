@@ -207,15 +207,18 @@ chapaRoutes.post("/webhook", async (req, res) => {
     // Only issue tickets if payment successful and wasn't processed before
     if (status === "success") {
       try {
-        await purchaseTicket({
-          eventId: updatedPayment.eventId,
-          ticketId: updatedPayment.ticketId,
-          userId: updatedPayment.userId,
-          attendeeName:
-            `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
-          attendeeEmail: updatedPayment.email,
-          quantity: updatedPayment.quantity
-        });
+        await purchaseTicket(
+          {
+            eventId: updatedPayment.eventId,
+            ticketId: updatedPayment.ticketId,
+            userId: updatedPayment.userId,
+            attendeeName:
+              `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
+            attendeeEmail: updatedPayment.email,
+            quantity: updatedPayment.quantity
+          },
+          req.app.get("io") // <-- pass io here
+        );
         logger.info("Tickets issued for payment", {
           paymentId: updatedPayment.id,
           userId: updatedPayment.userId,
@@ -262,15 +265,18 @@ chapaRoutes.get("/callback", async (req, res) => {
       data: { status: "success", chapaRefId: ref_id }
     });
 
-    await purchaseTicket({
-      eventId: updatedPayment.eventId,
-      ticketId: updatedPayment.ticketId,
-      userId: updatedPayment.userId,
-      attendeeName:
-        `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
-      attendeeEmail: updatedPayment.email,
-      quantity: updatedPayment.quantity
-    });
+    await purchaseTicket(
+      {
+        eventId: updatedPayment.eventId,
+        ticketId: updatedPayment.ticketId,
+        userId: updatedPayment.userId,
+        attendeeName:
+          `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
+        attendeeEmail: updatedPayment.email,
+        quantity: updatedPayment.quantity
+      },
+      req.app.get("io") // <-- pass io here
+    );
 
     logger.info("Tickets issued via callback", {
       paymentId: updatedPayment.id,
