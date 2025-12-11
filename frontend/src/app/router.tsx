@@ -27,6 +27,7 @@ import BrowseNotificationPage from "@/features/notification/pages/BrowseNotifica
 import OrganizerEventPreviewPage from "@/features/organizer/preview/pages/OrganizerEventPreviewPage";
 import ForgotPassword from "@/features/auth/pages/ForgotPassword";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
+import PaymentSucess from "../features/payment/PaymentSucess";
 
 export const router = createBrowserRouter([
   {
@@ -77,6 +78,10 @@ export const router = createBrowserRouter([
   {
     path: "/reset-password",
     element: <ResetPassword />,
+  },
+  {
+    path: "/payment-success",
+    element: <PaymentSucess />,
   },
 
   // Protected routes (profile + organizer)

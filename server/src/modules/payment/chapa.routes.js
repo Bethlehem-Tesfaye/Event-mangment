@@ -1,0 +1,283 @@
+import express from "express";
+import prisma from "../../lib/prisma.js";
+import axios from "axios";
+import crypto from "crypto";
+import logger from "../../utils/logger.js"; // added
+import { purchaseTicket } from "../event/event.service.js"; // added
+import authMiddleware from "../../middleware/authMiddleware.js";
+
+export const chapaRoutes = express.Router();
+
+/**
+ * Initialize a Chapa payment
+ */
+chapaRoutes.post("/initialize", authMiddleware, async (req, res, next) => {
+  try {
+    const {
+      eventId,
+      ticketId,
+      quantity = 1,
+      firstName,
+      lastName,
+      email,
+      phoneNumber,
+      returnUrl
+    } = req.body;
+
+    const userId = req.userId || null;
+
+    // Fetch ticket + event
+    const ticket = await prisma.ticket.findUnique({
+      where: { id: parseInt(ticketId, 10) },
+      include: { event: true }
+    });
+    if (!ticket) return res.status(404).json({ message: "Ticket not found" });
+
+    // Organizer = event owner
+    const organizerId = ticket.event.userId;
+
+    // Fetch organizer's Chapa key
+    const organizerSettings = await prisma.organizerSettings.findUnique({
+      where: { userId: organizerId }
+    });
+
+    if (!organizerSettings?.chapaKey) {
+      return res.status(400).json({ message: "Organizer Chapa key not set" });
+    }
+
+    const amount = Number(ticket.price) * quantity;
+
+    // Fees
+    const feesAmount = Number((amount * 0.025).toFixed(2));
+    const organizerAmount = Number((amount - feesAmount).toFixed(2));
+
+    // Transaction reference
+    const txRef = crypto.randomUUID();
+
+    const currency = "ETB";
+
+    // Save pending payment
+    const payment = await prisma.payment.create({
+      data: {
+        eventId,
+        ticketId: parseInt(ticketId, 10),
+        userId: userId || null,
+        organizerId,
+        quantity,
+        amount,
+        currency,
+        txRef,
+        status: "pending",
+        firstName,
+        lastName,
+        email,
+        phoneNumber,
+        returnUrl,
+        fees: feesAmount,
+        payoutAmount: organizerAmount
+      }
+    });
+
+    logger.info("Pending payment saved", {
+      paymentId: payment.id,
+      txRef,
+      amount,
+      currency,
+      status: payment.status
+    });
+
+    // Initialize payment with Chapa TEST endpoint (with debug)
+    let chapaResponse;
+    try {
+      const payload = {
+        amount,
+        currency,
+        tx_ref: txRef,
+        email,
+        first_name: firstName,
+        last_name: lastName,
+        phone_number: phoneNumber,
+        callback_url: `${process.env.LOCAL_BASE_URL}/api/chapa/callback`
+        // return_url: returnUrl || `${process.env.CLIENT_URL}/payment-success`
+      };
+
+      const headers = {
+        Authorization: `Bearer ${organizerSettings.chapaKey}`, // use organizer key
+        "Content-Type": "application/json"
+      };
+
+      const authPreview = organizerSettings.chapaKey
+        ? `${String(organizerSettings.chapaKey).slice(0, 30)}...`
+        : undefined;
+
+      logger.debug("Chapa initialize request", {
+        url: "https://api.chapa.co/v1/transaction/initialize",
+        payload,
+        authPreview // safe preview of key
+      });
+
+      chapaResponse = await axios.post(
+        "https://api.chapa.co/v1/transaction/initialize",
+        payload,
+        { headers }
+      );
+
+      logger.debug("Chapa initialize response", {
+        status: chapaResponse.status,
+        data: chapaResponse.data
+      });
+    } catch (axErr) {
+      // log axios details for debugging (avoid referencing undefined locals)
+      logger.error("Chapa initialize failed", {
+        message: axErr?.message,
+        stack: axErr?.stack,
+        responseData: axErr?.response?.data,
+        responseStatus: axErr?.response?.status,
+        requestHeaders: axErr?.config?.headers ?? null,
+        requestPayload: axErr?.config?.data ?? null
+      });
+
+      return res.status(axErr?.response?.status || 500).json({
+        success: false,
+        message: axErr?.message,
+        details: axErr?.response?.data || null
+      });
+    }
+
+    return res.status(200).json({
+      checkoutUrl: chapaResponse.data?.data?.checkout_url,
+      paymentId: payment.id,
+      expectedPayout: organizerAmount,
+      fees: feesAmount
+    });
+  } catch (err) {
+    console.error(err);
+    next(err);
+  }
+});
+
+/**
+ * Webhook to update payment status
+ */
+chapaRoutes.post("/webhook", async (req, res) => {
+  try {
+    logger.info("Webhook received", {
+      tx_ref: req.body.tx_ref,
+      status: req.body.status,
+      reference: req.body.reference
+    });
+
+    const signature = req.headers["x-chapa-signature"];
+
+    // Verify webhook secret
+    if (signature !== process.env.CHAPA_WEBHOOK_SECRET) {
+      return res.status(403).send("Invalid signature");
+    }
+
+    const { tx_ref, status, reference } = req.body;
+    if (!tx_ref) return res.status(400).send("tx_ref missing");
+
+    const payment = await prisma.payment.findUnique({
+      where: { txRef: tx_ref }
+    });
+    if (!payment) return res.status(404).send("Payment not found");
+
+    // Prevent double processing if already successful
+    if (payment.status === "success") {
+      logger.info("Payment already processed", {
+        paymentId: payment.id,
+        txRef: tx_ref
+      });
+      return res.status(200).send("Already processed");
+    }
+
+    // Update payment status
+    const updatedPayment = await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status, chapaRefId: reference }
+    });
+
+    logger.info("Payment updated via webhook", {
+      paymentId: updatedPayment.id,
+      txRef: updatedPayment.txRef,
+      status: updatedPayment.status,
+      chapaRefId: updatedPayment.chapaRefId
+    });
+
+    // Only issue tickets if payment successful and wasn't processed before
+    if (status === "success") {
+      try {
+        await purchaseTicket({
+          eventId: updatedPayment.eventId,
+          ticketId: updatedPayment.ticketId,
+          userId: updatedPayment.userId,
+          attendeeName:
+            `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
+          attendeeEmail: updatedPayment.email,
+          quantity: updatedPayment.quantity
+        });
+        logger.info("Tickets issued for payment", {
+          paymentId: updatedPayment.id,
+          userId: updatedPayment.userId,
+          quantity: updatedPayment.quantity
+        });
+      } catch (issueErr) {
+        // Log but don't fail webhook so Chapa doesn't retry indefinitely
+        logger.error("Failed to issue tickets after payment success", {
+          paymentId: updatedPayment.id,
+          error: issueErr?.message || String(issueErr)
+        });
+      }
+    }
+
+    res.status(200).send("Webhook processed");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Error processing webhook");
+  }
+});
+
+/**
+ * Optional: callback for redirect after payment
+ */
+chapaRoutes.get("/callback", async (req, res) => {
+  const { trx_ref, status, ref_id } = req.query;
+  if (!trx_ref) return res.status(400).json({ message: "trx_ref missing" });
+
+  const payment = await prisma.payment.findUnique({
+    where: { txRef: trx_ref }
+  });
+  if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+  logger.info("Callback requested", {
+    trx_ref,
+    status,
+    paymentStatus: payment.status
+  });
+
+  // Optional: mark payment as success if not already (for test mode)
+  if (status === "success" && payment.status !== "success") {
+    const updatedPayment = await prisma.payment.update({
+      where: { id: payment.id },
+      data: { status: "success", chapaRefId: ref_id }
+    });
+
+    await purchaseTicket({
+      eventId: updatedPayment.eventId,
+      ticketId: updatedPayment.ticketId,
+      userId: updatedPayment.userId,
+      attendeeName:
+        `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
+      attendeeEmail: updatedPayment.email,
+      quantity: updatedPayment.quantity
+    });
+
+    logger.info("Tickets issued via callback", {
+      paymentId: updatedPayment.id,
+      userId: updatedPayment.userId,
+      quantity: updatedPayment.quantity
+    });
+  }
+
+  return res.status(200).json({ status: payment.status, chapaRefId: ref_id });
+});

@@ -68,6 +68,7 @@ model Event {
   registrations   Registration[]
   tickets         Ticket[]
   notifications   Notification[]
+  payments        Payment[]
 
   @@index([userId])
   @@index([title])
@@ -129,6 +130,7 @@ model Ticket {
   deletedAt         DateTime?      @map("deleted_at") @db.Timestamp(6)
   registrations     Registration[]
   event             Event          @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  payments          Payment[]
 
   @@index([eventId])
   @@index([type])
@@ -136,20 +138,22 @@ model Ticket {
 }
 
 model User {
-  id            String         @id
-  name          String
-  email         String
-  emailVerified Boolean        @default(false)
-  image         String?
-  createdAt     DateTime       @default(now())
-  updatedAt     DateTime       @default(now()) @updatedAt
-  deletedAt     DateTime?      @map("deleted_at") @db.Timestamp(6)
-  events        Event[]
-  profile       Profile?
-  registrations Registration[]
-  sessions      Session[]
-  accounts      Account[]
-  notifications Notification[]
+  id                String             @id
+  name              String
+  email             String
+  emailVerified     Boolean            @default(false)
+  image             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now()) @updatedAt
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamp(6)
+  events            Event[]
+  profile           Profile?
+  registrations     Registration[]
+  sessions          Session[]
+  accounts          Account[]
+  notifications     Notification[]
+  payments          Payment[]
+  organizerSettings OrganizerSettings?
 
   @@unique([email])
   @@map("user")
@@ -214,6 +218,52 @@ model Notification {
   event Event? @relation(fields: [eventId], references: [id])
 
   @@map("notification")
+}
+
+model Payment {
+  id          String  @id @default(cuid())
+  eventId     String
+  userId      String?
+  organizerId String
+  ticketId    Int
+  quantity    Int
+  amount      Decimal @db.Decimal(10, 2)
+  currency    String  @default("ETB")
+  txRef       String  @unique
+  chapaRefId  String?
+  status      String  @default("pending")
+
+  firstName                String?
+  lastName                 String?
+  email                    String?
+  phoneNumber              String?  @db.VarChar(10)
+  returnUrl                String?
+  callbackUrl              String?
+  customizationTitle       String?
+  customizationDescription String?
+  metaHideReceipt          Boolean? @default(false)
+  metaDisablePhoneEdit     Boolean? @default(false)
+  metaCustomReceiptEnabled Boolean? @default(false)
+
+  fees         Decimal? @db.Decimal(10, 2)
+  payoutAmount Decimal? @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  event  Event  @relation(fields: [eventId], references: [id])
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+}
+
+model OrganizerSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  chapaKey  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
 }
 
 enum EventStatusEnum {
