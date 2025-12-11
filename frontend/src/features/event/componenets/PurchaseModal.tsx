@@ -89,7 +89,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
 
   const handleConfirm = useCallback(async () => {
     if (!ticket) return;
-    if (mutation.isLoading || mutation.isPending) return;
+    if (mutation.isPending || mutation.isPending) return;
 
     // require a name and email (email from logged-in user if available)
     const finalName = attendeeName?.trim();
@@ -106,17 +106,18 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
 
     try {
       const resp = await mutation.mutateAsync({
-        eventId: ticket.eventId,
-        ticketId: ticket.id,
+        eventId: String(ticket.eventId),
+        ticketId: String(ticket.id),
         quantity,
         attendeeName: finalName,
         attendeeEmail: finalEmail,
-        phoneNumber: user?.phone ?? "", // include phone if available on user
+        phoneNumber: (user as any)?.phone ?? "", // include phone if available on user
         returnUrl: `${window.location.origin}/payment-success`,
       });
 
       // server should return checkoutUrl
-      const checkoutUrl = resp?.checkoutUrl || resp?.data?.checkoutUrl;
+      const checkoutUrl =
+        (resp as any)?.checkoutUrl || (resp as any)?.data?.checkoutUrl;
       if (checkoutUrl) {
         window.location.assign(checkoutUrl);
       } else {
