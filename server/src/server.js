@@ -14,6 +14,8 @@ import authRoutes from "./modules/auth/auth.routes.js";
 import { sendEmailRoute } from "./lib/email/sendEmailRoute.js";
 import { sendReminderRoute } from "./lib/email/sendReminderRoute.js";
 import { auth } from "./modules/auth/auth.js";
+import { chapaRoutes } from "./modules/payment/chapa.routes.js";
+import { organizerSettingsRoutes } from "./modules/payment/organizerSettingsRoutes.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -122,6 +124,8 @@ app.post("/api/send-email", ...sendEmailRoute);
 app.post("/api/reminders/send", ...sendReminderRoute);
 app.use("/api/v1", routes);
 app.use("/api/auth", authRoutes);
+app.use("/api/chapa", chapaRoutes);
+app.use("/api/chapa", organizerSettingsRoutes);
 app.use(errorMiddleware);
 
 conn

@@ -1,5 +1,6 @@
+/* eslint-disable no-console */
 import QRCode from "qrcode";
-import prisma from "../../lib/prisma.js";
+import prisma from "../../lib/prisma.js"; // ensure this import exists near top of file
 import CustomError from "../../utils/customError.js";
 import {
   publishEmailJob,
@@ -102,22 +103,26 @@ export const getEventTickets = async (eventId) => {
 };
 
 export const purchaseTicket = async (
-  { eventId, ticketId, userId, attendeeName, attendeeEmail, quantity },
+  { eventId, ticketId, userId, attendeeName, attendeeEmail, quantity = 1 },
   io
 ) => {
+  const tTicketId = Number(ticketId);
+  const tQuantity = Number(quantity) || 1;
+
+  // Load ticket and ensure availability
   const ticket = await prisma.ticket.findFirst({
     where: {
-      id: parseInt(ticketId, 10),
+      id: tTicketId,
       eventId,
       deletedAt: null
     }
   });
-
   if (!ticket) throw new CustomError("Ticket not found", 404);
-  if (ticket.remainingQuantity < quantity) {
+  if (ticket.remainingQuantity < tQuantity) {
     throw new CustomError("Not enough tickets available", 409);
   }
 
+  // Determine receipt email
   let emailForReceipt = null;
   if (userId) {
     const user = await prisma.user.findUnique({
@@ -132,130 +137,165 @@ export const purchaseTicket = async (
     emailForReceipt = String(attendeeEmail).trim().toLowerCase();
   }
 
-  // create registration + update ticket in transaction
+  // Create registration and decrement ticket atomically
   const reg = await prisma.$transaction(async (tx) => {
     const created = await tx.registration.create({
       data: {
         userId: userId || null,
         eventId: ticket.eventId,
         ticketType: ticket.id,
-        registeredQuantity: quantity,
-        attendeeName,
+        registeredQuantity: tQuantity,
+        attendeeName: attendeeName || null,
         attendeeEmail: emailForReceipt
       }
     });
 
     await tx.ticket.update({
       where: { id: ticket.id },
-      data: { remainingQuantity: ticket.remainingQuantity - quantity }
+      data: { remainingQuantity: ticket.remainingQuantity - tQuantity }
     });
 
     return created;
   });
 
-  // QR DATA
+  // Build QR payload
   const qrData = JSON.stringify({
     registrationId: reg.id,
     eventId: ticket.eventId,
     ticketId: ticket.id,
-    attendeeName,
+    attendeeName: attendeeName || null,
     attendeeEmail: emailForReceipt
   });
 
-  const qrBuffer = await QRCode.toBuffer(qrData);
-  const qrBase64 = qrBuffer.toString("base64");
-
-  // upload QR to Cloudinary and get a public URL (fallback to null)
-  let qrUrl = null;
+  // Generate QR buffer / base64
+  let qrBase64 = null;
   try {
-    const uploadRes = await cloudinary.uploader.upload(
-      `data:image/png;base64,${qrBase64}`,
-      { folder: "tickets", use_filename: true }
-    );
-    qrUrl = uploadRes?.secure_url || uploadRes?.url || null;
-  } catch (err) {
-    process.stderr.write(
-      `Cloudinary upload failed: ${err?.message ?? String(err)}\n`
+    const qrBuffer = await QRCode.toBuffer(qrData);
+    qrBase64 = qrBuffer.toString("base64");
+  } catch (qrErr) {
+    // continue even if QR generation fails
+    console.error("QR generation failed:", qrErr?.message || qrErr);
+  }
+
+  // Upload QR to Cloudinary (best-effort)
+  let qrUrl = null;
+  if (qrBase64) {
+    try {
+      const uploadRes = await cloudinary.uploader.upload(
+        `data:image/png;base64,${qrBase64}`,
+        { folder: "tickets", use_filename: true }
+      );
+      qrUrl = uploadRes?.secure_url || uploadRes?.url || null;
+    } catch (upErr) {
+      console.error("Cloudinary upload failed:", upErr?.message || upErr);
+    }
+  }
+
+  // Persist qrUrl on registration if we have one
+  if (qrUrl) {
+    try {
+      await prisma.registration.update({
+        where: { id: reg.id },
+        data: { qrCodeUrl: qrUrl }
+      });
+    } catch (uErr) {
+      console.error(
+        "Failed to update registration with QR url:",
+        uErr?.message || uErr
+      );
+    }
+  }
+
+  // Publish email job (send QR + receipt)
+  try {
+    await publishEmailJob({
+      type: "ticket",
+      email: emailForReceipt,
+      attendeeName: attendeeName || null,
+      eventId: ticket.eventId,
+      ticketId: ticket.id,
+      qrBase64,
+      qrUrl,
+      registrationId: reg.id
+    });
+  } catch (emailErr) {
+    console.error(
+      "Failed to publish email job:",
+      emailErr?.message || emailErr
     );
   }
 
-  // Email job via QStash
-  await publishEmailJob({
-    type: "ticket",
-    email: emailForReceipt,
-    attendeeName,
-    eventId,
-    ticketId: ticket.id,
-    qrBase64,
-    qrUrl
-  });
-
-  // Schedule reminder
+  // Schedule reminder job
   try {
-    const event = await prisma.event.findUnique({
+    const evt = await prisma.event.findUnique({
       where: { id: ticket.eventId },
       select: { id: true, title: true, userId: true, startDatetime: true }
     });
 
-    if (event) {
+    if (evt) {
       await publishReminderJob({
         email: emailForReceipt,
         userId: userId || null,
-        eventId: event.id,
-        eventTitle: event.title,
-        attendeeName,
-        eventDate: event.startDatetime
+        eventId: evt.id,
+        eventTitle: evt.title,
+        attendeeName: attendeeName || null,
+        eventDate: evt.startDatetime
       });
     }
   } catch (schedErr) {
-    process.stderr.write(
-      `Failed to schedule reminder: ${schedErr?.message ?? String(schedErr)}\n`
+    console.error(
+      "Failed to schedule reminder:",
+      schedErr?.message || schedErr
     );
   }
 
   // Notify event owner
-  const event = await prisma.event.findUnique({
-    where: { id: ticket.eventId },
-    select: { id: true, title: true, userId: true }
-  });
-
-  if (event && event.userId) {
-    let buyerName = attendeeName || emailForReceipt || "A user";
-    if (userId) {
-      const buyer = await prisma.user.findUnique({
-        where: { id: userId },
-        select: {
-          email: true,
-          profile: { select: { firstName: true, lastName: true } }
-        }
-      });
-      const full =
-        `${buyer?.profile?.firstName || ""} ${buyer?.profile?.lastName || ""}`.trim();
-      if (full) buyerName = full;
-      else if (buyer?.email) buyerName = buyer.email;
-    }
-
-    const notifMessage = `${buyerName} purchased ${quantity} ticket${quantity > 1 ? "s" : ""} to your event "${event.title}".`;
-    const notification = await prisma.notification.create({
-      data: {
-        userId: event.userId,
-        type: "ticket_purchased",
-        title: "Ticket Purchased",
-        message: notifMessage,
-        eventId: event.id
-      }
+  try {
+    const evt = await prisma.event.findUnique({
+      where: { id: ticket.eventId },
+      select: { id: true, title: true, userId: true }
     });
 
-    if (io && typeof io.to === "function") {
-      io.to(`user:${event.userId}`).emit("notification:new", {
-        id: notification.id,
-        eventId: event.id,
-        type: "ticket_purchased",
-        title: notification.title,
-        message: notification.message,
-        createdAt: notification.createdAt
+    if (evt && evt.userId) {
+      let buyerName = attendeeName || emailForReceipt || "A user";
+      if (userId) {
+        const buyer = await prisma.user.findUnique({
+          where: { id: userId },
+          select: {
+            email: true,
+            profile: { select: { firstName: true, lastName: true } }
+          }
+        });
+        const full =
+          `${buyer?.profile?.firstName || ""} ${buyer?.profile?.lastName || ""}`.trim();
+        if (full) buyerName = full;
+        else if (buyer?.email) buyerName = buyer.email;
+      }
+
+      const notifMessage = `${buyerName} purchased ${tQuantity} ticket${tQuantity > 1 ? "s" : ""} to your event "${evt.title}".`;
+      const notification = await prisma.notification.create({
+        data: {
+          userId: evt.userId,
+          type: "ticket_purchased",
+          title: "Ticket Purchased",
+          message: notifMessage,
+          eventId: evt.id
+        }
       });
+
+      if (io && typeof io.to === "function") {
+        io.to(`user:${evt.userId}`).emit("notification:new", {
+          id: notification.id,
+          eventId: evt.id,
+          type: "ticket_purchased",
+          title: notification.title,
+          message: notification.message,
+          createdAt: notification.createdAt
+        });
+      }
     }
+  } catch (notifErr) {
+    console.error("Failed to notify organizer:", notifErr?.message || notifErr);
   }
 
   return reg;

@@ -9,8 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import type { InputFieldProps, PurchaseModalProps } from "../types/event";
-import { usePurchaseTicket } from "../hooks/usePurchaseTicket";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useChapaInitialize } from "../hooks/useChapaInitialize";
 
 const InputField = React.memo(function InputField({
   label,
@@ -43,7 +43,6 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   ticket,
   open,
   onClose,
-  onPurchase,
 }) => {
   const { user } = useCurrentUser();
   const [step, setStep] = useState(1);
@@ -52,13 +51,11 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   const [quantity, setQuantity] = useState(1);
   const [agree, setAgree] = useState(false);
 
-  const mutation = usePurchaseTicket();
+  const mutation = useChapaInitialize();
 
   useEffect(() => {
     if (!ticket) return;
-    if (ticket.maxPerUser === 1) {
-      setQuantity(1);
-    }
+    if (ticket.maxPerUser === 1) setQuantity(1);
   }, [ticket]);
 
   useEffect(() => {
@@ -76,11 +73,8 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   }, [open, mutation]);
 
   useEffect(() => {
-    if (user?.email) {
-      setAttendeeEmail(user.email);
-    } else {
-      setAttendeeEmail("");
-    }
+    if (user?.email) setAttendeeEmail(user.email);
+    else setAttendeeEmail("");
   }, [user?.email, user]);
 
   const numericPrice = useMemo(() => {
@@ -89,40 +83,52 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
     return Number.isFinite(n) ? n : 0;
   }, [ticket]);
 
-  // guests must provide email; logged-in users do not
   const canContinue = Boolean(
     attendeeName && (user ? true : attendeeEmail) && quantity > 0
   );
 
-  const handleConfirm = useCallback(() => {
+  const handleConfirm = useCallback(async () => {
     if (!ticket) return;
-    if (mutation.isPending) return;
+    if (mutation.isPending || mutation.isPending) return;
 
-    mutation.mutate(
-      {
-        eventId: ticket.eventId,
-        ticketId: ticket.id,
-        attendeeName,
-        attendeeEmail: user ? user.email : attendeeEmail,
+    // require a name and email (email from logged-in user if available)
+    const finalName = attendeeName?.trim();
+    const finalEmail = user?.email ?? attendeeEmail?.trim();
+
+    if (!finalName) {
+      alert("Please enter attendee name");
+      return;
+    }
+    if (!finalEmail) {
+      alert("Please enter attendee email");
+      return;
+    }
+
+    try {
+      const resp = await mutation.mutateAsync({
+        eventId: String(ticket.eventId),
+        ticketId: String(ticket.id),
         quantity,
-      },
-      {
-        onSuccess: () => {
-          onPurchase(attendeeName, attendeeEmail, quantity);
-          onClose();
-        },
+        attendeeName: finalName,
+        attendeeEmail: finalEmail,
+        phoneNumber: (user as any)?.phone ?? "", // include phone if available on user
+        returnUrl: `${window.location.origin}/payment-success`,
+      });
+
+      // server should return checkoutUrl
+      const checkoutUrl =
+        (resp as any)?.checkoutUrl || (resp as any)?.data?.checkoutUrl;
+      if (checkoutUrl) {
+        window.location.assign(checkoutUrl);
+      } else {
+        console.error("No checkoutUrl in response", resp);
+        alert("Payment initialization failed: missing checkout URL");
       }
-    );
-  }, [
-    ticket,
-    attendeeName,
-    attendeeEmail,
-    quantity,
-    mutation,
-    onPurchase,
-    onClose,
-    user,
-  ]);
+    } catch (err) {
+      // mutation.onError already logs/alerts, but keep a console trace
+      console.error("Payment initialization failed:", err);
+    }
+  }, [ticket, attendeeName, attendeeEmail, quantity, mutation, user]);
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -158,12 +164,11 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                       type="email"
                       value={attendeeEmail}
                       onChange={() => {}}
-                      required={false}
                     />
                   </div>
                 )}
 
-                {ticket?.maxPerUser && ticket.maxPerUser > 1 ? (
+                {ticket?.maxPerUser && ticket.maxPerUser > 1 && (
                   <>
                     <InputField
                       label="Quantity"
@@ -173,17 +178,13 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                         setQuantity(typeof v === "number" && !isNaN(v) ? v : 1)
                       }
                       min={1}
-                      max={ticket?.maxPerUser ?? 1}
+                      max={ticket.maxPerUser}
                       required
                     />
                     <p className="text-xs text-gray-500">
-                      Max per user: {ticket?.maxPerUser}
+                      Max per user: {ticket.maxPerUser}
                     </p>
                   </>
-                ) : (
-                  <p className="text-xs text-gray-500">
-                    Max per user: {ticket?.maxPerUser}
-                  </p>
                 )}
               </>
             )}
