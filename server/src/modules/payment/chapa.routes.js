@@ -234,12 +234,9 @@ chapaRoutes.get("/callback", async (req, res) => {
   console.log("Callback hit with:", req.query);
 
   const { trx_ref, tx_ref, status, ref_id } = req.query;
-
-  // Chapa redirect does NOT always contain trx_ref
   const reference = trx_ref || tx_ref;
 
   if (!reference) {
-    // No transaction reference → simply send user to frontend success
     return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
   }
 
@@ -247,16 +244,38 @@ chapaRoutes.get("/callback", async (req, res) => {
     where: { txRef: reference }
   });
 
-  //   if (!payment) {
-  //     return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
-  //   }
+  if (!payment) {
+    // If payment not found, still redirect user to frontend
+    return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
+  }
 
-  // Mark success
+  // Mark success and issue tickets (callback path)
   if (status === "success" && payment.status !== "success") {
     await prisma.payment.update({
       where: { id: payment.id },
       data: { status: "success", chapaRefId: ref_id }
     });
+
+    try {
+      await purchaseTicket(
+        {
+          eventId: payment.eventId,
+          ticketId: payment.ticketId,
+          userId: payment.userId,
+          attendeeName:
+            `${payment.firstName || ""} ${payment.lastName || ""}`.trim(),
+          attendeeEmail: payment.email,
+          quantity: payment.quantity
+        },
+        req.app.get("io")
+      );
+      logger.info("Tickets issued via callback", { paymentId: payment.id });
+    } catch (issueErr) {
+      logger.error("Failed to issue tickets in callback", {
+        paymentId: payment.id,
+        error: issueErr?.message || String(issueErr)
+      });
+    }
   }
 
   return res.redirect(
