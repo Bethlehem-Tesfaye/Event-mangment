@@ -4,8 +4,8 @@ import express from "express";
 import axios from "axios";
 import crypto from "crypto";
 import prisma from "../../lib/prisma.js";
-import logger from "../../utils/logger.js"; // added
-import { purchaseTicket } from "../event/event.service.js"; // added
+import logger from "../../utils/logger.js";
+import { purchaseTicket } from "../event/event.service.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
 
 export const chapaRoutes = express.Router();
@@ -165,7 +165,6 @@ chapaRoutes.post("/webhook", async (req, res) => {
 
     const signature = req.headers["x-chapa-signature"];
 
-    // Verify webhook secret
     if (signature !== process.env.CHAPA_WEBHOOK_SECRET) {
       return res.status(403).send("Invalid signature");
     }
@@ -178,7 +177,6 @@ chapaRoutes.post("/webhook", async (req, res) => {
     });
     if (!payment) return res.status(404).send("Payment not found");
 
-    // Prevent double processing if already successful
     if (payment.status === "success") {
       logger.info("Payment already processed", {
         paymentId: payment.id,
@@ -187,7 +185,6 @@ chapaRoutes.post("/webhook", async (req, res) => {
       return res.status(200).send("Already processed");
     }
 
-    // Update payment status
     const updatedPayment = await prisma.payment.update({
       where: { id: payment.id },
       data: { status, chapaRefId: reference }
@@ -200,7 +197,6 @@ chapaRoutes.post("/webhook", async (req, res) => {
       chapaRefId: updatedPayment.chapaRefId
     });
 
-    // Only issue tickets if payment successful and wasn't processed before
     if (status === "success") {
       try {
         await purchaseTicket(
@@ -213,7 +209,7 @@ chapaRoutes.post("/webhook", async (req, res) => {
             attendeeEmail: updatedPayment.email,
             quantity: updatedPayment.quantity
           },
-          req.app.get("io") // <-- pass io here
+          req.app.get("io")
         );
         logger.info("Tickets issued for payment", {
           paymentId: updatedPayment.id,
@@ -221,7 +217,6 @@ chapaRoutes.post("/webhook", async (req, res) => {
           quantity: updatedPayment.quantity
         });
       } catch (issueErr) {
-        // Log but don't fail webhook so Chapa doesn't retry indefinitely
         logger.error("Failed to issue tickets after payment success", {
           paymentId: updatedPayment.id,
           error: issueErr?.message || String(issueErr)

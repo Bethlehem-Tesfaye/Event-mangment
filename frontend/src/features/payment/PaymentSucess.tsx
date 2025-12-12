@@ -1,4 +1,3 @@
-import React from "react";
 import { useLogout } from "../auth/hooks/useLogout";
 import { useCurrentUser } from "../auth/hooks/useCurrentUser";
 import { Navbar } from "../event/componenets/Navbar";
