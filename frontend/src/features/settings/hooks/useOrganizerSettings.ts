@@ -20,7 +20,7 @@ const getApiUrl = (path: string) => {
 export const useOrganizerSettings = () => {
   const mutation = useMutation<OrganizerResponse, any, OrganizerInput>({
     mutationFn: async (variables: OrganizerInput) => {
-      const url = getApiUrl("/api/chapa/chapa-key");
+      const url = getApiUrl("/api/chapa/settings/chapa-key");
       const response = await axios.post(url, variables, {
         withCredentials: true,
       });
@@ -47,7 +47,7 @@ export const useGetOrganizerChapaKey = (opts?: { enabled?: boolean }) => {
   const query = useQuery({
     queryKey: ["organizerSettings", "chapaKey"],
     queryFn: async (): Promise<{ chapaKey?: string | null }> => {
-      const url = getApiUrl("/api/chapa/chapa-key");
+      const url = getApiUrl("/api/chapa/settings/chapa-key");
       try {
         const res = await axios.get(url, { withCredentials: true });
         return { chapaKey: res.data?.chapaKey ?? null };
@@ -72,7 +72,7 @@ export const useGetOrganizerChapaKey = (opts?: { enabled?: boolean }) => {
 export const useEditOrganizerChapaKey = () => {
   const mutation = useMutation<OrganizerResponse, any, OrganizerInput>({
     mutationFn: async (variables: OrganizerInput) => {
-      const url = getApiUrl("/api/chapa/chapa-key");
+      const url = getApiUrl("/api/chapa/settings/chapa-key");
       const response = await axios.put(url, variables, {
         withCredentials: true,
       });

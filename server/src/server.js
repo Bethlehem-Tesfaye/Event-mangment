@@ -125,7 +125,7 @@ app.post("/api/reminders/send", ...sendReminderRoute);
 app.use("/api/v1", routes);
 app.use("/api/auth", authRoutes);
 app.use("/api/chapa", chapaRoutes);
-app.use("/api/chapa", organizerSettingsRoutes);
+app.use("/api/chapa/settings", organizerSettingsRoutes);
 app.use(errorMiddleware);
 
 conn
