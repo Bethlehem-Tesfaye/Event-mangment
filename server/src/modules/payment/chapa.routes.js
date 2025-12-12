@@ -1,16 +1,15 @@
+/* eslint-disable camelcase */
+/* eslint-disable no-console */
 import express from "express";
-import prisma from "../../lib/prisma.js";
 import axios from "axios";
 import crypto from "crypto";
+import prisma from "../../lib/prisma.js";
 import logger from "../../utils/logger.js"; // added
 import { purchaseTicket } from "../event/event.service.js"; // added
 import authMiddleware from "../../middleware/authMiddleware.js";
 
 export const chapaRoutes = express.Router();
 
-/**
- * Initialize a Chapa payment
- */
 chapaRoutes.post("/initialize", authMiddleware, async (req, res, next) => {
   try {
     const {
@@ -97,8 +96,8 @@ chapaRoutes.post("/initialize", authMiddleware, async (req, res, next) => {
         first_name: firstName,
         last_name: lastName,
         phone_number: phoneNumber,
-        callback_url: `${process.env.LOCAL_BASE_URL}/api/chapa/callback`
-        // return_url: returnUrl || `${process.env.CLIENT_URL}/payment-success`
+        callback_url: `${process.env.LOCAL_BASE_URL}/api/chapa/callback` // webhook
+        // return_url: `${process.env.CLIENT_URL}/payment-success?status=success&receipt=${txRef}`
       };
 
       const headers = {
@@ -152,13 +151,10 @@ chapaRoutes.post("/initialize", authMiddleware, async (req, res, next) => {
     });
   } catch (err) {
     console.error(err);
-    next(err);
+    return next(err);
   }
 });
 
-/**
- * Webhook to update payment status
- */
 chapaRoutes.post("/webhook", async (req, res) => {
   try {
     logger.info("Webhook received", {
@@ -233,57 +229,42 @@ chapaRoutes.post("/webhook", async (req, res) => {
       }
     }
 
-    res.status(200).send("Webhook processed");
+    return res.status(200).send("Webhook processed");
   } catch (err) {
-    console.error(err);
-    res.status(500).send("Error processing webhook");
+    return res.status(500).send("Error processing webhook");
   }
 });
 
-/**
- * Optional: callback for redirect after payment
- */
 chapaRoutes.get("/callback", async (req, res) => {
-  const { trx_ref, status, ref_id } = req.query;
-  if (!trx_ref) return res.status(400).json({ message: "trx_ref missing" });
+  console.log("Callback hit with:", req.query);
+
+  const { trx_ref, tx_ref, status, ref_id } = req.query;
+
+  // Chapa redirect does NOT always contain trx_ref
+  const reference = trx_ref || tx_ref;
+
+  if (!reference) {
+    // No transaction reference → simply send user to frontend success
+    return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
+  }
 
   const payment = await prisma.payment.findUnique({
-    where: { txRef: trx_ref }
-  });
-  if (!payment) return res.status(404).json({ message: "Payment not found" });
-
-  logger.info("Callback requested", {
-    trx_ref,
-    status,
-    paymentStatus: payment.status
+    where: { txRef: reference }
   });
 
-  // Optional: mark payment as success if not already (for test mode)
+  //   if (!payment) {
+  //     return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
+  //   }
+
+  // Mark success
   if (status === "success" && payment.status !== "success") {
-    const updatedPayment = await prisma.payment.update({
+    await prisma.payment.update({
       where: { id: payment.id },
       data: { status: "success", chapaRefId: ref_id }
     });
-
-    await purchaseTicket(
-      {
-        eventId: updatedPayment.eventId,
-        ticketId: updatedPayment.ticketId,
-        userId: updatedPayment.userId,
-        attendeeName:
-          `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
-        attendeeEmail: updatedPayment.email,
-        quantity: updatedPayment.quantity
-      },
-      req.app.get("io") // <-- pass io here
-    );
-
-    logger.info("Tickets issued via callback", {
-      paymentId: updatedPayment.id,
-      userId: updatedPayment.userId,
-      quantity: updatedPayment.quantity
-    });
   }
 
-  return res.status(200).json({ status: payment.status, chapaRefId: ref_id });
+  return res.redirect(
+    `${process.env.CLIENT_URL}/payment-success?status=success&receipt=${ref_id}`
+  );
 });

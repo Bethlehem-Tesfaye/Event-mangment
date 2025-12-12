@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import QRCode from "qrcode";
 import prisma from "../../lib/prisma.js"; // ensure this import exists near top of file
 import CustomError from "../../utils/customError.js";
@@ -6,7 +7,6 @@ import {
   publishReminderJob
 } from "../../utils/qstashPublisher.js";
 import cloudinary from "../../lib/cloudinary.js";
-import crypto from "crypto";
 
 export const getEvents = async ({
   limit = 20,

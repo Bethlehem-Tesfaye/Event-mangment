@@ -16,7 +16,7 @@ organizerSettingsRoutes.post(
       if (!chapaKey)
         return res.status(400).json({ message: "Chapa key is required" });
 
-      const updatedSettings = await prisma.organizerSettings.upsert({
+      await prisma.organizerSettings.upsert({
         where: { userId },
         update: { chapaKey },
         create: { userId, chapaKey }
@@ -24,7 +24,6 @@ organizerSettingsRoutes.post(
 
       return res.status(200).json({ message: "Chapa key saved successfully" });
     } catch (err) {
-      console.error(err);
       return next(err);
     }
   }
