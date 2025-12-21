@@ -116,7 +116,7 @@ export default function OrganizerEventPreviewPage() {
       <Sidebar active="preview" onNavigate={() => {}} />
       <div className="flex-1 flex flex-col">
         <Topbar user={user} onLogout={handleLogout} />
-        <main className="p-6 max-w-7xl w-full mx-auto flex-1">
+        <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 space-y-10 flex-1p-6 flex-1">
           <Breadcrumb className="mb-4">
             <BreadcrumbList>
               <BreadcrumbItem>

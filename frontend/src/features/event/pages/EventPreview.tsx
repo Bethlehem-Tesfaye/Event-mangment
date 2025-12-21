@@ -17,6 +17,7 @@ import {
 } from "../hooks/useEventDetails";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "../componenets/Navbar";
+import PageContainer from "@/components/PageContainer";
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 
@@ -45,7 +46,7 @@ export function EventPreview() {
           showSearch={false}
           user={user as any}
         />
-        <div className="max-w-7xl mx-auto px-16 py-10 flex flex-col gap-10">
+        <PageContainer className="py-10 flex flex-col gap-10">
           <Skeleton className="h-8 w-1/3 mb-6" />
           <div className="flex flex-col lg:flex-row gap-10">
             <div className="flex-1 flex flex-col gap-6">
@@ -58,7 +59,7 @@ export function EventPreview() {
               <Skeleton className="h-24 w-full rounded-lg" />
             </div>
           </div>
-        </div>
+        </PageContainer>
       </>
     );
   }
@@ -72,12 +73,14 @@ export function EventPreview() {
           user={user as any}
           showSearch={false}
         />
-        <div className="max-w-3xl mx-auto py-20 text-center text-muted-foreground">
-          Event not found.{" "}
-          <Link to="/browse-event" className="text-red-500">
-            Go back to events
-          </Link>
-        </div>
+        <PageContainer className="py-20">
+          <div className="max-w-3xl mx-auto text-center text-muted-foreground">
+            Event not found.{" "}
+            <Link to="/browse-event" className="text-red-500">
+              Go back to events
+            </Link>
+          </div>
+        </PageContainer>
       </>
     );
   }
@@ -90,7 +93,7 @@ export function EventPreview() {
         showSearch={false}
         user={user as any}
       />
-      <div className="max-w-7xl mx-auto px-16 py-10 flex flex-col gap-10">
+      <PageContainer className="py-10 flex flex-col gap-10">
         <Breadcrumb className="mb-4">
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -121,7 +124,7 @@ export function EventPreview() {
             </div>
           )}
         </div>
-      </div>
+      </PageContainer>
     </div>
   );
 }

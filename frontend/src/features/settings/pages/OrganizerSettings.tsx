@@ -108,7 +108,7 @@ export default function Settings() {
       <div className="flex-1 flex flex-col">
         <Topbar user={user} onLogout={handleLogout} />
 
-        <main className="w-full max-w-4xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 space-y-10 flex-1">
+        <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 space-y-10 flex-1">
           {/* General Section */}
           <section className="bg-white dark:bg-[#202127] border border-gray-200 dark:border-slate-700 rounded-2xl shadow-sm p-8">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">

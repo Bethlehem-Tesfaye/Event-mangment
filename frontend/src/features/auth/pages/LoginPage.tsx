@@ -7,6 +7,7 @@ import { useCurrentUser } from "../hooks/useCurrentUser"; // Better Auth session
 import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
 import { useGoogleAuth } from "../hooks/useGoogleAuth";
+import PageContainer from "@/components/PageContainer";
 
 export function LoginPage() {
   const { login, isLoading } = useLogin();
@@ -37,14 +38,16 @@ export function LoginPage() {
   };
 
   return (
-    <AuthLayout title="Login to your account">
-      <LoginForm
-        onSubmit={handleSubmit}
-        onSocialClick={handleSocialClick}
-        onRegister={() => navigate("/register")}
-        isLoading={isLoading || isPending} // show loader while session is pending
-      />
-      {(isLoading || isPending) && <PulseLoader show />}
-    </AuthLayout>
+    <PageContainer>
+      <AuthLayout title="Login to your account">
+        <LoginForm
+          onSubmit={handleSubmit}
+          onSocialClick={handleSocialClick}
+          onRegister={() => navigate("/register")}
+          isLoading={isLoading || isPending} // show loader while session is pending
+        />
+        {(isLoading || isPending) && <PulseLoader show />}
+      </AuthLayout>
+    </PageContainer>
   );
 }

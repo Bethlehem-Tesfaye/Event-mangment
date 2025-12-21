@@ -16,7 +16,7 @@ export default function CreateEventPage() {
       <Sidebar active={active} onNavigate={(key: string) => setActive(key)} />
       <div className="flex-1">
         <Topbar user={user} />
-        <main className="p-6 max-w-7xl mx-auto">
+        <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 space-y-10 flex-1 p-6">
           <EventEditor
             onCreated={() => {
               navigate(`/organizer/events`);

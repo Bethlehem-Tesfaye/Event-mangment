@@ -13,7 +13,7 @@ export default function Analytics() {
       <SideBar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col">
         <Topbar user={user} />
-        <main className="p-6 max-w-7xl w-full mx-auto flex-1">
+        <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 space-y-10 p-6 flex-1">
           <div className="flex items-center justify-between mb-4">
             <h1 className="text-2xl font-bold">Event Analytics</h1>
           </div>

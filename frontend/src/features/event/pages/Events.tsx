@@ -7,6 +7,7 @@ import { useFilteredEvents } from "../hooks/useFilteredEvents";
 import { useCategoryList } from "../hooks/useCategoryList";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
+import PageContainer from "@/components/PageContainer";
 
 function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
@@ -53,7 +54,7 @@ function Events() {
         logoutLoading={logoutLoading}
         user={user as any}
       />
-      <div className="md:mx-[70px] md:mt-5">
+      <PageContainer>
         <Hero />
         <BrowsePage
           categories={categories.map((c: any) => c.name)}
@@ -67,7 +68,7 @@ function Events() {
           onPageChange={setCurrentPage}
           limit={limit}
         />
-      </div>
+      </PageContainer>
       <Footer
         categories={categories.map((c: any) => c.name)}
         onSelectCategory={handleCategoryChange}

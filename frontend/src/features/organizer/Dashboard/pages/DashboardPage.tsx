@@ -12,6 +12,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useCurrentUser } from "../../../auth/hooks/useCurrentUser";
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { ArrowRight } from "lucide-react";
+import PageContainer from "@/components/PageContainer";
 
 export default function DashboardPage() {
   const [route, setRoute] = useState<string>("dashboard");
@@ -69,7 +70,7 @@ export default function DashboardPage() {
       <Sidebar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col">
         <Topbar user={user} onLogout={handleLogout} />
-        <main className="p-6 max-w-7xl w-full mx-auto flex-1">
+        <PageContainer hasSidebar={true} className="flex-1 p-6">
           <div className="mt-[50px] mb-6">
             <p className="text-[24px] font-semibold">Overview</p>
           </div>
@@ -145,7 +146,7 @@ export default function DashboardPage() {
               />
             )}
           </section>
-        </main>
+        </PageContainer>
 
         <footer className="mt-12 text-center text-sm text-gray-600 dark:text-gray-400 py-6">
           <p>

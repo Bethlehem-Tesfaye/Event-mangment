@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import PageContainer from "@/components/PageContainer";
 
 export default function ForgotPassword() {
   const [email, setEmail] = useState("");
@@ -41,30 +42,32 @@ export default function ForgotPassword() {
   };
 
   return (
-    <AuthLayout title="Forgot Password">
-      <form
-        onSubmit={handleSubmit}
-        className="flex flex-col gap-4 h-full justify-center"
-      >
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="email">Email</Label>
-          <Input
-            id="email"
-            type="email"
-            placeholder="Enter your email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="h-10"
-          />
-        </div>
+    <PageContainer>
+      <AuthLayout title="Forgot Password">
+        <form
+          onSubmit={handleSubmit}
+          className="flex flex-col gap-4 h-full justify-center"
+        >
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="email">Email</Label>
+            <Input
+              id="email"
+              type="email"
+              placeholder="Enter your email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="h-10"
+            />
+          </div>
 
-        <div>
-          <Button type="submit" className="w-full h-10" disabled={submitting}>
-            {submitting ? "Sending..." : "Send Reset Link"}
-          </Button>
-        </div>
-      </form>
-    </AuthLayout>
+          <div>
+            <Button type="submit" className="w-full h-10" disabled={submitting}>
+              {submitting ? "Sending..." : "Send Reset Link"}
+            </Button>
+          </div>
+        </form>
+      </AuthLayout>
+    </PageContainer>
   );
 }

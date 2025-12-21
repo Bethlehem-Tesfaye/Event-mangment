@@ -97,7 +97,7 @@ export default function OrganizerEventsListPage() {
       <SideBar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col md:pl-56">
         <Topbar user={user} />
-        <main className="flex-1 space-y-6 p-6 max-w-7xl w-full mx-auto">
+        <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10">
           <div className="flex justify-between items-center mb-6">
             <div className="flex items-center gap-10 px-1">
               <button
