@@ -35,17 +35,14 @@ export const purchaseTicket = async (req, res, next) => {
   const userId = req.userId || null;
 
   try {
-    const registration = await eventService.purchaseTicket(
-      {
-        eventId,
-        ticketId,
-        userId,
-        attendeeName,
-        attendeeEmail,
-        quantity: parseInt(quantity, 10)
-      },
-      req.app.get("io")
-    );
+    const registration = await eventService.purchaseTicket({
+      eventId,
+      ticketId,
+      userId,
+      attendeeName,
+      attendeeEmail,
+      quantity: parseInt(quantity, 10)
+    });
 
     return res.status(201).json({
       data: registration
@@ -103,15 +100,10 @@ export const updateEvent = async (req, res, next) => {
       eventData.locationType = "inPerson";
     }
 
-    const updatedEvent = await eventService.updateEvent(
-      eventId,
-      userId,
-      {
-        ...eventData,
-        status
-      },
-      req.app.get("io")
-    );
+    const updatedEvent = await eventService.updateEvent(eventId, userId, {
+      ...eventData,
+      status
+    });
     return res.status(200).json({ data: { event: updatedEvent } });
   } catch (err) {
     return next(err);

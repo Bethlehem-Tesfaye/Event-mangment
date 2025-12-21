@@ -37,14 +37,7 @@ app.use(
   })
 );
 
-// const io = new Server(server, {
-//   cors: {
-//     origin: allowedOrigins,
-//     credentials: true,
-//     methods: ["GET", "POST"]
-//   }
-// });
-initializeSocketIO(io);
+const io = initializeSocketIO(server);
 
 io.use(async (socket, next) => {
   logger.info("New socket connection attempt");
