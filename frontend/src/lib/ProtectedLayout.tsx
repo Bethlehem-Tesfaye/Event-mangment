@@ -3,7 +3,6 @@ import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { useResendVerify } from "@/features/auth/hooks/useResendVerify";
 import { useEffect, useRef } from "react";
 import PulseLoader from "@/components/custom/PulseLoader";
-import { tr } from "zod/v4/locales";
 
 export const ProtectedLayout: React.FC = () => {
   const { user, isPending } = useCurrentUser();
