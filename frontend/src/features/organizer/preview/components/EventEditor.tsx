@@ -18,7 +18,7 @@ import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { eventFormSchema } from "@/schemas/event";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { CardContent } from "@/components/ui/card";
 import PulseLoader from "@/components/custom/PulseLoader";
 import { toast } from "sonner";
 import { useForm, FormProvider } from "react-hook-form";
@@ -953,36 +953,15 @@ export default function EventEditor({ id, onCreated }: Props) {
 
   return (
     <FormProvider {...methods}>
-      <div className="max-w-6xl mx-auto">
+      <div className="max-w-6xl mx-auto ">
         <PulseLoader show={saving} />
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-6">
           <h2 className="text-xl font-semibold">
             {isEdit ? "Edit Event" : "Create Event"}
           </h2>
           <div className="flex gap-2">
-            <Button
-              onClick={() => {
-                methods.handleSubmit(
-                  () => handleSave(),
-                  (errors) => console.log("validation errors", errors)
-                )();
-              }}
-              disabled={saving}
-            >
-              {isEdit ? (
-                <>
-                  <Check />
-                  Save Event
-                </>
-              ) : (
-                <>
-                  <Plus />
-                  Create Event
-                </>
-              )}
-            </Button>
             {isEdit && id && (
               <Button
                 variant="outline"
@@ -1005,112 +984,133 @@ export default function EventEditor({ id, onCreated }: Props) {
         </div>
 
         {/* Event Info */}
-        <Card className="mb-4">
-          <CardContent>
-            <EventInfo
-              editable={true}
-              editableEvent={editableEvent}
-              onChangeField={handleChangeField}
-              form={methods}
-              {...eventInfoExtraProps}
-            />
-          </CardContent>
-        </Card>
+        {/* <Card className="mb-4"> */}
+        <CardContent>
+          <EventInfo
+            editable={true}
+            editableEvent={editableEvent}
+            onChangeField={handleChangeField}
+            form={methods}
+            {...eventInfoExtraProps}
+          />
+        </CardContent>
+        {/* </Card> */}
 
         {/* Tickets & Speakers */}
-        <div className="flex flex-col gap-4 mb-4">
-          <Card className="flex-1">
-            <CardContent>
-              <TicketsList
-                tickets={editableEvent.tickets ?? []}
-                editable={true}
-                newTicket={newTicket}
-                setNewTicket={setNewTicket}
-                onAddLocal={handleAddTicketLocal}
-                onChangeTicket={handleChangeTicket}
-                onRemoveLocal={(_type, id) => handleRemoveLocal("ticket", id)}
-                onRemoteDelete={(tid: number) => {
-                  if (deleteTicket) deleteTicket.mutate(tid);
-                }}
-                error={ticketError}
-              />
-            </CardContent>
-          </Card>
+        <div className="flex flex-col gap-4 mb-4 mt-4">
+          {/* <Card className="flex-1"> */}
+          <CardContent>
+            <TicketsList
+              tickets={editableEvent.tickets ?? []}
+              editable={true}
+              newTicket={newTicket}
+              setNewTicket={setNewTicket}
+              onAddLocal={handleAddTicketLocal}
+              onChangeTicket={handleChangeTicket}
+              onRemoveLocal={(_type, id) => handleRemoveLocal("ticket", id)}
+              onRemoteDelete={(tid: number) => {
+                if (deleteTicket) deleteTicket.mutate(tid);
+              }}
+              error={ticketError}
+            />
+          </CardContent>
+          {/* </Card> */}
 
           {methods.watch?.("hasSpeakers") ??
           (editableEvent.speakers ?? []).length > 0 ? (
-            <Card className="flex-1">
-              <CardContent>
-                <SpeakersList
-                  speakers={editableEvent.speakers ?? []}
-                  editable={true}
-                  newSpeaker={newSpeaker}
-                  setNewSpeaker={setNewSpeaker}
-                  onAddLocal={handleAddSpeakerLocal}
-                  onChangeSpeaker={handleChangeSpeaker}
-                  onRemoveLocal={(_type, id) =>
-                    handleRemoveLocal("speaker", id)
+            // <Card className="flex-1">
+            <CardContent>
+              <SpeakersList
+                speakers={editableEvent.speakers ?? []}
+                editable={true}
+                newSpeaker={newSpeaker}
+                setNewSpeaker={setNewSpeaker}
+                onAddLocal={handleAddSpeakerLocal}
+                onChangeSpeaker={handleChangeSpeaker}
+                onRemoveLocal={(_type, id) => handleRemoveLocal("speaker", id)}
+                onRemoteDelete={(sid: number) => {
+                  if (deleteSpeaker) deleteSpeaker.mutate(sid);
+                }}
+                onFileChange={(idOrNew, file) => {
+                  if (typeof idOrNew === "number") {
+                    handleChangeSpeaker(idOrNew, "photoFile", file);
+                  } else {
+                    setNewSpeaker((prev: any) => {
+                      if (!prev) return null;
+                      return { ...prev, photoFile: file };
+                    });
                   }
-                  onRemoteDelete={(sid: number) => {
-                    if (deleteSpeaker) deleteSpeaker.mutate(sid);
-                  }}
-                  onFileChange={(idOrNew, file) => {
-                    if (typeof idOrNew === "number") {
-                      handleChangeSpeaker(idOrNew, "photoFile", file);
-                    } else {
-                      setNewSpeaker((prev: any) => {
-                        if (!prev) return null;
-                        return { ...prev, photoFile: file };
-                      });
-                    }
-                  }}
-                />
-              </CardContent>
-            </Card>
-          ) : null}
+                }}
+              />
+            </CardContent>
+          ) : // </Card>
+          null}
         </div>
 
         {/* Categories */}
-        <Card>
-          <CardContent>
-            <div className="mb-2 font-medium">Categories</div>
-            <div className="flex flex-wrap gap-2">
-              {categories?.map((cat: any) => (
-                <CategoryBadge
-                  key={cat.id}
-                  category={cat}
-                  selected={(editableEvent?.categories ?? [])
-                    .map(Number)
-                    .includes(Number(cat.id))}
-                  onSelect={() =>
-                    setEditableEvent((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            categories: [
-                              ...new Set([...(prev.categories ?? []), cat.id]),
-                            ],
-                          }
-                        : prev
-                    )
-                  }
-                  onRemove={() =>
-                    setEditableEvent((prev) =>
-                      prev
-                        ? {
-                            ...prev,
-                            categories: (prev.categories ?? []).filter(
-                              (id: number) => Number(id) !== Number(cat.id)
-                            ),
-                          }
-                        : prev
-                    )
-                  }
-                />
-              ))}
-            </div>
-          </CardContent>
-        </Card>
+        {/* <Card> */}
+        <CardContent>
+          <div className="mb-2 font-medium">Categories</div>
+          <div className="flex flex-wrap gap-2">
+            {categories?.map((cat: any) => (
+              <CategoryBadge
+                key={cat.id}
+                category={cat}
+                selected={(editableEvent?.categories ?? [])
+                  .map(Number)
+                  .includes(Number(cat.id))}
+                onSelect={() =>
+                  setEditableEvent((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          categories: [
+                            ...new Set([...(prev.categories ?? []), cat.id]),
+                          ],
+                        }
+                      : prev
+                  )
+                }
+                onRemove={() =>
+                  setEditableEvent((prev) =>
+                    prev
+                      ? {
+                          ...prev,
+                          categories: (prev.categories ?? []).filter(
+                            (id: number) => Number(id) !== Number(cat.id)
+                          ),
+                        }
+                      : prev
+                  )
+                }
+              />
+            ))}
+          </div>
+        </CardContent>
+        {/* </Card> */}
+        <div className="flex justify-end mt-4">
+          <Button
+            onClick={() => {
+              methods.handleSubmit(
+                () => handleSave(),
+                (errors) => console.log("validation errors", errors)
+              )();
+            }}
+            disabled={saving}
+          >
+            {isEdit ? (
+              <>
+                <Check />
+                Save Event
+              </>
+            ) : (
+              <>
+                <Plus />
+                Create Event
+              </>
+            )}
+          </Button>
+        </div>
       </div>
     </FormProvider>
   );

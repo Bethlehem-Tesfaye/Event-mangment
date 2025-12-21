@@ -223,7 +223,10 @@ export default function EventInfo({
 
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 px-6 pb-6">
         <div className="lg:col-span-2">
-          <div className="rounded-xl overflow-hidden bg-neutral-50 dark:bg-neutral-800 border dark:border-neutral-700">
+          <div
+            className="rounded-xl overflow-hidden bg-neutral-50 dark:bg-neutral-800  
+          "
+          >
             {editable ? (
               <DropzoneWrapper />
             ) : bannerSrc || editableEvent.eventBannerUrl ? (
