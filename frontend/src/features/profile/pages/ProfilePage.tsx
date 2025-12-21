@@ -7,10 +7,6 @@ import { Navbar } from "@/features/event/componenets/Navbar";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Navbar } from "@/features/event/componenets/Navbar";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
-import { useLogout } from "@/features/auth/hooks/useLogout";
-import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
   const { user } = useCurrentUser(); // replaced useAuth
@@ -30,15 +26,6 @@ export default function ProfilePage() {
 
   const handleChange = (field: string, value: string) => {
     setFormProfile((prev: any) => ({ ...prev, [field]: value }));
-  };
-
-  const handleLogout = () => {
-    logout(undefined, {
-      onSuccess: () => {
-        // redirected or page refresh handled by router
-      },
-      onError: (err) => console.error("Logout failed:", err),
-    });
   };
 
   const handleLogout = () => {

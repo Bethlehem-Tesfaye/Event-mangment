@@ -1,15 +1,5 @@
 import { useState, useEffect } from "react";
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  DropdownMenu,
-  DropdownMenuTrigger,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-} from "@/components/ui/dropdown-menu";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -27,8 +17,6 @@ import {
 } from "@/components/ui/navigation-menu";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   // LayoutDashboard,
   Search,
@@ -42,61 +30,6 @@ import {
 
 import Logo from "@/components/custom/Logo";
 import PulseLoader from "@/components/custom/PulseLoader";
-
-import type { NavbarProps } from "../types/event";
-import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
-import { useProfile } from "@/features/profile/hooks/useProfile";
-import { useNotification } from "@/features/notification/hooks/useNotification";
-import { socket } from "@/lib/socket";
-import { useQueryClient } from "@tanstack/react-query";
-import { toast } from "sonner";
-
-export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
-  const {
-    searchValue = "",
-    onSearchChange,
-    onSearchSubmit,
-    onLogout,
-    logoutLoading,
-    showSearch = true,
-    user: propUser,
-  } = props;
-
-  const { user: authUser, isPending: authLoading } = useCurrentUser();
-  const { profile } = useProfile({
-    onSuccess: (data) => console.log("Updated!", data),
-    onError: (err) => console.error(err),
-  });
-
-  const { data: notifications = [] } = useNotification();
-  const queryClient = useQueryClient();
-
-  const effectiveUser = propUser ?? authUser;
-  const isLoggedIn = !!effectiveUser;
-
-  const [open, setOpen] = useState(false);
-
-  const unreadCount = (notifications || []).filter((n: any) => !n.read).length;
-
-  useEffect(() => {
-    // ensure socket connected and listen for notification:new
-    if (!socket.connected) socket.connect();
-
-    const onNew = (notif: any) => {
-      console.log("socket -> notification:new payload:", notif);
-      queryClient.setQueryData(["notification"], (old: any[] | undefined) => {
-        return [notif, ...(old || [])];
-      });
-      toast.message("New notification received", {
-        description: notif?.message ?? JSON.stringify(notif),
-      });
-    };
-
-    socket.on("notification:new", onNew);
-    return () => {
-      socket.off("notification:new", onNew);
-    };
-  }, [queryClient]);
 
 import type { NavbarProps } from "../types/event";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
