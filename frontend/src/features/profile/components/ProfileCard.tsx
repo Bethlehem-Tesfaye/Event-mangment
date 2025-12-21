@@ -3,14 +3,14 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Button } from "@/components/ui/button";
-import { Edit, Upload } from "lucide-react";
+import { Upload } from "lucide-react";
 import type { ProfileCardProps } from "../types/profile";
 
 export function ProfileCard({
   profile,
   email,
   editing,
-  onEditToggle,
+  // onEditToggle,
   children,
   onAvatarChange,
 }: ProfileCardProps) {
@@ -75,13 +75,13 @@ export function ProfileCard({
           <p className="text-sm md:text-base text-gray-600">{email}</p>
         </div>
 
-        <Button
+        {/* <Button
           variant="outline"
           className="mt-2 md:mt-0 ml-auto"
           onClick={onEditToggle}
         >
           <Edit className="mr-2 h-4 w-4" /> {editing ? "Cancel" : "Edit"}
-        </Button>
+        </Button> */}
       </CardHeader>
 
       <Separator />

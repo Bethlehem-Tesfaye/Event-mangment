@@ -2,9 +2,11 @@ import { Outlet, Navigate, useLocation } from "react-router-dom";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 import { useResendVerify } from "@/features/auth/hooks/useResendVerify";
 import { useEffect, useRef } from "react";
+import PulseLoader from "@/components/custom/PulseLoader";
+import { tr } from "zod/v4/locales";
 
 export const ProtectedLayout: React.FC = () => {
-  const { user } = useCurrentUser();
+  const { user, isPending } = useCurrentUser();
   const location = useLocation();
   const resendMutation = useResendVerify();
   const hasSentOnce = useRef(false);
@@ -19,7 +21,13 @@ export const ProtectedLayout: React.FC = () => {
     }
   }, [user, resendMutation]);
 
-  if (user === undefined) return null; // still loading
+  if (isPending) {
+    return (
+      <div className="flex h-screen items-center justify-center">
+        <PulseLoader show={true} />
+      </div>
+    );
+  }
 
   if (!user) {
     return <Navigate to="/login" state={{ from: location }} replace />;

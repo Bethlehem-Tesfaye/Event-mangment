@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { ProfileCard } from "../components/ProfileCard";
 import { ProfileForm } from "../components/ProfileForm";
-import { ProfileDisplay } from "../components/ProfileDisplay";
 import { useProfile } from "../hooks/useProfile";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
@@ -19,7 +18,6 @@ import {
 import { Link } from "react-router-dom";
 
 export default function ProfilePage() {
-  const [editing, setEditing] = useState(false);
   const [route, setRoute] = useState<string>("dashboard");
   const { user } = useCurrentUser(); // replaced useAuth
   const { mutate: logout } = useLogout();
@@ -61,7 +59,6 @@ export default function ProfilePage() {
     });
 
     await updateProfile(formData);
-    setEditing(false);
     refetchProfile();
   };
 
@@ -119,22 +116,17 @@ export default function ProfilePage() {
           <ProfileCard
             profile={profile}
             email={user?.email}
-            editing={editing}
-            onEditToggle={() => setEditing(!editing)}
+            editing={true}
             onAvatarChange={(file) =>
               setFormProfile((prev: any) => ({ ...prev, picture: file }))
             }
           >
-            {editing ? (
-              <ProfileForm
-                profile={formProfile}
-                onChange={handleChange}
-                onSave={handleSave}
-                isSaving={isUpdating}
-              />
-            ) : (
-              <ProfileDisplay profile={profile} />
-            )}
+            <ProfileForm
+              profile={formProfile}
+              onChange={handleChange}
+              onSave={handleSave}
+              isSaving={isUpdating}
+            />
           </ProfileCard>
         </main>
       </div>

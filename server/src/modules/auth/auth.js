@@ -54,8 +54,8 @@ export const auth = betterAuth({
   socialProviders: {
     google: {
       prompt: "select_account",
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+      clientId: process.env.GOOGLE_CLIENT_ID_BAUTH,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET_BAUTH
     }
   },
   plugins: [openAPI()],
