@@ -58,9 +58,15 @@ export default function TicketList({
                   : "border-gray-200 hover:border-gray-300"
               }`}
             >
-              <span className="absolute top-3 right-3 bg-red-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full dark:text-gray-300 dark:bg-primary">
-                {t.remainingQuantity} left
-              </span>
+              {t.remainingQuantity === 0 ? (
+                <div className="absolute inset-0 flex items-center justify-center bg-red-700 bg-opacity-95 rounded-xl text-white text-2xl font-extrabold uppercase tracking-wide">
+                  SOLD OUT
+                </div>
+              ) : (
+                <span className="absolute top-3 right-3 bg-red-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full dark:text-gray-300 dark:bg-primary">
+                  {t.remainingQuantity} left
+                </span>
+              )}
               <h3 className="text-md">{t.type}</h3>
               <div className="flex items-baseline gap-2 mt-1">
                 <span className="text-lg font-bold text-red-800 dark:text-gray-300">
