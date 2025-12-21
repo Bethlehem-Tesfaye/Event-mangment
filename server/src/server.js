@@ -16,8 +16,7 @@ import { sendReminderRoute } from "./lib/email/sendReminderRoute.js";
 import { auth } from "./modules/auth/auth.js";
 import { chapaRoutes } from "./modules/payment/chapa.routes.js";
 import { organizerSettingsRoutes } from "./modules/payment/organizerSettingsRoutes.js";
-import { initSocket } from "./infrastructure/socket/index.js";
-import "./modules/notification/index.js";
+import { initializeSocketIO } from "./lib/socketio.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -38,14 +37,14 @@ app.use(
   })
 );
 
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ["GET", "POST"]
-  }
-});
-initSocket(io);
+// const io = new Server(server, {
+//   cors: {
+//     origin: allowedOrigins,
+//     credentials: true,
+//     methods: ["GET", "POST"]
+//   }
+// });
+initializeSocketIO(io);
 
 io.use(async (socket, next) => {
   logger.info("New socket connection attempt");

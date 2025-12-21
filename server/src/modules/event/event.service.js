@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import QRCode from "qrcode";
 import prisma from "../../lib/prisma.js"; // ensure this import exists near top of file
-import { eventBus } from "../../lib/eventBus.js";
+import socketio from "../../lib/socketio.js";
 import CustomError from "../../utils/customError.js";
 import {
   publishEmailJob,
@@ -103,12 +103,17 @@ export const getEventTickets = async (eventId) => {
   return tickets;
 };
 
-export const purchaseTicket = async (
-  { eventId, ticketId, userId, attendeeName, attendeeEmail, quantity = 1 },
-  io
-) => {
+export const purchaseTicket = async ({
+  eventId,
+  ticketId,
+  userId,
+  attendeeName,
+  attendeeEmail,
+  quantity = 1
+}) => {
   const tTicketId = Number(ticketId);
   const tQuantity = Number(quantity) || 1;
+  const io = socketio.getConnection();
 
   // Load ticket and ensure availability
   const ticket = await prisma.ticket.findFirst({
@@ -327,16 +332,26 @@ export const createEvent = async ({
       status: "draft"
     }
   });
-
-  try {
-    eventBus.emit("event.created", {
-      eventId: event.id,
+  const io = socketio.getConnection();
+  const notification = await prisma.notification.create({
+    data: {
       userId,
-      title: event.title
-    });
-  } catch (emitErr) {
-    console.error("Failed to emit event.created:", emitErr?.message || emitErr);
-  }
+      type: "event_created",
+      title: "Event Created",
+      message: `Your event "${title}" was created successfully.`,
+      eventId: event.id
+    }
+  });
+
+  io.to(`user:${userId}`).emit("notification:new", {
+    id: notification.id,
+    eventId: event.id,
+    type: "event_created",
+    title: notification.title,
+    message: notification.message,
+
+    createdAt: notification.createdAt
+  });
 
   return event;
 };
@@ -360,7 +375,8 @@ export const getEventDetailById = async (eventId) => {
 };
 // Update event
 
-export const updateEvent = async (eventId, userId, data, io) => {
+export const updateEvent = async (eventId, userId, data) => {
+  const io = socketio.getConnection();
   const event = await prisma.event.findFirst({
     where: { id: eventId, userId }
   });
