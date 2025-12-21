@@ -1,9 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
-import { Server } from "socket.io";
-import http from "http";
-import { Server } from "socket.io";
 import cors from "cors";
 import passport from "passport";
 import cookieParser from "cookie-parser";
