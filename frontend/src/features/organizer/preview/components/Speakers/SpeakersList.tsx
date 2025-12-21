@@ -63,6 +63,7 @@ export default function SpeakersList({
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | string | null>(null);
+  const [formTouched, setFormTouched] = useState(false);
 
   const openAddModal = () => {
     setNewSpeaker({
@@ -73,6 +74,7 @@ export default function SpeakersList({
       photoUrl: undefined,
     });
     setEditingId(null);
+    setFormTouched(false);
     setModalOpen(true);
   };
 
@@ -86,30 +88,34 @@ export default function SpeakersList({
       photoUrl: s.photoUrl ?? undefined,
     });
     setEditingId(s.id);
+    setFormTouched(false);
     setModalOpen(true);
   };
 
   const handleSaveFromModal = () => {
+    setFormTouched(true);
     if (!newSpeaker) return;
 
+    if (Object.keys(newSpeakerErrors).length > 0) {
+      return;
+    }
+
     if (editingId !== null && editingId !== undefined) {
-      // update existing speaker fields via onChangeSpeaker
       onChangeSpeaker(editingId, "name", newSpeaker.name);
       onChangeSpeaker(editingId, "bio", newSpeaker.bio);
 
-      // if a new file selected, notify parent
       if (newSpeaker.photoFile) {
         onFileChange?.(editingId, newSpeaker.photoFile);
         onChangeSpeaker(editingId, "photoFile", newSpeaker.photoFile);
         onChangeSpeaker(editingId, "photoPreview", newSpeaker.photoPreview);
       }
     } else {
-      // add new speaker (local)
       onAddLocal();
     }
 
     setEditingId(null);
     setNewSpeaker(null);
+    setFormTouched(false);
     setModalOpen(false);
   };
 
@@ -306,11 +312,15 @@ export default function SpeakersList({
                         className="w-full px-3 py-2 rounded-md border dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm"
                         placeholder="Name"
                         value={newSpeaker.name}
-                        onChange={(e) =>
-                          setNewSpeaker({ ...newSpeaker, name: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setFormTouched(true);
+                          setNewSpeaker({
+                            ...newSpeaker,
+                            name: e.target.value,
+                          });
+                        }}
                       />
-                      {newSpeakerErrors.name && (
+                      {formTouched && newSpeakerErrors.name && (
                         <p className="text-red-500 text-sm mt-1">
                           {newSpeakerErrors.name}
                         </p>
@@ -415,7 +425,9 @@ export default function SpeakersList({
                 <Button
                   size="sm"
                   onClick={handleSaveFromModal}
-                  disabled={Boolean(Object.keys(newSpeakerErrors).length)}
+                  disabled={
+                    formTouched && Boolean(Object.keys(newSpeakerErrors).length)
+                  }
                   className="rounded px-4 py-1 bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white"
                 >
                   {editingId ? "Save" : "Add Speaker"}
