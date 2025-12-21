@@ -1,18 +1,20 @@
-# Event Management System
+# EventLight: Event Management System
 
 A full-stack web application for managing events, including features for creating and updating event details, managing speakers, tickets, and categories. Users can save events as drafts, publish them, and view categorized listings.
 
 ## Tech Stack
 
-### **Backend**: 
+### **Backend**:
+
 - Node.js, Express.js, PostgreSQL,
 - Zod for request validation,
 - JWT for authentication
+
 ### **Frontend**:
+
 - React with typescript,
 - TanStack React Query for state and server data management
 - Axios for API communication
-
 
 ## Features
 
@@ -39,7 +41,10 @@ A full-stack web application for managing events, including features for creatin
    ```bash
    git clone https://github.com/your-username/event-management-system.git
    cd event-management-system
-### Backend setup 
+   ```
+
+### Backend setup
+
     cd server
     npm install
     DATABASE_URL=your_postgres_connection_string
@@ -47,7 +52,7 @@ A full-stack web application for managing events, including features for creatin
     PORT=5000
     NODE_ENV=development
     npm run dev
-    
+
 ### Frontend Setup
 
   Navigate to the frontend folder:
@@ -67,7 +72,9 @@ Create a .env file and add the following environment variable:
 ```bash
 VITE_BACKEND_URL=http://localhost:5000
 ```
+
 Start the development server:
 
 ```bash
 npm run dev
+```
