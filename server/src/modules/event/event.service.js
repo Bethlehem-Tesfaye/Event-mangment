@@ -1,7 +1,7 @@
 /* eslint-disable no-console */
 import QRCode from "qrcode";
 import prisma from "../../lib/prisma.js"; // ensure this import exists near top of file
-import * as socketio from "../../lib/socketIo.js";
+import * as socketio from "../../lib/socketio.js";
 import CustomError from "../../utils/customError.js";
 import {
   publishEmailJob,

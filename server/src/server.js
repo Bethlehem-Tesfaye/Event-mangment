@@ -15,7 +15,7 @@ import { sendReminderRoute } from "./lib/email/sendReminderRoute.js";
 import { auth } from "./modules/auth/auth.js";
 import { chapaRoutes } from "./modules/payment/chapa.routes.js";
 import { organizerSettingsRoutes } from "./modules/payment/organizerSettingsRoutes.js";
-import { initializeSocketIO } from "./lib/socketIo.js";
+import { initializeSocketIO } from "./lib/socketio.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
