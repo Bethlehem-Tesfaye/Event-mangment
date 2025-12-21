@@ -7,6 +7,7 @@ import {
   publishReminderJob
 } from "../../utils/qstashPublisher.js";
 import cloudinary from "../../lib/cloudinary.js";
+import socketio from "../../lib/socketio.js";
 
 export const getEvents = async ({
   limit = 20,
@@ -102,12 +103,17 @@ export const getEventTickets = async (eventId) => {
   return tickets;
 };
 
-export const purchaseTicket = async (
-  { eventId, ticketId, userId, attendeeName, attendeeEmail, quantity = 1 },
-  io
-) => {
+export const purchaseTicket = async ({
+  eventId,
+  ticketId,
+  userId,
+  attendeeName,
+  attendeeEmail,
+  quantity = 1
+}) => {
   const tTicketId = Number(ticketId);
   const tQuantity = Number(quantity) || 1;
+  const io = socketio.getConnection();
 
   // Load ticket and ensure availability
   const ticket = await prisma.ticket.findFirst({

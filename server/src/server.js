@@ -1,10 +1,10 @@
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
-import { Server } from "socket.io";
 import cors from "cors";
 import passport from "passport";
 import cookieParser from "cookie-parser";
+import { initializeSocketIO } from "./lib/socketio.js";
 import conn from "./db/db.js";
 import routes from "./routes.js";
 import errorMiddleware from "./middleware/errorMiddleware.js";
@@ -36,14 +36,7 @@ app.use(
   })
 );
 
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ["GET", "POST"]
-  }
-});
-app.set("io", io);
+const io = initializeSocketIO(server);
 
 io.use(async (socket, next) => {
   logger.info("New socket connection attempt");

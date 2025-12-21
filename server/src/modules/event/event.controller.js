@@ -35,17 +35,14 @@ export const purchaseTicket = async (req, res, next) => {
   const userId = req.userId || null;
 
   try {
-    const registration = await eventService.purchaseTicket(
-      {
-        eventId,
-        ticketId,
-        userId,
-        attendeeName,
-        attendeeEmail,
-        quantity: parseInt(quantity, 10)
-      },
-      req.app.get("io")
-    );
+    const registration = await eventService.purchaseTicket({
+      eventId,
+      ticketId,
+      userId,
+      attendeeName,
+      attendeeEmail,
+      quantity: parseInt(quantity, 10)
+    });
 
     return res.status(201).json({
       data: registration
