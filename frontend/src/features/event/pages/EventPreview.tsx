@@ -15,6 +15,11 @@ import {
   useEventSpeakers,
   useEventTickets,
 } from "../hooks/useEventDetails";
+import {
+  useEventDetails,
+  useEventSpeakers,
+  useEventTickets,
+} from "../hooks/useEventDetails";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Navbar } from "../componenets/Navbar";
 import PageContainer from "@/components/PageContainer";
@@ -23,6 +28,15 @@ import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 
 export function EventPreview() {
   const { id } = useParams<{ id: string }>();
+
+  const { mutate: logout, isPending: logoutLoading } = useLogout();
+  const { user } = useCurrentUser(); // replaced useAuth
+
+  const handleLogout = () => {
+    logout(undefined, {
+      onError: (err) => console.error("Logout failed:", err),
+    });
+  };
 
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   const { user } = useCurrentUser(); // replaced useAuth
@@ -111,6 +125,11 @@ export function EventPreview() {
         <div className="flex flex-col lg:flex-row gap-10">
           <div className="flex-1 flex flex-col gap-6">
             <EventDetailsCard event={event} />
+            <EventTabs
+              event={event}
+              speakers={speakers ?? []}
+              loading={speakersLoading}
+            />
             <EventTabs
               event={event}
               speakers={speakers ?? []}

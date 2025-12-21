@@ -6,6 +6,7 @@ import { Footer } from "../componenets/Footer";
 import { useFilteredEvents } from "../hooks/useFilteredEvents";
 import { useCategoryList } from "../hooks/useCategoryList";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
 import PageContainer from "@/components/PageContainer";
 
@@ -15,8 +16,11 @@ function Events() {
   const [search, setSearch] = useState<string>("");
 
   const { user } = useCurrentUser(); // replaced useAuth
+
+  const { user } = useCurrentUser(); // replaced useAuth
   const { mutate: logout, isPending: logoutLoading } = useLogout();
 
+  const limit = 20;
   const limit = 20;
 
   const {
@@ -52,6 +56,7 @@ function Events() {
         onSearchChange={handleSearchChange}
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
+        user={user as any}
         user={user as any}
       />
       <PageContainer>

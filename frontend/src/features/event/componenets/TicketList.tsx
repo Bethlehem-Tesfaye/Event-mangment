@@ -4,12 +4,26 @@ import type { Ticket } from "../types/event";
 import PurchaseModal from "./PurchaseModal";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 import { useLocation } from "react-router-dom";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
+import { useLocation } from "react-router-dom";
 
 interface TicketListProps {
   tickets: Ticket[];
   loading?: boolean;
   showCheckout?: boolean;
+  showCheckout?: boolean;
 }
+
+export default function TicketList({
+  tickets,
+  loading,
+  showCheckout = true,
+}: TicketListProps) {
+  const { user } = useCurrentUser();
+  const location = useLocation();
+
+  const showCheckoutEffective =
+    showCheckout && !String(location.pathname).includes("/organizer");
 
 export default function TicketList({
   tickets,
