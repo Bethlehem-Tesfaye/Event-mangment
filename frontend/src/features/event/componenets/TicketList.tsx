@@ -28,12 +28,19 @@ export default function TicketList({
   if (loading) return <Skeleton className="w-full h-32" />;
   if (!tickets || tickets.length === 0) return null;
 
+  const availableTicketsExist = tickets.some(
+    (tt) => Number(tt.remainingQuantity) > 0
+  );
+
   const handleSelect = useCallback((ticket: Ticket) => {
+    if (Number(ticket.remainingQuantity) === 0) return;
     setSelectedTicket((prev) => (prev?.id === ticket.id ? null : ticket));
   }, []);
 
   const handleCheckout = useCallback(() => {
-    if (selectedTicket) setModalOpen(true);
+    if (selectedTicket && Number(selectedTicket.remainingQuantity) > 0) {
+      setModalOpen(true);
+    }
   }, [selectedTicket]);
 
   const handleCloseModal = useCallback(() => setModalOpen(false), []);
@@ -52,16 +59,20 @@ export default function TicketList({
             <div
               key={t.id}
               onClick={() => handleSelect(t)}
-              className={`relative border rounded-xl p-5 bg-white shadow-sm cursor-pointer transition dark:bg-gray-500 ${
+              className={`relative border rounded-xl p-5 bg-white shadow-sm transition dark:bg-gray-500 ${
                 selectedTicket?.id === t.id
                   ? "border-primary ring-2 ring-red-200"
                   : "border-gray-200 hover:border-gray-300"
+              } ${
+                Number(t.remainingQuantity) === 0
+                  ? "cursor-not-allowed opacity-80"
+                  : "cursor-pointer"
               }`}
             >
               {t.remainingQuantity === 0 ? (
-                <div className="absolute inset-0 flex items-center justify-center bg-red-700 bg-opacity-95 rounded-xl text-white text-2xl font-extrabold uppercase tracking-wide">
+                <span className="absolute top-3 right-3 bg-red-700 text-white text-sm font-bold px-4 py-2 rounded-full uppercase tracking-wide">
                   SOLD OUT
-                </div>
+                </span>
               ) : (
                 <span className="absolute top-3 right-3 bg-red-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full dark:text-gray-300 dark:bg-primary">
                   {t.remainingQuantity} left
@@ -82,14 +93,16 @@ export default function TicketList({
         </div>
       </div>
 
-      {showCheckoutEffective && (
+      {showCheckoutEffective && availableTicketsExist && (
         <button
           className={`mt-4 w-full py-2 rounded-md font-semibold transition text-[12px] ${
-            selectedTicket
+            selectedTicket && Number(selectedTicket.remainingQuantity) > 0
               ? "bg-primary text-white border border-red-700"
               : "bg-gray-300 text-gray-600 cursor-not-allowed"
           }`}
-          disabled={!selectedTicket}
+          disabled={
+            !(selectedTicket && Number(selectedTicket.remainingQuantity) > 0)
+          }
           onClick={handleCheckout}
         >
           Continue to Checkout
