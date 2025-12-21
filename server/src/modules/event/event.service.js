@@ -1,6 +1,7 @@
 /* eslint-disable no-console */
 import QRCode from "qrcode";
 import prisma from "../../lib/prisma.js"; // ensure this import exists near top of file
+import { eventBus } from "../../lib/eventBus.js";
 import CustomError from "../../utils/customError.js";
 import {
   publishEmailJob,
@@ -329,24 +330,16 @@ export const createEvent = async (
       status: "draft"
     }
   });
-  const notification = await prisma.notification.create({
-    data: {
-      userId,
-      type: "event_created",
-      title: "Event Created",
-      message: `Your event "${title}" was created successfully.`,
-      eventId: event.id
-    }
-  });
 
-  io.to(`user:${userId}`).emit("notification:new", {
-    id: notification.id,
-    eventId: event.id,
-    type: "event_created",
-    title: notification.title,
-    message: notification.message,
-    createdAt: notification.createdAt
-  });
+  try {
+    eventBus.emit("event.created", {
+      eventId: event.id,
+      userId,
+      title: event.title
+    });
+  } catch (emitErr) {
+    console.error("Failed to emit event.created:", emitErr?.message || emitErr);
+  }
 
   return event;
 };

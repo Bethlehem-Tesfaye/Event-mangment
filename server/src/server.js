@@ -16,6 +16,8 @@ import { sendReminderRoute } from "./lib/email/sendReminderRoute.js";
 import { auth } from "./modules/auth/auth.js";
 import { chapaRoutes } from "./modules/payment/chapa.routes.js";
 import { organizerSettingsRoutes } from "./modules/payment/organizerSettingsRoutes.js";
+import { initSocket } from "./infrastructure/socket/index.js";
+import "./modules/notification/index.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -43,7 +45,7 @@ const io = new Server(server, {
     methods: ["GET", "POST"]
   }
 });
-app.set("io", io);
+initSocket(io);
 
 io.use(async (socket, next) => {
   logger.info("New socket connection attempt");
