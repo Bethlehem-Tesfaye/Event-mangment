@@ -22,8 +22,10 @@ eventBus.on("event.created", async ({ userId, eventId, title }) => {
         message: notification.message,
         createdAt: notification.createdAt
       });
+      // eslint-disable-next-line no-empty
     } catch (sockErr) {}
   } catch (err) {
+    // eslint-disable-next-line no-console
     console.error("Failed to handle event.created:", err?.message || err);
   }
 });

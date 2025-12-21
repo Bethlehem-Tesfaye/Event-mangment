@@ -302,20 +302,17 @@ export const purchaseTicket = async (
   return reg;
 };
 
-export const createEvent = async (
-  {
-    userId,
-    title,
-    description,
-    locationType,
-    location,
-    startDatetime,
-    endDatetime,
-    duration,
-    eventBannerUrl
-  },
-  io
-) => {
+export const createEvent = async ({
+  userId,
+  title,
+  description,
+  locationType,
+  location,
+  startDatetime,
+  endDatetime,
+  duration,
+  eventBannerUrl
+}) => {
   const event = await prisma.event.create({
     data: {
       userId,
