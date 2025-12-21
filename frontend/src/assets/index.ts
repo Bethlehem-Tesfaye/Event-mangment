@@ -1,5 +1,4 @@
-import lightning from './lightning.png'
+import lightning from "./lightning.png";
+import notFound from "./warning.png";
 
-export {
-    lightning
-}
+export { lightning, notFound };

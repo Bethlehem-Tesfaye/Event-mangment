@@ -35,14 +35,17 @@ export const purchaseTicket = async (req, res, next) => {
   const userId = req.userId || null;
 
   try {
-    const registration = await eventService.purchaseTicket({
-      eventId,
-      ticketId,
-      userId,
-      attendeeName,
-      attendeeEmail,
-      quantity: parseInt(quantity, 10)
-    });
+    const registration = await eventService.purchaseTicket(
+      {
+        eventId,
+        ticketId,
+        userId,
+        attendeeName,
+        attendeeEmail,
+        quantity: parseInt(quantity, 10)
+      },
+      req.app.get("io")
+    );
 
     return res.status(201).json({
       data: registration
@@ -56,10 +59,21 @@ export const purchaseTicket = async (req, res, next) => {
 export const createEvent = async (req, res, next) => {
   try {
     const { userId } = req;
-    const eventCreated = await eventService.createEvent({
-      userId,
-      ...req.body
-    });
+    const eventData = { ...req.body };
+    if (req.file?.path) {
+      eventData.eventBannerUrl = req.file.path;
+    }
+    if (eventData.locationType === "in-person") {
+      eventData.locationType = "inPerson";
+    }
+
+    const eventCreated = await eventService.createEvent(
+      {
+        userId,
+        ...eventData
+      },
+      req.app.get("io")
+    );
     return res.status(201).json({ data: eventCreated });
   } catch (err) {
     return next(err);
@@ -81,10 +95,26 @@ export const updateEvent = async (req, res, next) => {
     const { eventId } = req.params;
     const { userId } = req;
     const { status } = req.query;
-    const updatedEvent = await eventService.updateEvent(eventId, userId, {
-      ...req.body,
-      status
-    });
+    const eventData = { ...req.body };
+
+    if (req.file?.path) {
+      eventData.eventBannerUrl = req.file.path;
+    }
+
+    // normalize location token
+    if (eventData.locationType === "in-person") {
+      eventData.locationType = "inPerson";
+    }
+
+    const updatedEvent = await eventService.updateEvent(
+      eventId,
+      userId,
+      {
+        ...eventData,
+        status
+      },
+      req.app.get("io")
+    );
     return res.status(200).json({ data: { event: updatedEvent } });
   } catch (err) {
     return next(err);
@@ -173,6 +203,47 @@ export const getAllCategoriesController = async (req, res, next) => {
   try {
     const categories = await eventService.getAllCategories();
     return res.status(200).json({ data: categories });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const listOrganizerEvents = async (req, res, next) => {
+  try {
+    const { userId } = req;
+    const { limit = 20, offset = 0, status, search } = req.query;
+
+    const { events, totalCount } = await eventService.getOrganizerEvents(
+      userId,
+      {
+        limit: Number(limit),
+        offset: Number(offset),
+        status,
+        search
+      }
+    );
+
+    return res.status(200).json({ data: events, totalCount });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getDashboardStatsController = async (req, res, next) => {
+  try {
+    const { userId } = req;
+    const stats = await eventService.getDashboardStatsService(userId);
+    return res.status(200).json({ success: true, data: stats });
+  } catch (err) {
+    return next(err);
+  }
+};
+
+export const getUserRegistrationsController = async (req, res, next) => {
+  try {
+    const { userId } = req;
+    const registrations = await eventService.getUserRegistrations(userId);
+    return res.status(200).json({ data: registrations });
   } catch (err) {
     return next(err);
   }

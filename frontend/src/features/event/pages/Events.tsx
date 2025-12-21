@@ -5,18 +5,18 @@ import { BrowsePage } from "../componenets/BrowsePage";
 import { Footer } from "../componenets/Footer";
 import { useFilteredEvents } from "../hooks/useFilteredEvents";
 import { useCategoryList } from "../hooks/useCategoryList";
-import { useAuth } from "@/context/AuthContext";
+import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
 import { useLogout } from "@/features/auth/hooks/useLogout";
-// import { useNavigate } from "react-router-dom";
+
 function Events() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [search, setSearch] = useState<string>("");
-  const { clearAuth } = useAuth();
-  const { mutate: logout, isPending: logoutLoading } = useLogout();
-  // const navigate = useNavigate();
 
-  const limit = 1;
+  const { user } = useCurrentUser(); // replaced useAuth
+  const { mutate: logout, isPending: logoutLoading } = useLogout();
+
+  const limit = 20;
 
   const {
     events,
@@ -38,15 +38,12 @@ function Events() {
 
   const handleLogout = () => {
     logout(undefined, {
-      onSuccess: () => {
-        clearAuth();
-        // navigate("/login");
-      },
       onError: (err) => {
         console.error("Logout failed:", err);
       },
     });
   };
+
   return (
     <div>
       <Navbar
@@ -54,6 +51,7 @@ function Events() {
         onSearchChange={handleSearchChange}
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
+        user={user as any}
       />
       <div className="md:mx-[70px] md:mt-5">
         <Hero />

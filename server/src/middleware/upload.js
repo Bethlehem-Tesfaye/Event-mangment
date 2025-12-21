@@ -25,3 +25,4 @@ export const makeUploader = (folder) => {
 };
 
 export const profileUpload = makeUploader("profiles");
+export const eventBannerUpload = makeUploader("event-banners");

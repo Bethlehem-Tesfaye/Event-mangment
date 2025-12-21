@@ -16,7 +16,7 @@ const isEventOwner = async (req, res, next) => {
   try {
     const event = await prisma.event.findFirst({
       where: {
-        id: parseInt(eventId, 10),
+        id: eventId,
         userId,
         deletedAt: null
       },

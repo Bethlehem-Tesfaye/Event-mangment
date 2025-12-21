@@ -16,11 +16,13 @@ export function ProfileDisplay({ profile }: ProfileDisplayProps) {
         return (
           <div
             key={idx}
-            className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 hover:bg-purple-100 transition"
+            className="flex items-center gap-3 p-3 rounded-lg bg-purple-50 dark:bg-purple-300 hover:bg-purple-100 transition"
           >
             <Icon className="w-5 h-5 text-purple-600" />
             <div>
-              <p className="text-sm text-purple-700 font-semibold">{item.label}</p>
+              <p className="text-sm text-purple-700 font-semibold">
+                {item.label}
+              </p>
               <p className="text-black/80">{item.value}</p>
             </div>
           </div>

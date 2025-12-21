@@ -3,6 +3,7 @@ import * as profileController from "./profile.controller.js";
 import { profileSchema } from "./profile.schema.js";
 import { validate } from "../../middleware/validate.js";
 import authMiddleware from "../../middleware/authMiddleware.js";
+import * as eventController from "../event/event.controller.js";
 import { profileUpload } from "../../middleware/upload.js";
 
 const profileRoutes = express.Router();
@@ -17,4 +18,9 @@ profileRoutes.put(
   profileController.setProfile
 );
 
+profileRoutes.get(
+  "/events",
+  authMiddleware,
+  eventController.getUserRegistrationsController
+);
 export default profileRoutes;

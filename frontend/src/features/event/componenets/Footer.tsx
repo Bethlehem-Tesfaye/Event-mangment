@@ -15,7 +15,7 @@ type FooterProps = {
 
 export function Footer({ categories, onSelectCategory }: FooterProps) {
   return (
-    <footer className="w-full bg-gray-900 text-gray-300">
+    <footer className="w-full bg-[#202127] text-gray-300">
       <div className="max-w-7xl mx-auto px-6 py-12">
         {/* Desktop layout */}
         <div className="hidden md:grid grid-cols-4 gap-10">

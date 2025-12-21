@@ -1,24 +1,39 @@
-import jwt from "jsonwebtoken";
+import { fromNodeHeaders } from "better-auth/node";
+import { auth } from "../modules/auth/auth.js";
+import logger from "../utils/logger.js";
 
-const optionalAuthMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization || "";
-  const token = authHeader.startsWith("Bearer ")
-    ? authHeader.split(" ")[1]
-    : null;
-
-  if (!token) {
-    req.userId = null;
-    return next();
-  }
-
+const optionalAuthMiddleware = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-    req.userId = decoded?.userId ?? null;
-    return next();
-  } catch (error) {
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers)
+    });
+
+    if (session && session.user) {
+      req.user = session.user;
+      req.userId = session.user.id;
+      if (process.env.NODE_ENV !== "production") {
+        logger.info("optionalAuthMiddleware: session found", {
+          user: req.user
+        });
+      }
+    } else {
+      req.user = null;
+      req.userId = null;
+      if (process.env.NODE_ENV !== "production") {
+        logger.info("optionalAuthMiddleware: no session found");
+      }
+    }
+  } catch (err) {
+    req.user = null;
     req.userId = null;
-    return next();
+    if (process.env.NODE_ENV !== "production") {
+      logger.info("optionalAuthMiddleware: error fetching session", {
+        message: err?.message || String(err)
+      });
+    }
   }
+
+  return next();
 };
 
 export default optionalAuthMiddleware;

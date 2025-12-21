@@ -1,5 +1,7 @@
+/* eslint-disable no-console */
 import dotenv from "dotenv";
 import bcrypt from "bcrypt";
+import { v4 as uuidv4 } from "uuid";
 import prisma from "../lib/prisma.js";
 
 dotenv.config();
@@ -9,24 +11,41 @@ const seed = async () => {
     // 1. Create Organizer and Attendee
     const [organizer, attendee] = await Promise.all(
       ["organizer@example.com", "attendee@example.com"].map(async (email) => {
-        const password = await bcrypt.hash("Test1234!", 10);
-        return prisma.user.upsert({
+        const passwordHash = await bcrypt.hash("Test1234!", 10);
+
+        // Upsert user
+        const user = await prisma.user.upsert({
           where: { email },
           update: {},
           create: {
+            id: uuidv4(),
             email,
-            password,
+            name: email === "organizer@example.com" ? "Organizer" : "Attendee",
             profile: {
               create: {
                 firstName:
                   email === "organizer@example.com" ? "Organizer" : "Attendee",
                 lastName: "User",
                 city: "Addis Ababa",
-                country: "Ethiopia"
+                country: "Ethiopia",
+                picture: "https://loremflickr.com/320/240/person"
               }
             }
           }
         });
+
+        // Create account for login
+        await prisma.account.create({
+          data: {
+            id: uuidv4(),
+            userId: user.id,
+            providerId: "email",
+            accountId: email,
+            password: passwordHash
+          }
+        });
+
+        return user;
       })
     );
 
@@ -67,7 +86,7 @@ const seed = async () => {
         startDatetime: new Date("2025-09-15T09:00:00"),
         endDatetime: new Date("2025-09-15T17:00:00"),
         duration: 480,
-        eventBannerUrl: "https://example.com/banner.jpg"
+        eventBannerUrl: "https://loremflickr.com/800/400/technology"
       }
     });
 
@@ -86,13 +105,13 @@ const seed = async () => {
           eventId: event.id,
           name: "Bethlehem T.",
           bio: "Engineer and tech speaker.",
-          photoUrl: "https://example.com/speaker1.jpg"
+          photoUrl: "https://loremflickr.com/320/240/portrait"
         },
         {
           eventId: event.id,
           name: "John Doe",
           bio: "Entrepreneur and business mentor.",
-          photoUrl: "https://example.com/speaker2.jpg"
+          photoUrl: "https://loremflickr.com/320/240/business"
         }
       ]
     });
@@ -119,11 +138,9 @@ const seed = async () => {
       }
     });
 
-    // eslint-disable-next-line no-console
     console.log("✅ Seed completed successfully!");
     process.exit(0);
   } catch (err) {
-    // eslint-disable-next-line no-console
     console.error("❌ Error during seed:", err);
     process.exit(1);
   } finally {

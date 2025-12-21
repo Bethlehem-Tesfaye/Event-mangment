@@ -4,7 +4,7 @@ import CustomError from "../../utils/customError.js";
 // Create speaker for event
 export const createSpeaker = async ({ eventId, name, bio, photoUrl }) => {
   const speaker = await prisma.eventSpeaker.create({
-    data: { eventId: parseInt(eventId, 10), name, bio, photoUrl }
+    data: { eventId, name, bio, photoUrl }
   });
   return speaker;
 };
@@ -20,7 +20,7 @@ export const updateSpeaker = async (speakerId, data) => {
 
 export const getSpeakersForEvent = async (eventId) => {
   const speakers = await prisma.eventSpeaker.findMany({
-    where: { eventId: parseInt(eventId, 10), deletedAt: null },
+    where: { eventId, deletedAt: null },
     select: { id: true, name: true, bio: true, photoUrl: true }
   });
 

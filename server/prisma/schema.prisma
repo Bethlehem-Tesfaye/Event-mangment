@@ -1,0 +1,282 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id              Int             @id @default(autoincrement())
+  name            String          @unique @db.VarChar(30)
+  createdAt       DateTime        @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt       DateTime        @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt       DateTime?       @map("deleted_at") @db.Timestamp(6)
+  eventCategories EventCategory[]
+
+  @@map("categories")
+}
+
+model EventCategory {
+  eventId    String    @map("event_id")
+  categoryId Int       @map("category_id")
+  createdAt  DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt  DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt  DateTime? @map("deleted_at") @db.Timestamp(6)
+  category   Category  @relation(fields: [categoryId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@id([eventId, categoryId], map: "pk_event_categories")
+  @@map("event_categories")
+}
+
+model EventSpeaker {
+  id        Int       @id @default(autoincrement())
+  eventId   String    @map("event_id")
+  name      String    @db.VarChar(255)
+  bio       String?
+  photoUrl  String?   @map("photo_url") @db.VarChar(255)
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)
+  event     Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([eventId])
+  @@map("event_speakers")
+}
+
+model Event {
+  id             String            @id @default(uuid())
+  userId         String            @map("user_id")
+  title          String            @db.VarChar(255)
+  description    String?
+  locationType   LocationTypeEnum? @map("location_type")
+  location       String?           @db.VarChar(255)
+  status         EventStatusEnum   @default(draft)
+  createdAt      DateTime          @default(now()) @map("created_at") @db.Timestamp(6)
+  startDatetime  DateTime?         @map("start_datetime") @db.Timestamp(6)
+  endDatetime    DateTime?         @map("end_datetime") @db.Timestamp(6)
+  duration       Int?
+  eventBannerUrl String?           @map("event_banner_url") @db.VarChar(255)
+  updatedAt      DateTime          @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt      DateTime?         @map("deleted_at") @db.Timestamp(6)
+
+  eventCategories EventCategory[]
+  eventSpeakers   EventSpeaker[]
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  registrations   Registration[]
+  tickets         Ticket[]
+  notifications   Notification[]
+  payments        Payment[]
+
+  @@index([userId])
+  @@index([title])
+  @@index([status])
+  @@map("events")
+}
+
+model Profile {
+  id        Int       @id @default(autoincrement())
+  userId    String    @unique @map("user_id")
+  firstName String?   @map("first_name") @db.VarChar(255)
+  lastName  String?   @map("last_name") @db.VarChar(255)
+  phone     String?   @db.VarChar(20)
+  city      String?   @db.VarChar(100)
+  country   String?   @db.VarChar(100)
+  address   String?
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt DateTime? @map("deleted_at") @db.Timestamp(6)
+  picture   String?
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("profiles")
+}
+
+model Registration {
+  id                 Int       @id @default(autoincrement())
+  userId             String?   @map("user_id")
+  ticketType         Int       @map("ticket_type")
+  registeredQuantity Int       @default(1) @map("registered_quantity")
+  registeredAt       DateTime  @default(now()) @map("registered_at") @db.Timestamp(6)
+  attendeeName       String?   @map("attendee_name")
+  attendeeEmail      String?   @map("attendee_email")
+  qrCodeUrl          String?   @map("qr_code_url")
+  createdAt          DateTime  @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt          DateTime? @map("deleted_at")
+  eventId            String    @map("event_id")
+  event              Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ticket             Ticket    @relation(fields: [ticketType], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "registrations_ticket_id_fkey")
+  user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@index([eventId])
+  @@index([userId])
+  @@index([ticketType])
+  @@map("registrations")
+}
+
+model Ticket {
+  id                Int            @id @default(autoincrement())
+  eventId           String         @map("event_id")
+  type              String         @db.VarChar(100)
+  price             Decimal        @db.Decimal(10, 2)
+  remainingQuantity Int            @map("remaining_quantity")
+  maxPerUser        Int            @default(1) @map("max_per_user")
+  totalQuantity     Int            @map("total_quantity")
+  createdAt         DateTime       @default(now()) @map("created_at") @db.Timestamp(6)
+  updatedAt         DateTime       @default(now()) @map("updated_at") @db.Timestamp(6)
+  deletedAt         DateTime?      @map("deleted_at") @db.Timestamp(6)
+  registrations     Registration[]
+  event             Event          @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  payments          Payment[]
+
+  @@index([eventId])
+  @@index([type])
+  @@map("tickets")
+}
+
+model User {
+  id                String             @id
+  name              String
+  email             String
+  emailVerified     Boolean            @default(false)
+  image             String?
+  createdAt         DateTime           @default(now())
+  updatedAt         DateTime           @default(now()) @updatedAt
+  deletedAt         DateTime?          @map("deleted_at") @db.Timestamp(6)
+  events            Event[]
+  profile           Profile?
+  registrations     Registration[]
+  sessions          Session[]
+  accounts          Account[]
+  notifications     Notification[]
+  payments          Payment[]
+  organizerSettings OrganizerSettings?
+
+  @@unique([email])
+  @@map("user")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([token])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @default(now()) @updatedAt
+
+  @@map("verification")
+}
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  eventId   String?  @map("event_id")
+  type      String
+  title     String?
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user  User   @relation(fields: [userId], references: [id])
+  event Event? @relation(fields: [eventId], references: [id])
+
+  @@map("notification")
+}
+
+model Payment {
+  id          String  @id @default(cuid())
+  eventId     String
+  userId      String?
+  organizerId String
+  ticketId    Int
+  quantity    Int
+  amount      Decimal @db.Decimal(10, 2)
+  currency    String  @default("ETB")
+  txRef       String  @unique
+  chapaRefId  String?
+  status      String  @default("pending")
+
+  firstName                String?
+  lastName                 String?
+  email                    String?
+  phoneNumber              String?  @db.VarChar(10)
+  returnUrl                String?
+  callbackUrl              String?
+  customizationTitle       String?
+  customizationDescription String?
+  metaHideReceipt          Boolean? @default(false)
+  metaDisablePhoneEdit     Boolean? @default(false)
+  metaCustomReceiptEnabled Boolean? @default(false)
+
+  fees         Decimal? @db.Decimal(10, 2)
+  payoutAmount Decimal? @db.Decimal(10, 2)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @default(now()) @updatedAt
+
+  event  Event  @relation(fields: [eventId], references: [id])
+  ticket Ticket @relation(fields: [ticketId], references: [id])
+  user   User?  @relation(fields: [userId], references: [id])
+}
+
+model OrganizerSettings {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  chapaKey  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id])
+}
+
+enum EventStatusEnum {
+  draft
+  published
+  cancelled
+
+  @@map("event_status_enum")
+}
+
+enum LocationTypeEnum {
+  online
+  inPerson @map("in-person")
+
+  @@map("location_type_enum")
+}

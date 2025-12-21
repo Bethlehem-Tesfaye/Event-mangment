@@ -1,25 +1,23 @@
-import jwt from "jsonwebtoken";
-import CustomError from "../utils/customError.js";
+import { fromNodeHeaders } from "better-auth/node";
+import { auth } from "../modules/auth/auth.js";
 
-const authMiddleware = (req, res, next) => {
-  const token = req.headers.authorization?.split(" ")[1] || "";
-
-  if (!token) {
-    return next(new CustomError("Unauthorized: No token", 401));
-  }
-
+const authMiddleware = async (req, res, next) => {
   try {
-    const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+    // Get the session from the request headers
+    const session = await auth.api.getSession({
+      headers: fromNodeHeaders(req.headers)
+    });
 
-    req.userId = decoded.userId;
-
-    if (!req.userId) {
-      return next(new CustomError("Unauthorized: Invalid token", 401));
+    if (!session || !session.user) {
+      return res.status(401).json({ error: "Unauthorized user" });
     }
 
+    // Attach user to the request object
+    req.user = session.user;
+    req.userId = session.user.id;
     return next();
-  } catch (error) {
-    return next(new CustomError("Unauthorized: Token expired or invalid", 401));
+  } catch (err) {
+    return res.status(500).json({ error: "Internal server error" });
   }
 };
 

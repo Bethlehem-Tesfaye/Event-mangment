@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { CardDescription, CardFooter } from "@/components/ui/card";
 import { SocialButtons } from "./SocialButtons";
 import type { LoginFormProps } from "../types/auth";
+import { useNavigate } from "react-router-dom";
 
 export const LoginForm = ({
   onSubmit,
@@ -13,10 +14,14 @@ export const LoginForm = ({
 }: LoginFormProps) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const navigate = useNavigate();
 
   const handleFormSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     onSubmit({ email, password });
+  };
+  const handleForgotPassword = () => {
+    navigate("/forgot-password");
   };
 
   return (
@@ -48,7 +53,10 @@ export const LoginForm = ({
           onChange={(e) => setPassword(e.target.value)}
         />
         <div className="flex justify-end text-sm mt-1">
-          <CardDescription className="hover:text-blue-900 hover:cursor-pointer">
+          <CardDescription
+            className="hover:text-blue-900 hover:cursor-pointer"
+            onClick={handleForgotPassword}
+          >
             Forgot password?
           </CardDescription>
         </div>

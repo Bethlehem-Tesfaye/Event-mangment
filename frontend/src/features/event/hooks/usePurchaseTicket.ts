@@ -16,8 +16,15 @@ export const usePurchaseTicket = () => {
     onSuccess: () => {
       toast.success("Ticket purchased — check your email for the QR code!");
     },
-    onError: () => {
-      toast.error("Purchase failed, Please try again");
+    onError: (error: any) => {
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        "Purchase failed, please try again";
+      toast.error(String(backendMessage));
+      // eslint-disable-next-line no-console
+      console.error("purchaseTicket error:", error);
     },
   });
 };

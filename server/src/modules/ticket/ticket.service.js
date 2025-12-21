@@ -11,7 +11,7 @@ export const createTicket = async ({
 }) => {
   const ticket = await prisma.ticket.create({
     data: {
-      eventId: parseInt(eventId, 10),
+      eventId,
       type,
       price,
       totalQuantity,
@@ -24,7 +24,7 @@ export const createTicket = async ({
 // GET ALL TICKETS FOR AN EVENT
 export const getTicketsForEvent = async (eventId) => {
   const tickets = await prisma.ticket.findMany({
-    where: { eventId: parseInt(eventId, 10), deletedAt: null }
+    where: { eventId, deletedAt: null }
   });
 
   if (tickets.length === 0)
