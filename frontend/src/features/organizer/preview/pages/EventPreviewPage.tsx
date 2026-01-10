@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import EventEditor from "../components/EventEditor";
+import EventEdit from "../components/EventEdit";
 import EventPreviewLayout from "../components/EventPreviewLayout";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -42,41 +42,47 @@ export default function EventPreviewPage() {
           </Link>
         </div>
         <div className="mb-4">
-          <nav className="flex items-center gap-4 border-b border-neutral-200 dark:border-neutral-800">
+          <nav className="flex items-center gap-8">
             <button
               type="button"
               onClick={() => setView("preview")}
-              className={`relative py-2 text-sm font-medium ${
+              className={`relative pb-3 text-lg font-semibold transition-colors ${
                 view === "preview"
-                  ? "text-black dark:text-white"
-                  : "text-neutral-500 hover:text-black dark:hover:text-white"
+                  ? "text-neutral-900 dark:text-white"
+                  : "text-neutral-400 hover:text-neutral-600"
               }`}
             >
               Event
               {view === "preview" && (
-                <span className="absolute -bottom-[2px] left-0 right-0 h-0.5 bg-red-700 rounded" />
+                <span className="absolute -bottom-1 left-0 w-14 h-1 bg-red-500 rounded-full" />
               )}
             </button>
 
             <button
               type="button"
               onClick={() => setView("attendees")}
-              className={`relative py-2 text-sm font-medium ${
+              className={`relative pb-3 text-lg font-semibold transition-colors ${
                 view === "attendees"
-                  ? "text-black dark:text-white"
-                  : "text-neutral-500 hover:text-black dark:hover:text-white"
+                  ? "text-neutral-900 dark:text-white"
+                  : "text-neutral-400 hover:text-neutral-600"
               }`}
             >
               Attendees
               {view === "attendees" && (
-                <span className="absolute -bottom-[2px] left-0 right-0 h-0.5 bg-red-700 rounded" />
+                <span className="absolute -bottom-1 left-0 w-14 h-1 bg-red-500 rounded-full" />
               )}
             </button>
           </nav>
         </div>
 
         {view === "preview" ? (
-          <EventEditor id={eventId} />
+          eventId ? (
+            <EventEdit id={eventId} />
+          ) : (
+            <Card className="p-4 rounded-2xl">
+              <p className="text-red-500">Invalid event id.</p>
+            </Card>
+          )
         ) : (
           <Card className="p-4 rounded-2xl overflow-x-auto">
             {isLoading ? (
