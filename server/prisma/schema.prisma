@@ -139,8 +139,8 @@ model Ticket {
 
 model User {
   id                String             @id
-  name              String
-  email             String
+  name              String?
+  email             String?
   emailVerified     Boolean            @default(false)
   image             String?
   createdAt         DateTime           @default(now())
@@ -154,6 +154,7 @@ model User {
   notifications     Notification[]
   payments          Payment[]
   organizerSettings OrganizerSettings?
+  isAnonymous       Boolean            @default(false) @map("is_anonymous")
 
   @@unique([email])
   @@map("user")
