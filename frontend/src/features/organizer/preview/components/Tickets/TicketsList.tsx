@@ -113,7 +113,7 @@ export default function TicketsList({
   };
 
   return (
-    <Card className="shadow-none border dark:border-neutral-800 bg-transparent">
+    <Card className="shadow-none border dark:border-neutral-800  dark:bg-[#0b0b0b] bg-white">
       <CardHeader className="flex items-start justify-between gap-4 p-6">
         <div>
           <CardTitle className="text-2xl">Tickets</CardTitle>

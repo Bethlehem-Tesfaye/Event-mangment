@@ -5,7 +5,7 @@ import { PrismaClient } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
-import { openAPI } from "better-auth/plugins";
+import { openAPI, anonymous } from "better-auth/plugins";
 import transporter from "../../lib/mailer.js";
 import { ResetTemplate } from "../../lib/email/template/ResetTemplate.js";
 import { VerifyTemplate } from "../../lib/email/template/VerifyTemplate.js";
@@ -58,7 +58,67 @@ export const auth = betterAuth({
       clientSecret: process.env.GOOGLE_CLIENT_SECRET_BAUTH
     }
   },
-  plugins: [openAPI()],
+  plugins: [
+    openAPI(),
+    anonymous({
+      onLinkAccount: async ({ anonymousUser, newUser }) => {
+        if (!anonymousUser || !newUser || !newUser.id) return;
+
+        try {
+          // from anonymous -> real user
+          await prisma.$transaction([
+            prisma.profile.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            }),
+            prisma.event.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            }),
+            prisma.registration.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            }),
+            prisma.payment.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            }),
+            prisma.notification.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            }),
+            prisma.account.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            }),
+            prisma.session.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            }),
+            prisma.organizerSettings.updateMany({
+              where: { userId: anonymousUser.id },
+              data: { userId: newUser.id }
+            })
+          ]);
+          // Ensure the new user has a profile
+          const profileExists = newUser.id
+            ? await prisma.profile.findUnique({ where: { userId: newUser.id } })
+            : null;
+
+          if (!profileExists) {
+            await prisma.profile.create({ data: { userId: newUser.id } });
+            console.log(`Profile created for new user ${newUser.id}`);
+          }
+          console.log(
+            `Successfully linked anonymous user ${anonymousUser.id} -> ${newUser.id}`
+          );
+        } catch (err) {
+          console.error("Failed to link anonymous user to real account:", err);
+          throw err;
+        }
+      }
+    })
+  ],
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-up/email") {

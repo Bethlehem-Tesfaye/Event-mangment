@@ -2,13 +2,11 @@ import { useState } from "react";
 
 import Sidebar from "@/features/organizer/Dashboard/components/SideBar";
 import Topbar from "@/features/organizer/Dashboard/components/Topbar";
-import { useNavigate } from "react-router-dom";
-import EventEditor from "@/features/organizer/preview/components/EventEditor";
+import EventCreate from "@/features/organizer/preview/components/EventCreate";
 import { useCurrentUser } from "@/features/auth/hooks/useCurrentUser";
 
 export default function CreateEventPage() {
   const [active, setActive] = useState<string>("create");
-  const navigate = useNavigate();
   const { user } = useCurrentUser();
 
   return (
@@ -17,11 +15,7 @@ export default function CreateEventPage() {
       <div className="flex-1">
         <Topbar user={user} />
         <main className="w-full max-w-6xl mx-auto px-4 sm:px-6 md:px-8 py-8 sm:py-10 space-y-10 flex-1 p-6">
-          <EventEditor
-            onCreated={() => {
-              navigate(`/organizer/events`);
-            }}
-          />
+          <EventCreate />
         </main>
       </div>
     </div>

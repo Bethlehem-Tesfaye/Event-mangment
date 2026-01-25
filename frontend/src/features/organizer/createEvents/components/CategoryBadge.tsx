@@ -29,7 +29,7 @@ export function CategoryBadge({
       onClick={() => {
         if (!selected) onSelect();
       }}
-      className={`relative inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium cursor-pointer select-none transition-all
+      className={`bg-white  dark:bg-[#0b0b0b] relative inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium cursor-pointer select-none transition-all
         ${selected ? "text-white" : "text-neutral-800 dark:text-neutral-200"}
         ${!selected ? "hover:bg-neutral-100 dark:hover:bg-neutral-800" : ""}`}
       style={{

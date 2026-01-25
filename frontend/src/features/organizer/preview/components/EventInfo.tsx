@@ -680,7 +680,7 @@ export default function EventInfo({
               </div>
 
               {/* Have speakers? toggle */}
-              <div className="flex items-center gap-3">
+              {/* <div className="flex items-center gap-3">
                 {methods ? (
                   <Controller
                     control={control!}
@@ -717,7 +717,7 @@ export default function EventInfo({
                     </span>
                   </label>
                 )}
-              </div>
+              </div> */}
             </div>
           )}
         </CardContent>

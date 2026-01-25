@@ -9,6 +9,11 @@ import {
 } from "../../utils/qstashPublisher.js";
 import cloudinary from "../../lib/cloudinary.js";
 
+const mapLocationTypeToApi = (v) => {
+  if (!v) return v;
+  return v === "inPerson" ? "in-person" : v;
+};
+
 export const getEvents = async ({
   limit = 20,
   offset = 0,
@@ -59,7 +64,12 @@ export const getEvents = async ({
     })
   ]);
 
-  return { events, totalCount };
+  const normalizedEvents = events.map((e) => ({
+    ...e,
+    locationType: mapLocationTypeToApi(e.locationType)
+  }));
+
+  return { events: normalizedEvents, totalCount };
 };
 export const getEventById = async (eventId) => {
   const event = await prisma.event.findFirst({
@@ -77,7 +87,10 @@ export const getEventById = async (eventId) => {
 
   if (!event) throw new CustomError("Event not found", 404);
 
-  return event;
+  return {
+    ...event,
+    locationType: mapLocationTypeToApi(event.locationType)
+  };
 };
 
 export const getEventSpeakers = async (eventId) => {
@@ -353,7 +366,10 @@ export const createEvent = async ({
     createdAt: notification.createdAt
   });
 
-  return event;
+  return {
+    ...event,
+    locationType: mapLocationTypeToApi(event.locationType)
+  };
 };
 
 export const getEventDetailById = async (eventId) => {
@@ -371,7 +387,10 @@ export const getEventDetailById = async (eventId) => {
   });
 
   if (!event) throw new CustomError("Event not found", 404);
-  return event;
+  return {
+    ...event,
+    locationType: mapLocationTypeToApi(event.locationType)
+  };
 };
 // Update event
 
@@ -461,7 +480,10 @@ export const updateEvent = async (eventId, userId, data) => {
     });
   }
 
-  return updatedEvent;
+  return {
+    ...updatedEvent,
+    locationType: mapLocationTypeToApi(updatedEvent.locationType)
+  };
 };
 
 // Soft delete event
@@ -635,6 +657,7 @@ export const getOrganizerEvents = async (
 
   const eventsWithCounts = events.map((e) => ({
     ...e,
+    locationType: mapLocationTypeToApi(e.locationType),
     attendeesCount: (e._count && e._count.registrations) || 0
   }));
 

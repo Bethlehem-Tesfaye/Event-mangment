@@ -5,5 +5,15 @@ export const useCurrentUser = () => {
 
   const user = session?.user ?? null;
 
-  return { user, isPending };
+  const isAuthenticated = !!user;
+  const isAnonymous = user?.isAnonymous === true;
+  const isRealUser = !!user && user.isAnonymous === false;
+
+  return {
+    user,
+    isPending,
+    isAuthenticated,
+    isAnonymous,
+    isRealUser,
+  };
 };
