@@ -19,7 +19,7 @@ export function LoginPage() {
 
   // Redirect if already logged in
   useEffect(() => {
-    if (user) {
+    if (user && !user.isAnonymous) {
       navigate(from, { replace: true });
     }
   }, [user, navigate, from]);

@@ -5,10 +5,11 @@ import { validate } from "../../middleware/validate.js";
 import * as speakerController from "./speaker.contollers.js";
 import { createSpeakerSchema, updateSpeakerSchema } from "./speaker.schema.js";
 import { profileUpload } from "../../middleware/upload.js";
+import requireRealUserMiddleware from "../../middleware/requireRealUserMiddleware.js";
 
 export const speakerRoutes = express.Router({ mergeParams: true });
 
-speakerRoutes.use(authMiddleware);
+speakerRoutes.use(requireRealUserMiddleware);
 speakerRoutes.use(isEventOwner);
 
 speakerRoutes.get("/speakers", speakerController.getSpeakersForEvent);

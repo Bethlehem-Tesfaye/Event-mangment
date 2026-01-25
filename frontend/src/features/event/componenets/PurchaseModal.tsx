@@ -44,7 +44,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   open,
   onClose,
 }) => {
-  const { user } = useCurrentUser();
+  const { user, isAnonymous, isRealUser } = useCurrentUser();
   const [step, setStep] = useState(1);
   const [attendeeName, setAttendeeName] = useState("");
   const [attendeeEmail, setAttendeeEmail] = useState("");
@@ -84,7 +84,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   }, [ticket]);
 
   const canContinue = Boolean(
-    attendeeName && (user ? true : attendeeEmail) && quantity > 0
+    attendeeName && (user ? true : attendeeEmail) && quantity > 0,
   );
 
   const handleConfirm = useCallback(async () => {
@@ -93,7 +93,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
 
     // require a name and email (email from logged-in user if available)
     const finalName = attendeeName?.trim();
-    const finalEmail = user?.email ?? attendeeEmail?.trim();
+    const finalEmail = isRealUser ? user?.email : attendeeEmail?.trim();
 
     if (!finalName) {
       alert("Please enter attendee name");
@@ -149,7 +149,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                   onChange={setAttendeeName}
                   required
                 />
-                {!user ? (
+                {!user || isAnonymous ? (
                   <InputField
                     label="Email"
                     type="email"
@@ -203,7 +203,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                   </p>
                   <p className="text-sm text-gray-600 mt-1 dark:text-white">
                     Attendee: {attendeeName} (
-                    {user ? user.email : attendeeEmail})
+                    {user && isRealUser ? user.email : attendeeEmail})
                   </p>
                 </div>
 

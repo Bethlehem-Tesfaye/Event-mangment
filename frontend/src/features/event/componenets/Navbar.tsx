@@ -50,7 +50,11 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
     user: propUser,
   } = props;
 
-  const { user: authUser, isPending: authLoading } = useCurrentUser();
+  const {
+    user: authUser,
+    isPending: authLoading,
+    isRealUser,
+  } = useCurrentUser();
   const { profile } = useProfile({
     onSuccess: (data) => console.log("Updated!", data),
     onError: (err) => console.error(err),
@@ -199,7 +203,9 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                       <>
                         <AvatarImage src={profile?.picture ?? ""} alt="You" />
                         <AvatarFallback className="rounded-full bg-gray-300">
-                          {effectiveUser?.email?.[0].toUpperCase() || "U"}
+                          {isRealUser
+                            ? effectiveUser?.email?.[0].toUpperCase()
+                            : "G"}
                         </AvatarFallback>
                       </>
                     )}
@@ -209,7 +215,9 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                     <Skeleton className="h-4 w-28 rounded ml-2  bg-gray-400" />
                   ) : (
                     <span className="text-sm text-gray-700 dark:text-gray-300 ml-2">
-                      {effectiveUser?.email || null}
+                      {isRealUser
+                        ? effectiveUser?.email
+                        : effectiveUser?.email?.slice(0, 6)}
                     </span>
                   )}
                   {open ? (
@@ -220,7 +228,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                 </div>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                {isLoggedIn ? (
+                {isLoggedIn && isRealUser ? (
                   <>
                     <Link to="/profile">
                       <DropdownMenuItem>Profile</DropdownMenuItem>
