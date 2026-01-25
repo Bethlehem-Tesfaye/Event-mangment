@@ -73,9 +73,10 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
   }, [open, mutation]);
 
   useEffect(() => {
-    if (user?.email) setAttendeeEmail(user.email);
+    // Only prefill attendeeEmail for real (non-anonymous) users.
+    if (isRealUser && user?.email) setAttendeeEmail(user.email);
     else setAttendeeEmail("");
-  }, [user?.email, user]);
+  }, [isRealUser, user?.email]);
 
   const numericPrice = useMemo(() => {
     if (!ticket) return 0;
