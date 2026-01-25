@@ -3,7 +3,7 @@ import * as eventController from "./event.controller.js";
 import * as ticketController from "../ticket/ticket.controller.js";
 import * as speakeController from "../speaker/speaker.contollers.js";
 import optionalAuthMiddleware from "../../middleware/optionalAuthMiddleware.js";
-import authMiddleware from "../../middleware/authMiddleware.js";
+// import authMiddleware from "../../middleware/authMiddleware.js";
 import { validate } from "../../middleware/validate.js";
 import {
   createCategorySchema,

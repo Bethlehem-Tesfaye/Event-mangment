@@ -5,12 +5,11 @@ import { PrismaClient } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
-import { openAPI } from "better-auth/plugins";
+import { openAPI, anonymous } from "better-auth/plugins";
 import transporter from "../../lib/mailer.js";
 import { ResetTemplate } from "../../lib/email/template/ResetTemplate.js";
 import { VerifyTemplate } from "../../lib/email/template/VerifyTemplate.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";
-import { anonymous } from "better-auth/plugins";
 
 const prisma = new PrismaClient();
 export const auth = betterAuth({

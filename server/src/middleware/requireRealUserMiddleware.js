@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { fromNodeHeaders } from "better-auth/node";
 import { auth } from "../modules/auth/auth.js";
 

@@ -1,5 +1,5 @@
 import express from "express";
-import authMiddleware from "../../middleware/authMiddleware.js";
+// import authMiddleware from "../../middleware/authMiddleware.js";
 import isEventOwner from "../../middleware/isEventOwner.js";
 import { validate } from "../../middleware/validate.js";
 import * as speakerController from "./speaker.contollers.js";
