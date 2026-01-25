@@ -94,7 +94,8 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
 
     // require a name and email (email from logged-in user if available)
     const finalName = attendeeName?.trim();
-    const finalEmail = isRealUser ? user?.email : attendeeEmail?.trim();
+    const finalEmail =
+      isRealUser && user?.email ? user.email : attendeeEmail?.trim();
 
     if (!finalName) {
       alert("Please enter attendee name");
