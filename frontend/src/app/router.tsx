@@ -83,6 +83,12 @@ export const router = createBrowserRouter([
     path: "/payment-success",
     element: <PaymentSucess />,
   },
+  { path: "user/myevents", element: <UserRegistrationsPage /> },
+  {
+    path: "registrations/:registrationId",
+    element: <RegistrationDetailsPage />,
+  },
+  { path: "notifications", element: <BrowseNotificationPage /> },
 
   // Protected routes (profile + organizer)
   {
@@ -105,13 +111,8 @@ export const router = createBrowserRouter([
         path: "organizer/events/attendees/:eventId",
         element: <EventAttendeesPage />,
       },
-      {
-        path: "registrations/:registrationId",
-        element: <RegistrationDetailsPage />,
-      },
-      { path: "user/myevents", element: <UserRegistrationsPage /> },
+
       { path: "organizer/notifications", element: <NotificationPage /> },
-      { path: "notifications", element: <BrowseNotificationPage /> },
       {
         path: "organizer/preview",
         element: <OrganizerEventPreviewPage />,

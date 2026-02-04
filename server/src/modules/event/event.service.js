@@ -142,18 +142,19 @@ export const purchaseTicket = async ({
   }
 
   // Determine receipt email
-  let emailForReceipt = null;
-  if (userId) {
+  let emailForReceipt = attendeeEmail?.trim() || null;
+
+  if (!emailForReceipt && userId) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { email: true }
     });
     if (!user) throw new CustomError("User not found", 404);
-    emailForReceipt = (user.email || "").trim().toLowerCase();
-  } else {
-    if (!attendeeEmail)
-      throw new CustomError("Email is required for guest purchase", 400);
-    emailForReceipt = String(attendeeEmail).trim().toLowerCase();
+    emailForReceipt = user.email?.trim() || null;
+  }
+
+  if (!emailForReceipt) {
+    throw new CustomError("Email is required for ticket purchase", 400);
   }
 
   // Create registration and decrement ticket atomically

@@ -27,7 +27,6 @@ export const AnonymousBootstrap = ({
   }, [user, isPending]);
 
   if (!bootstrapped || isPending) {
-    // optional: a loading spinner while the anonymous user is being created
     return <div>Loading...</div>;
   }
 

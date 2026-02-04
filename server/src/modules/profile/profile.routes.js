@@ -6,6 +6,7 @@ import { validate } from "../../middleware/validate.js";
 import * as eventController from "../event/event.controller.js";
 import { profileUpload } from "../../middleware/upload.js";
 import requireRealUserMiddleware from "../../middleware/requireRealUserMiddleware.js";
+import optionalAuthMiddleware from "../../middleware/optionalAuthMiddleware.js";
 
 const profileRoutes = express.Router();
 
@@ -25,7 +26,7 @@ profileRoutes.put(
 
 profileRoutes.get(
   "/events",
-  requireRealUserMiddleware,
+  optionalAuthMiddleware,
   eventController.getUserRegistrationsController
 );
 export default profileRoutes;

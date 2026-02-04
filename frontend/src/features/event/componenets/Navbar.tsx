@@ -34,7 +34,10 @@ import PulseLoader from "@/components/custom/PulseLoader";
 import type { NavbarProps } from "../types/event";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 import { useProfile } from "@/features/profile/hooks/useProfile";
-import { useNotification } from "@/features/notification/hooks/useNotification";
+import {
+  useNotification,
+  useReadAllNotification,
+} from "@/features/notification/hooks/useNotification";
 import { socket } from "@/lib/socket";
 import { useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -69,6 +72,17 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
   const [open, setOpen] = useState(false);
 
   const unreadCount = (notifications || []).filter((n: any) => !n.read).length;
+  const readAllMutation = useReadAllNotification();
+
+  const handleBellClick = () => {
+    readAllMutation.mutate(undefined, {
+      onSuccess: () => {
+        queryClient.setQueryData(["notification"], (old: any[] | undefined) => {
+          return (old || []).map((n) => ({ ...n, read: true }));
+        });
+      },
+    });
+  };
 
   useEffect(() => {
     // ensure socket connected and listen for notification:new
@@ -182,7 +196,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
             </div>
 
             {/* Notifications as text (no icon) */}
-            <div className="relative mr-2">
+            <div className="relative mr-2" onClick={handleBellClick}>
               <Link to="/notifications" className="inline-block">
                 <BellIcon className="h-5 w-5 text-gray-700 dark:text-gray-300" />
               </Link>
