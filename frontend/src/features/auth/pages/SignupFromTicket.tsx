@@ -71,16 +71,45 @@ export default function SignupFromTicket() {
 
   // simple form: show email, ask for password
   return (
-    <form onSubmit={handleSubmit}>
-      <p>Creating account for {state.email}</p>
-      <input
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        placeholder="Choose a password"
-      />
-      {error && <p>{error}</p>}
-      <button type="submit">Create account and claim ticket</button>
-    </form>
+    <div className="min-h-screen bg-gray-50 flex items-center justify-center px-4">
+      <form
+        onSubmit={handleSubmit}
+        className="w-full max-w-md bg-white rounded-xl shadow-md p-6 space-y-4"
+      >
+        <div>
+          <h1 className="text-xl font-semibold text-gray-900">
+            Claim your ticket
+          </h1>
+          <p className="text-sm text-gray-600 mt-1">
+            Creating account for{" "}
+            <span className="font-medium text-gray-800">{state.email}</span>
+          </p>
+        </div>
+
+        <label className="block text-sm font-medium text-gray-700">
+          Choose a password
+        </label>
+        <input
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Enter a strong password"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-200 focus:border-red-400"
+        />
+
+        {error && (
+          <p className="text-sm text-red-600 bg-red-50 border border-red-200 rounded-md px-3 py-2">
+            {error}
+          </p>
+        )}
+
+        <button
+          type="submit"
+          className="w-full bg-red-600 text-white py-2 rounded-lg font-medium hover:bg-red-700 transition"
+        >
+          Create account and claim ticket
+        </button>
+      </form>
+    </div>
   );
 }
