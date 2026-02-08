@@ -28,6 +28,8 @@ import OrganizerEventPreviewPage from "@/features/organizer/preview/pages/Organi
 import ForgotPassword from "@/features/auth/pages/ForgotPassword";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
 import PaymentSucess from "../features/payment/PaymentSucess";
+import TicketRecoverVerify from "@/features/recover/pages/TicketRecoverVerify";
+import SignupFromTicket from "@/features/auth/pages/SignupFromTicket";
 
 export const router = createBrowserRouter([
   {
@@ -89,6 +91,8 @@ export const router = createBrowserRouter([
     element: <RegistrationDetailsPage />,
   },
   { path: "notifications", element: <BrowseNotificationPage /> },
+  { path: "/tickets/recover/verify", element: <TicketRecoverVerify /> },
+  { path: "/signup-from-ticket", element: <SignupFromTicket /> },
 
   // Protected routes (profile + organizer)
   {

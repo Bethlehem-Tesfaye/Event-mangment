@@ -1,5 +1,6 @@
 /* eslint-disable no-console */
 import QRCode from "qrcode";
+import crypto from "crypto";
 import prisma from "../../lib/prisma.js"; // ensure this import exists near top of file
 import * as socketio from "../../lib/socketio.js";
 import CustomError from "../../utils/customError.js";
@@ -13,7 +14,6 @@ const mapLocationTypeToApi = (v) => {
   if (!v) return v;
   return v === "inPerson" ? "in-person" : v;
 };
-
 export const getEvents = async ({
   limit = 20,
   offset = 0,
@@ -71,6 +71,7 @@ export const getEvents = async ({
 
   return { events: normalizedEvents, totalCount };
 };
+
 export const getEventById = async (eventId) => {
   const event = await prisma.event.findFirst({
     where: { id: eventId, status: "published", deletedAt: null },
@@ -116,14 +117,16 @@ export const getEventTickets = async (eventId) => {
   return tickets;
 };
 
-export const purchaseTicket = async ({
-  eventId,
-  ticketId,
-  userId,
-  attendeeName,
-  attendeeEmail,
-  quantity = 1
-}) => {
+export const purchaseTicket = async (opts) => {
+  const {
+    eventId,
+    ticketId,
+    userId,
+    attendeeName,
+    attendeeEmail,
+    quantity = 1
+  } = opts;
+
   const tTicketId = Number(ticketId);
   const tQuantity = Number(quantity) || 1;
   const io = socketio.getConnection();
@@ -158,7 +161,7 @@ export const purchaseTicket = async ({
   }
 
   // Create registration and decrement ticket atomically
-  const reg = await prisma.$transaction(async (tx) => {
+  const createdRegistration = await prisma.$transaction(async (tx) => {
     const created = await tx.registration.create({
       data: {
         userId: userId || null,
@@ -180,7 +183,7 @@ export const purchaseTicket = async ({
 
   // Build QR payload
   const qrData = JSON.stringify({
-    registrationId: reg.id,
+    registrationId: createdRegistration.id,
     eventId: ticket.eventId,
     ticketId: ticket.id,
     attendeeName: attendeeName || null,
@@ -215,7 +218,7 @@ export const purchaseTicket = async ({
   if (qrUrl) {
     try {
       await prisma.registration.update({
-        where: { id: reg.id },
+        where: { id: createdRegistration.id },
         data: { qrCodeUrl: qrUrl }
       });
     } catch (uErr) {
@@ -226,7 +229,20 @@ export const purchaseTicket = async ({
     }
   }
 
-  // Publish email job (send QR + receipt)
+  // Add recovery token + redirectUrl
+  const token = crypto.randomUUID();
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const redirectUrl = `${process.env.CLIENT_URL || ""}/registrations/${createdRegistration.id}`;
+
+  await prisma.registration.update({
+    where: { id: createdRegistration.id },
+    data: {
+      recoveryTokenHash: tokenHash,
+      redirectUrl
+    }
+  });
+
+  const recoveryLink = `${process.env.AUTH_URL}/ticket/recover?token=${token}&redirectUrl=${encodeURIComponent(redirectUrl)}`;
   try {
     await publishEmailJob({
       type: "ticket",
@@ -236,13 +252,11 @@ export const purchaseTicket = async ({
       ticketId: ticket.id,
       qrBase64,
       qrUrl,
-      registrationId: reg.id
+      registrationId: createdRegistration.id,
+      recoveryLink
     });
-  } catch (emailErr) {
-    console.error(
-      "Failed to publish email job:",
-      emailErr?.message || emailErr
-    );
+  } catch (err) {
+    console.error("Failed to publish recovery email job:", err);
   }
 
   // Schedule reminder job
@@ -318,7 +332,7 @@ export const purchaseTicket = async ({
     console.error("Failed to notify organizer:", notifErr?.message || notifErr);
   }
 
-  return reg;
+  return createdRegistration;
 };
 
 export const createEvent = async ({

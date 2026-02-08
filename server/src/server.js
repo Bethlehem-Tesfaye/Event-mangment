@@ -16,6 +16,7 @@ import { auth } from "./modules/auth/auth.js";
 import { chapaRoutes } from "./modules/payment/chapa.routes.js";
 import { organizerSettingsRoutes } from "./modules/payment/organizerSettingsRoutes.js";
 import { initializeSocketIO } from "./lib/socketio.js";
+import ticketAttachRouter from "./modules/recovery/ticketAttach.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -119,6 +120,7 @@ app.use("/api/v1", routes);
 app.use("/api/auth", authRoutes);
 app.use("/api/chapa", chapaRoutes);
 app.use("/api/chapa/settings", organizerSettingsRoutes);
+app.use("/api/tickets", ticketAttachRouter);
 app.use(errorMiddleware);
 
 conn

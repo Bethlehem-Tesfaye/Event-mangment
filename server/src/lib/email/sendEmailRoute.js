@@ -31,6 +31,7 @@ export const sendEmailRoute = [
       if (payload.type === "ticket") {
         if (payload.qrUrl) {
           html = `<p>Hello ${payload.attendeeName || ""},</p>
+                    <a href="${payload.recoveryLink}" style="display:inline-block;padding:10px 20px;background:#ef4444;color:#fff;text-decoration:none;border-radius:8px;">View My Ticket / Recover</a>
                   <p>Your ticket:</p>
                   <img src="${payload.qrUrl}" alt="Ticket QR" style="max-width:320px"/>`;
         } else if (payload.qrBase64) {
@@ -43,7 +44,18 @@ export const sendEmailRoute = [
           html = `<p>Hello ${payload.attendeeName || ""}, your ticket is attached.</p>
                   <p>Scan the QR code at the event.</p>
                   <img src="cid:qrimage"/>`;
+          if (payload.recoveryLink) {
+            html += `<p style="margin-top:16px;">
+                    <a href="${payload.recoveryLink}" style="display:inline-block;padding:10px 20px;background:#ef4444;color:#fff;text-decoration:none;border-radius:8px;">View My Ticket / Recover</a>
+                   </p>
+                   <p style="font-size:12px;color:#666;">Use this link anytime to recover your ticket.</p>`;
+          }
         }
+      } else if (payload.type === "otp") {
+        html = `<p>Hello ${payload.email || ""},</p>
+                <p>Your OTP for ticket recovery is:</p>
+                <h2>${payload.otp}</h2>
+                <p style="font-size:12px;color:#666;">Valid for 10 minutes.</p>`;
       } else if (
         payload.type === "verification" ||
         payload.type === "verification_email" ||
