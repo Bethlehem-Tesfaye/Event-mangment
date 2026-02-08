@@ -9,7 +9,7 @@ router.post(
   async (req, res, next) => {
     try {
       const { registrationId } = req.body;
-      const userId = req.userId;
+      const { userId } = req;
 
       if (!registrationId) {
         return res.status(400).json({ error: "Missing registrationId" });
@@ -25,7 +25,7 @@ router.post(
         redirectUrl: `${process.env.CLIENT_URL}/registrations/${registrationId}`
       });
     } catch (err) {
-      next(err);
+      return next(err);
     }
   }
 );
@@ -57,7 +57,7 @@ router.post(
         redirectUrl: `${process.env.CLIENT_URL}/registrations/${registrationId}`
       });
     } catch (err) {
-      next(err);
+      return next(err);
     }
   }
 );

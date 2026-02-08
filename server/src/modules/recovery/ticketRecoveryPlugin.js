@@ -1,9 +1,8 @@
 // ticketRecoveryPlugin.js
 import { createAuthEndpoint } from "better-auth/plugins";
-import { randomInt } from "crypto";
+import crypto, { randomInt } from "crypto";
 import prisma from "../../lib/prisma.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";
-import crypto from "crypto";
 
 const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
