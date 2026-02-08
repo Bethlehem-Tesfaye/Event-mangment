@@ -27,8 +27,6 @@ export const getEventDetails = async (req, res, next) => {
     return next(err);
   }
 };
-
-// ??
 export const purchaseTicket = async (req, res, next) => {
   const { eventId } = req.params;
   const { ticketId, attendeeName, attendeeEmail, quantity } = req.body;
@@ -54,7 +52,6 @@ export const purchaseTicket = async (req, res, next) => {
     return next(err);
   }
 };
-
 //
 export const createEvent = async (req, res, next) => {
   try {

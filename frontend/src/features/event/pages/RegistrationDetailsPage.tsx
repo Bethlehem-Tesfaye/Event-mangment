@@ -8,7 +8,11 @@ import { Navbar } from "../componenets/Navbar";
 export default function RegistrationDetailsPage() {
   const { registrationId } = useParams();
   const { state } = useLocation() as { state?: { registration?: any } };
-  const { data: regs = [], isLoading } = useUserRegistrations();
+
+  // hooks MUST run unconditionally at top-level
+  const { data: regs = [], isLoading, error } = useUserRegistrations();
+  const { mutate: logout, isPending: logoutLoading } = useLogout();
+  const { user } = useCurrentUser();
 
   const registration =
     state?.registration ||
@@ -30,16 +34,15 @@ export default function RegistrationDetailsPage() {
       </div>
     );
   }
-  const { mutate: logout, isPending: logoutLoading } = useLogout();
-  const { user } = useCurrentUser();
 
-  const ev = registration.event;
-  const ticket = registration.ticket;
   const handleLogout = () => {
     logout(undefined, {
       onError: (err) => console.error("Logout failed:", err),
     });
   };
+
+  const ev = registration.event;
+  const ticket = registration.ticket;
 
   return (
     <div className="min-h-screen bg-white dark:bg-black text-black dark:text-white">

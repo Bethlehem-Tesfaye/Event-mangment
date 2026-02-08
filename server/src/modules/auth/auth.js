@@ -10,6 +10,7 @@ import transporter from "../../lib/mailer.js";
 import { ResetTemplate } from "../../lib/email/template/ResetTemplate.js";
 import { VerifyTemplate } from "../../lib/email/template/VerifyTemplate.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";
+import { ticketRecoveryPlugin } from "../recovery/ticketRecoveryPlugin.js";
 
 const prisma = new PrismaClient();
 export const auth = betterAuth({
@@ -117,7 +118,8 @@ export const auth = betterAuth({
           throw err;
         }
       }
-    })
+    }),
+    ticketRecoveryPlugin()
   ],
   hooks: {
     after: createAuthMiddleware(async (ctx) => {

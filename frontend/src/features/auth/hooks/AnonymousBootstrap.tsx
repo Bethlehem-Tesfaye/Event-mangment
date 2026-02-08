@@ -27,7 +27,7 @@ export const AnonymousBootstrap = ({
   }, [user, isPending]);
 
   if (!bootstrapped || isPending) {
-    return <div>Loading...</div>;
+    // return <div>Loading...</div>;
   }
 
   return <>{children}</>;
