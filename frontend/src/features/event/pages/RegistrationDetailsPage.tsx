@@ -10,7 +10,7 @@ export default function RegistrationDetailsPage() {
   const { state } = useLocation() as { state?: { registration?: any } };
 
   // hooks MUST run unconditionally at top-level
-  const { data: regs = [], isLoading, error } = useUserRegistrations();
+  const { data: regs = [], isLoading } = useUserRegistrations();
   const { mutate: logout, isPending: logoutLoading } = useLogout();
   const { user } = useCurrentUser();
 
