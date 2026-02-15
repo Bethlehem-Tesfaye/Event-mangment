@@ -46,9 +46,7 @@ vi.mock("../../src/modules/event/event.service.js", () => ({
   getEventAttendeesService: vi.fn().mockResolvedValue([]),
   getEventAnalytics: vi.fn().mockResolvedValue({ totalRevenue: 0 }),
   getAllCategories: vi.fn().mockResolvedValue([]),
-  getOrganizerEvents: vi
-    .fn()
-    .mockResolvedValue({ events: [], totalCount: 0 }),
+  getOrganizerEvents: vi.fn().mockResolvedValue({ events: [], totalCount: 0 }),
   getDashboardStatsService: vi
     .fn()
     .mockResolvedValue({ totalEvents: 0, totalRevenue: 0 }),

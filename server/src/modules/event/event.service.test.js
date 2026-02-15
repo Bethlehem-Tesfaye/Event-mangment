@@ -218,10 +218,7 @@ describe("createEvent", () => {
       message: "msg",
       createdAt: new Date()
     });
-    const result = await createEvent(
-      { userId: "u1", title: "Test" },
-      io
-    );
+    const result = await createEvent({ userId: "u1", title: "Test" }, io);
     expect(result.id).toBe("e1");
     expect(io.to).toHaveBeenCalledWith("user:u1");
     expect(io.emit).toHaveBeenCalledWith(
@@ -267,9 +264,9 @@ describe("updateEvent", () => {
 
   it("throws 404 when event not found", async () => {
     mockPrisma.event.findFirst.mockResolvedValue(null);
-    await expect(
-      updateEvent("bad", "u1", { title: "x" }, io)
-    ).rejects.toThrow("Event not found");
+    await expect(updateEvent("bad", "u1", { title: "x" }, io)).rejects.toThrow(
+      "Event not found"
+    );
   });
 
   it("rejects invalid status transitions", async () => {
@@ -372,9 +369,7 @@ describe("getEventAnalytics", () => {
       id: "e1",
       userId: "other"
     });
-    await expect(getEventAnalytics("e1", "u1")).rejects.toThrow(
-      "Unauthorized"
-    );
+    await expect(getEventAnalytics("e1", "u1")).rejects.toThrow("Unauthorized");
   });
 
   it("returns analytics data", async () => {
@@ -431,9 +426,7 @@ describe("getAllCategories", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("returns categories ordered by name", async () => {
-    mockPrisma.category.findMany.mockResolvedValue([
-      { id: 1, name: "Art" }
-    ]);
+    mockPrisma.category.findMany.mockResolvedValue([{ id: 1, name: "Art" }]);
     const result = await getAllCategories();
     expect(result).toHaveLength(1);
     expect(mockPrisma.category.findMany).toHaveBeenCalledWith({

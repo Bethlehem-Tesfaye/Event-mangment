@@ -41,7 +41,11 @@ describe("validate middleware", () => {
   });
 
   it("handles non-Zod errors gracefully", () => {
-    const badSchema = { parse: () => { throw new Error("boom"); } };
+    const badSchema = {
+      parse: () => {
+        throw new Error("boom");
+      }
+    };
     const req = { body: {} };
     const next = vi.fn();
     validate(badSchema)(req, {}, next);

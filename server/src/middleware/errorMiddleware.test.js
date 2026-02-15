@@ -20,7 +20,12 @@ describe("errorMiddleware", () => {
 
   it("responds with error statusCode", async () => {
     const err = { statusCode: 404, message: "Not found", stack: "stack" };
-    const req = { method: "GET", originalUrl: "/test", ip: "127.0.0.1", body: {} };
+    const req = {
+      method: "GET",
+      originalUrl: "/test",
+      ip: "127.0.0.1",
+      body: {}
+    };
     await errorMiddleware(err, req, res, next);
     expect(res.status).toHaveBeenCalledWith(404);
     expect(res.json).toHaveBeenCalledWith(
@@ -84,7 +89,11 @@ describe("errorMiddleware", () => {
       method: "POST",
       originalUrl: "/register",
       ip: "::1",
-      body: { password: "secret123", currentPassword: "old", newPassword: "new" }
+      body: {
+        password: "secret123",
+        currentPassword: "old",
+        newPassword: "new"
+      }
     };
     await errorMiddleware(err, req, res, next);
     const bodyCalls = logger.error.mock.calls.filter(

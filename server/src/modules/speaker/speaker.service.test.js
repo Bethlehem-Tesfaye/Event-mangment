@@ -10,12 +10,8 @@ const mockPrisma = {
 
 vi.mock("../../lib/prisma.js", () => ({ default: mockPrisma }));
 
-const {
-  createSpeaker,
-  updateSpeaker,
-  getSpeakersForEvent,
-  deleteSpeaker
-} = await import("./speaker.service.js");
+const { createSpeaker, updateSpeaker, getSpeakersForEvent, deleteSpeaker } =
+  await import("./speaker.service.js");
 
 describe("createSpeaker", () => {
   beforeEach(() => vi.clearAllMocks());

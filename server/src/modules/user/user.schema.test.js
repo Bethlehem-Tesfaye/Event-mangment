@@ -16,7 +16,9 @@ describe("registerSchema", () => {
   });
 
   it("rejects invalid email", () => {
-    expect(() => registerSchema.parse({ email: "bad", password: "123456" })).toThrow();
+    expect(() =>
+      registerSchema.parse({ email: "bad", password: "123456" })
+    ).toThrow();
   });
 
   it("rejects password shorter than 6 characters", () => {
@@ -46,7 +48,9 @@ describe("loginSchema", () => {
   });
 
   it("rejects empty password", () => {
-    expect(() => loginSchema.parse({ email: "a@b.com", password: "" })).toThrow();
+    expect(() =>
+      loginSchema.parse({ email: "a@b.com", password: "" })
+    ).toThrow();
   });
 
   it("rejects missing email", () => {

@@ -249,9 +249,7 @@ describe("resendVerification", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("throws 400 when email is missing", async () => {
-    await expect(resendVerification(null)).rejects.toThrow(
-      "Email is required"
-    );
+    await expect(resendVerification(null)).rejects.toThrow("Email is required");
   });
 
   it("throws 404 when user not found", async () => {

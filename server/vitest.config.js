@@ -17,11 +17,7 @@ export default defineConfig({
       include: ["src/**/*.js"],
       exclude: ["src/server.js", "src/seeds/**", "src/db/**"]
     },
-    include: [
-      "src/**/*.test.js",
-      "src/**/*.spec.js",
-      "__tests__/**/*.test.js"
-    ],
+    include: ["src/**/*.test.js", "src/**/*.spec.js", "__tests__/**/*.test.js"],
     testTimeout: 10000
   }
 });

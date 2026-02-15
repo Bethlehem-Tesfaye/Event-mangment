@@ -22,6 +22,7 @@ vi.mock("./event.service.js", () => ({
 
 vi.mock("json2csv", () => {
   class MockParser {
+    // eslint-disable-next-line class-methods-use-this
     parse() {
       return "csv-data";
     }

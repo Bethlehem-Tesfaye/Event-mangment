@@ -37,11 +37,17 @@ describe("register", () => {
       accessToken: "at",
       refreshToken: "rt"
     });
-    const req = createMockReq({ body: { email: "a@b.com", password: "123456" } });
+    const req = createMockReq({
+      body: { email: "a@b.com", password: "123456" }
+    });
     const res = createMockRes();
     const next = vi.fn();
     await register(req, res, next);
-    expect(res.cookie).toHaveBeenCalledWith("refreshToken", "rt", expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith(
+      "refreshToken",
+      "rt",
+      expect.any(Object)
+    );
     expect(res.status).toHaveBeenCalledWith(201);
     expect(res.json).toHaveBeenCalledWith({
       data: { user: { id: "u1", email: "a@b.com" }, accessToken: "at" }
@@ -73,7 +79,11 @@ describe("login", () => {
     const next = vi.fn();
     await login(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.cookie).toHaveBeenCalledWith("refreshToken", "rt", expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith(
+      "refreshToken",
+      "rt",
+      expect.any(Object)
+    );
   });
 });
 
@@ -91,7 +101,11 @@ describe("refresh", () => {
     const next = vi.fn();
     await refresh(req, res, next);
     expect(res.status).toHaveBeenCalledWith(200);
-    expect(res.cookie).toHaveBeenCalledWith("refreshToken", "rt2", expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith(
+      "refreshToken",
+      "rt2",
+      expect.any(Object)
+    );
   });
 });
 
@@ -212,7 +226,11 @@ describe("googleCallback", () => {
     const res = createMockRes();
     const next = vi.fn();
     await googleCallback(req, res, next);
-    expect(res.cookie).toHaveBeenCalledWith("refreshToken", "rt", expect.any(Object));
+    expect(res.cookie).toHaveBeenCalledWith(
+      "refreshToken",
+      "rt",
+      expect.any(Object)
+    );
     expect(res.redirect).toHaveBeenCalledWith(
       expect.stringContaining("accessToken=at")
     );

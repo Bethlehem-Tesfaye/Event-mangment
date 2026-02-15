@@ -17,6 +17,8 @@ export function createTestApp(path, router) {
   app.use(path, router);
 
   // Error handler
+  /* eslint-disable no-unused-vars */
+
   app.use((err, _req, res, _next) => {
     const status = err.statusCode || err.status || 500;
     res.status(status).json({ success: false, message: err.message });
