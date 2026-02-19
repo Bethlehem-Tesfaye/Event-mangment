@@ -63,55 +63,61 @@ export const auth = betterAuth({
     openAPI(),
     anonymous({
       onLinkAccount: async ({ anonymousUser, newUser }) => {
-        if (!anonymousUser || !newUser || !newUser.id) return;
+        const anonId = anonymousUser?.user?.id;
+        const newId = newUser?.user?.id;
+        console.log("onLinkAccount triggered!", {
+          anonId,
+          newId
+        });
+
+        if (!anonId || !newId) return;
 
         try {
-          // from anonymous -> real user
           await prisma.$transaction([
             prisma.profile.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             }),
             prisma.event.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             }),
             prisma.registration.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             }),
             prisma.payment.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             }),
             prisma.notification.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             }),
             prisma.account.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             }),
             prisma.session.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             }),
             prisma.organizerSettings.updateMany({
-              where: { userId: anonymousUser.id },
-              data: { userId: newUser.id }
+              where: { userId: anonId },
+              data: { userId: newId }
             })
           ]);
           // Ensure the new user has a profile
-          const profileExists = newUser.id
-            ? await prisma.profile.findUnique({ where: { userId: newUser.id } })
+          const profileExists = newId
+            ? await prisma.profile.findUnique({ where: { userId: newId } })
             : null;
 
           if (!profileExists) {
-            await prisma.profile.create({ data: { userId: newUser.id } });
-            console.log(`Profile created for new user ${newUser.id}`);
+            await prisma.profile.create({ data: { userId: newId } });
+            console.log(`Profile created for new user ${newId}`);
           }
           console.log(
-            `Successfully linked anonymous user ${anonymousUser.id} -> ${newUser.id}`
+            `Successfully linked anonymous user ${anonId} -> ${newId}`
           );
         } catch (err) {
           console.error("Failed to link anonymous user to real account:", err);
