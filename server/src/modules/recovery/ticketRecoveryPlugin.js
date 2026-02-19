@@ -1,4 +1,3 @@
-// ticketRecoveryPlugin.js
 import { createAuthEndpoint } from "better-auth/plugins";
 import crypto, { randomInt } from "crypto";
 import prisma from "../../lib/prisma.js";
@@ -6,18 +5,24 @@ import { publishEmailJob } from "../../utils/qstashPublisher.js";
 
 const hashToken = (token) =>
   crypto.createHash("sha256").update(token).digest("hex");
+
 const hashOTP = (otp) => crypto.createHash("sha256").update(otp).digest("hex");
+
 const verifyOTP = (otp, hash) =>
   hash === crypto.createHash("sha256").update(otp).digest("hex");
 
 export const ticketRecoveryPlugin = () => ({
   id: "ticket-recovery",
+
   endpoints: {
-    // STEP 1: user clicks email link → generate OTP
-    startRecovery: createAuthEndpoint("/ticket/recover", "GET", async (ctx) => {
+    startRecovery: createAuthEndpoint("/ticket/view", "GET", async (ctx) => {
       const url = new URL(ctx.request.url);
       const rawToken = url.searchParams.get("token");
-      if (!rawToken) return ctx.json({ error: "Invalid link" }, 400);
+
+      const cookieHeader =
+        ctx.request?.headers?.get("cookie") || ctx.headers?.cookie || "";
+
+      if (!rawToken) return ctx.json({ error: "Invalid or expired link" }, 400);
 
       const tokenHash = hashToken(rawToken);
 
@@ -28,28 +33,48 @@ export const ticketRecoveryPlugin = () => ({
         }
       });
 
-      if (!registration) return ctx.json({ error: "Link invalid" }, 400);
+      if (!registration)
+        return ctx.json({ error: "Invalid or expired link" }, 400);
+
+      let authBase = process.env.AUTH_URL || "http://localhost:4000";
+      authBase = authBase.replace(/\/api\/auth\/?$/, "");
+
+      const sessionRes = await fetch(`${authBase}/api/auth/get-session`, {
+        headers: { cookie: cookieHeader }
+      });
+
+      const sessionData = await sessionRes.json().catch(() => ({}));
+      const sessionUserId =
+        sessionData?.user?.id ||
+        sessionData?.session?.user?.id ||
+        sessionData?.session?.userId ||
+        null;
+
+      if (sessionRes.ok && sessionUserId === registration.userId) {
+        return ctx.redirect(
+          `${process.env.CLIENT_URL}/registrations/${registration.id}`
+        );
+      }
 
       const otp = String(randomInt(100000, 999999));
       const otpHash = hashOTP(otp);
-      const expires = new Date(Date.now() + 60 * 60 * 1000); // 1h
+      const expires = new Date(Date.now() + 10 * 60 * 1000);
 
       await prisma.registration.update({
         where: { id: registration.id },
         data: {
           otpHash,
-          otpExpires: expires
+          otpExpires: expires,
+          recoverySourceUserId: registration.userId
         }
       });
 
-      if (registration.attendeeEmail) {
-        await publishEmailJob({
-          type: "otp",
-          email: registration.attendeeEmail,
-          otp,
-          eventId: registration.eventId
-        });
-      }
+      await publishEmailJob({
+        type: "otp",
+        email: registration.attendeeEmail,
+        otp,
+        eventId: registration.eventId
+      });
 
       return ctx.redirect(
         `${process.env.CLIENT_URL}/tickets/recover/verify?token=${encodeURIComponent(
@@ -58,11 +83,13 @@ export const ticketRecoveryPlugin = () => ({
       );
     }),
 
-    // STEP 2: user submits OTP → decide next step, but DO NOT create session
     verifyRecoveryOtp: createAuthEndpoint(
       "/ticket/recover/verify",
       "POST",
       async (ctx) => {
+        const cookieHeader =
+          ctx.request?.headers?.get("cookie") || ctx.headers?.cookie || "";
+
         const body = ctx.body ?? (await ctx.request.json());
         const { token: rawToken, otp } = body || {};
 
@@ -78,7 +105,7 @@ export const ticketRecoveryPlugin = () => ({
           }
         });
 
-        if (!registration) return ctx.json({ error: "Link invalid" }, 400);
+        if (!registration) return ctx.json({ error: "Invalid link" }, 400);
 
         if (
           !registration.otpHash ||
@@ -88,54 +115,103 @@ export const ticketRecoveryPlugin = () => ({
           return ctx.json({ error: "OTP expired" }, 400);
         }
 
-        const valid = verifyOTP(otp, registration.otpHash);
-        if (!valid) return ctx.json({ error: "Invalid OTP" }, 400);
+        if (!verifyOTP(otp, registration.otpHash)) {
+          return ctx.json({ error: "Invalid OTP" }, 400);
+        }
 
-        // clear OTP, but don't touch user/session yet
+        const oldUserId =
+          registration.recoverySourceUserId || registration.userId;
+
+        let newUserId = null;
+        let session = ctx.session;
+
+        if (session?.userId) {
+          newUserId = session.userId;
+        } else {
+          let authBase = process.env.AUTH_URL || "http://localhost:4000";
+          authBase = authBase.replace(/\/api\/auth\/?$/, "");
+
+          const sessionRes = await fetch(`${authBase}/api/auth/get-session`, {
+            headers: {
+              cookie: cookieHeader
+            }
+          });
+
+          const sessionData = await sessionRes.json().catch(() => ({}));
+
+          const existingUserId =
+            sessionData?.user?.id ||
+            sessionData?.session?.user?.id ||
+            sessionData?.session?.userId ||
+            null;
+
+          if (sessionRes.ok && existingUserId) {
+            newUserId = existingUserId;
+          } else {
+            const origin = process.env.CLIENT_URL || "http://localhost:5173";
+
+            const anonRes = await fetch(
+              `${authBase}/api/auth/sign-in/anonymous`,
+              {
+                method: "POST",
+                headers: {
+                  "content-type": "application/json",
+                  origin,
+                  cookie: cookieHeader
+                },
+                body: "{}"
+              }
+            );
+
+            const setCookie = anonRes.headers.get("set-cookie");
+            if (setCookie && typeof ctx.setHeader === "function") {
+              ctx.setHeader("set-cookie", setCookie);
+            }
+
+            const anonData = await anonRes.json().catch(() => ({}));
+
+            if (!anonRes.ok || !anonData?.user?.id) {
+              return ctx.json(
+                {
+                  error: "Failed to create anonymous session",
+                  status: anonRes.status,
+                  message: anonData?.error || anonData?.message || null
+                },
+                500
+              );
+            }
+
+            newUserId = anonData.user.id;
+          }
+        }
+
+        await prisma.$transaction([
+          prisma.registration.updateMany({
+            where: { userId: oldUserId },
+            data: { userId: newUserId }
+          }),
+          prisma.notification.updateMany({
+            where: { userId: oldUserId },
+            data: { userId: newUserId }
+          }),
+          prisma.payment.updateMany({
+            where: { userId: oldUserId },
+            data: { userId: newUserId }
+          })
+        ]);
+
         await prisma.registration.update({
           where: { id: registration.id },
           data: {
             otpHash: null,
-            otpExpires: null
+            otpExpires: null,
+            recoverySourceUserId: null
           }
         });
 
-        const email = registration.attendeeEmail;
-
-        if (!email) {
-          // very edge case; you can just let them view ticket by id
-          return ctx.json({
-            success: true,
-            step: "TICKET_ONLY",
-            registrationId: registration.id,
-            redirectUrl:
-              registration.redirectUrl ||
-              `${process.env.CLIENT_URL}/registrations/${registration.id}`
-          });
-        }
-
-        // Does a user already exist with this email?
-        const existingUser = await prisma.user.findUnique({
-          where: { email }
-        });
-
-        const basePayload = {
-          success: true,
-          email,
-          registrationId: registration.id,
-          anonymousUserId: registration.userId // original anon owner
-        };
-
-        if (existingUser) {
-          return ctx.json({
-            ...basePayload,
-            step: "LOGIN_EXISTING"
-          });
-        }
-
         return ctx.json({
-          ...basePayload,
-          step: "CREATE_ACCOUNT"
+          success: true,
+          redirectUrl: `${process.env.CLIENT_URL}/registrations/${registration.id}`
         });
       }
     )

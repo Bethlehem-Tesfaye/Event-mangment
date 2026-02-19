@@ -242,7 +242,7 @@ export const purchaseTicket = async (opts) => {
     }
   });
 
-  const recoveryLink = `${process.env.AUTH_URL}/ticket/recover?token=${token}&redirectUrl=${encodeURIComponent(redirectUrl)}`;
+  const recoveryLink = `${process.env.AUTH_URL}/ticket/view?token=${token}&redirectUrl=${encodeURIComponent(redirectUrl)}`;
   try {
     await publishEmailJob({
       type: "ticket",

@@ -4,7 +4,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 export default function TicketRecoverVerify() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  const navigate = useNavigate();
+  // const navigate = useNavigate();
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
@@ -50,33 +50,9 @@ export default function TicketRecoverVerify() {
         return;
       }
 
-      const { step, email, registrationId, anonymousUserId, redirectUrl } =
-        data;
+      const { redirectUrl } = data;
 
-      if (step === "LOGIN_EXISTING") {
-        // pass info via state or query so login page knows what to do post-login
-        navigate("/login", {
-          state: { email, registrationId },
-        });
-        return;
-      }
-
-      if (step === "CREATE_ACCOUNT") {
-        navigate("/signup-from-ticket", {
-          state: { email, registrationId, anonymousUserId },
-        });
-        return;
-      }
-
-      // TICKET_ONLY fallback
-      if (redirectUrl) {
-        window.location.href = redirectUrl;
-        return;
-      }
-
-      if (registrationId) {
-        window.location.href = `/registrations/${registrationId}`;
-      }
+      window.location.href = redirectUrl; // Redirect to My Registration
     } catch (err) {
       setError("Network error. Please try again.");
     } finally {
