@@ -1,10 +1,9 @@
 import { useState } from "react";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 
 export default function TicketRecoverVerify() {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
-  // const navigate = useNavigate();
 
   const [otp, setOtp] = useState("");
   const [loading, setLoading] = useState(false);
