@@ -15,7 +15,11 @@ export function LoginPage() {
   const location = useLocation();
   const googleAuth = useGoogleAuth();
 
-  const from = (location.state as any)?.from?.pathname ?? "/";
+  const searchParams = new URLSearchParams(location.search);
+  const redirectUrlParam = searchParams.get("redirectUrl");
+
+  const from =
+    redirectUrlParam || (location.state as any)?.from?.pathname || "/";
 
   // ticket recovery state from OTP page
   const ticketRecoveryState = location.state as
@@ -73,11 +77,10 @@ export function LoginPage() {
 
   const handleSocialClick = async (provider: string) => {
     if (provider === "Google") {
-      await googleAuth();
-      await attachTicketIfNeeded();
-    } else {
-      toast.info(`${provider} login coming soon`);
+      await googleAuth(from);
+      return;
     }
+    toast.info(`${provider} login coming soon`);
   };
 
   return (
