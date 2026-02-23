@@ -28,7 +28,6 @@ export default function RegistrationDetailsPage() {
 
   const [searchParams] = useSearchParams();
   const status = searchParams.get("status");
-  const receipt = searchParams.get("receipt");
   const txRef = searchParams.get("tx_ref");
 
   const defaultTab = status === "success" ? "receipt" : "ticket";
