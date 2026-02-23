@@ -31,3 +31,7 @@ userTicketRoutes.get(
   authMiddleware,
   ticketController.getUserTicketHistory
 );
+userTicketRoutes.get(
+  "/events/:eventId/tickets/status",
+  ticketController.getUserTicketStatusForEvent
+);

@@ -28,8 +28,13 @@ import OrganizerEventPreviewPage from "@/features/organizer/preview/pages/Organi
 import ForgotPassword from "@/features/auth/pages/ForgotPassword";
 import ResetPassword from "@/features/auth/pages/ResetPassword";
 import PaymentSucess from "../features/payment/PaymentSucess";
+import PaymentResult from "../features/payment/PaymentResult";
 import TicketRecoverVerify from "@/features/recover/pages/TicketRecoverVerify";
 import SignupFromTicket from "@/features/auth/pages/SignupFromTicket";
+import BrowseEventsPage from "@/features/event/pages/BrowseEventsPage";
+import AboutPage from "@/features/event/pages/AboutPage";
+import ContactPage from "@/features/event/pages/ContactPage";
+import HelpPage from "@/features/event/pages/HelpPage";
 
 export const router = createBrowserRouter([
   {
@@ -47,6 +52,10 @@ export const router = createBrowserRouter([
   {
     path: "/browse-event",
     element: <Events />,
+  },
+  {
+    path: "/discover-event",
+    element: <BrowseEventsPage />,
   },
   {
     path: "/events/:id",
@@ -85,6 +94,10 @@ export const router = createBrowserRouter([
     path: "/payment-success",
     element: <PaymentSucess />,
   },
+  {
+    path: "/payment/result",
+    element: <PaymentResult />,
+  },
   { path: "user/myevents", element: <UserRegistrationsPage /> },
   {
     path: "registrations/:registrationId",
@@ -93,6 +106,18 @@ export const router = createBrowserRouter([
   { path: "notifications", element: <BrowseNotificationPage /> },
   { path: "/tickets/recover/verify", element: <TicketRecoverVerify /> },
   { path: "/signup-from-ticket", element: <SignupFromTicket /> },
+  {
+    path: "/about",
+    element: <AboutPage />,
+  },
+  {
+    path: "/contact",
+    element: <ContactPage />,
+  },
+  {
+    path: "/help",
+    element: <HelpPage />,
+  },
 
   // Protected routes (profile + organizer)
   {

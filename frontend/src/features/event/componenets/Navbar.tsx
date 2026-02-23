@@ -18,11 +18,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
-  // LayoutDashboard,
   Search,
-  // Globe,
   Menu,
-  // Calendar,
   ChevronDown,
   ChevronUp,
   Bell as BellIcon,
@@ -108,13 +105,15 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
     <>
       {logoutLoading && <PulseLoader show />}
       <nav className="sticky top-0 z-50 border-b bg-gray-100 dark:bg-[#202127] border-gray-200 dark:border-slate-900">
-        <div className="w-full px-6 md:px-16 lg:px-24 max-w-7xl mx-auto flex items-center justify-between">
+        <div className="w-full max-w-7xl mx-auto px-6 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-0 font-bold text-xl">
-              <Logo />
-              <span className="text-[15px] font-semibold text-primary">
-                EventLight
-              </span>
+              <Link to="/">
+                <Logo />
+                <span className="text-[15px] font-semibold text-primary">
+                  EventLight
+                </span>
+              </Link>
             </div>
 
             {showSearch && (
@@ -168,7 +167,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
 
                   <NavigationMenuItem>
                     <NavigationMenuLink asChild>
-                      <Link to="/browse-event">
+                      <Link to="/discover-event">
                         <Button
                           variant="ghost"
                           className="px-2 py-1 hover:text-primary hover:bg-gray-200 cursor-pointer"
@@ -288,7 +287,10 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                   </Link>
                 </DropdownMenuItem>
                 <DropdownMenuItem asChild>
-                  <Link to="/browse-event" className="flex items-center gap-2">
+                  <Link
+                    to="/discover-event"
+                    className="flex items-center gap-2"
+                  >
                     {/* <Globe className="h-4 w-4" /> Browse Events */}
                   </Link>
                 </DropdownMenuItem>

@@ -120,14 +120,27 @@ export default function EventTabs({
         value="organizer"
         className="p-4 border rounded-b-md bg-white dark:bg-[#202127]"
       >
-        {event.user?.profile?.firstName ? (
-          <div className="mt-2">
-            <h3 className="font-semibold text-lg">
-              {event.user.profile.firstName} {event.user.profile.lastName}
-            </h3>
-            {event.user.email && (
-              <p className="text-sm text-gray-600 mt-1">{event.user.email}</p>
-            )}
+        {event.user ? (
+          <div className="mt-2 flex items-center gap-4">
+            <img
+              src={
+                event.user.profile?.picture ||
+                event.user.image ||
+                "https://www.gravatar.com/avatar/?d=mp&s=120"
+              }
+              alt="Organizer"
+              className="w-14 h-14 rounded-full object-cover border"
+            />
+            <div>
+              <h3 className="font-semibold text-lg">
+                {event.user.profile
+                  ? `${event.user.profile.firstName ?? ""} ${event.user.profile.lastName ?? ""}`.trim()
+                  : event.user.name}
+              </h3>
+              {event.user.email && (
+                <p className="text-sm text-gray-600 mt-1">{event.user.email}</p>
+              )}
+            </div>
           </div>
         ) : (
           <p className="text-gray-500 italic">

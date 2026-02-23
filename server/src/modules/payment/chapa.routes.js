@@ -3,6 +3,7 @@
 import express from "express";
 import axios from "axios";
 import crypto from "crypto";
+import PDFDocument from "pdfkit";
 import prisma from "../../lib/prisma.js";
 import logger from "../../utils/logger.js";
 import { purchaseTicket } from "../event/event.service.js";
@@ -53,6 +54,9 @@ chapaRoutes.post("/initialize", authMiddleware, async (req, res, next) => {
     // Transaction reference
     const txRef = crypto.randomUUID();
 
+    const safeReturnUrl =
+      returnUrl || `${process.env.CLIENT_URL}/payment/result`;
+
     const currency = "ETB";
 
     // Save pending payment
@@ -96,8 +100,8 @@ chapaRoutes.post("/initialize", authMiddleware, async (req, res, next) => {
         first_name: firstName,
         last_name: lastName,
         phone_number: phoneNumber,
-        callback_url: `${process.env.LOCAL_BASE_URL}/api/chapa/callback` // webhook
-        // return_url: `${process.env.CLIENT_URL}/payment-success?status=success&receipt=${txRef}`
+        callback_url: `${process.env.LOCAL_BASE_URL}/api/chapa/webhook`,
+        return_url: `${safeReturnUrl}?tx_ref=${txRef}`
       };
 
       const headers = {
@@ -155,6 +159,87 @@ chapaRoutes.post("/initialize", authMiddleware, async (req, res, next) => {
   }
 });
 
+chapaRoutes.get("/result", async (req, res) => {
+  try {
+    const txRef = req.query.tx_ref;
+    if (!txRef) return res.status(400).json({ message: "tx_ref required" });
+
+    const payment = await prisma.payment.findUnique({
+      where: { txRef: String(txRef) }
+    });
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    const organizerSettings = await prisma.organizerSettings.findUnique({
+      where: { userId: payment.organizerId }
+    });
+    if (!organizerSettings?.chapaKey) {
+      return res.status(400).json({ message: "Organizer Chapa key not set" });
+    }
+
+    const verifyRes = await axios.get(
+      `https://api.chapa.co/v1/transaction/verify/${txRef}`,
+      { headers: { Authorization: `Bearer ${organizerSettings.chapaKey}` } }
+    );
+
+    const status = verifyRes?.data?.data?.status;
+    const receiptRefId = verifyRes?.data?.data?.ref_id;
+
+    if (status !== "success") {
+      return res.status(400).json({
+        message: "Payment not successful",
+        details: verifyRes?.data
+      });
+    }
+
+    if (payment.status !== "success") {
+      await prisma.payment.update({
+        where: { id: payment.id },
+        data: {
+          status: "success",
+          paidAt: new Date(),
+          receiptRefId,
+          receiptData: verifyRes?.data || null
+        }
+      });
+
+      await purchaseTicket(
+        {
+          eventId: payment.eventId,
+          ticketId: payment.ticketId,
+          userId: payment.userId,
+          attendeeName:
+            `${payment.firstName || ""} ${payment.lastName || ""}`.trim(),
+          attendeeEmail: payment.email,
+          quantity: payment.quantity
+        },
+        req.app.get("io")
+      );
+    }
+
+    const registration = await prisma.registration.findFirst({
+      where: {
+        userId: payment.userId,
+        eventId: payment.eventId,
+        deletedAt: null
+      },
+      orderBy: { createdAt: "desc" }
+    });
+
+    return res.status(200).json({
+      success: true,
+      registrationId: registration?.id || null,
+      receiptRefId
+    });
+  } catch (err) {
+    logger.error("Chapa verify failed", {
+      message: err?.message,
+      responseData: err?.response?.data,
+      responseStatus: err?.response?.status
+    });
+    return res.status(500).json({ message: "Verification failed" });
+  }
+});
+
 chapaRoutes.post("/webhook", async (req, res) => {
   try {
     logger.info("Webhook received", {
@@ -164,7 +249,6 @@ chapaRoutes.post("/webhook", async (req, res) => {
     });
 
     const signature = req.headers["x-chapa-signature"];
-
     if (signature !== process.env.CHAPA_WEBHOOK_SECRET) {
       return res.status(403).send("Invalid signature");
     }
@@ -178,50 +262,32 @@ chapaRoutes.post("/webhook", async (req, res) => {
     if (!payment) return res.status(404).send("Payment not found");
 
     if (payment.status === "success") {
-      logger.info("Payment already processed", {
-        paymentId: payment.id,
-        txRef: tx_ref
-      });
       return res.status(200).send("Already processed");
     }
 
     const updatedPayment = await prisma.payment.update({
       where: { id: payment.id },
-      data: { status, chapaRefId: reference }
-    });
-
-    logger.info("Payment updated via webhook", {
-      paymentId: updatedPayment.id,
-      txRef: updatedPayment.txRef,
-      status: updatedPayment.status,
-      chapaRefId: updatedPayment.chapaRefId
+      data: {
+        status: status || payment.status,
+        chapaRefId: reference,
+        receiptRefId: reference,
+        paidAt: status === "success" ? new Date() : payment.paidAt
+      }
     });
 
     if (status === "success") {
-      try {
-        await purchaseTicket(
-          {
-            eventId: updatedPayment.eventId,
-            ticketId: updatedPayment.ticketId,
-            userId: updatedPayment.userId,
-            attendeeName:
-              `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
-            attendeeEmail: updatedPayment.email,
-            quantity: updatedPayment.quantity
-          },
-          req.app.get("io")
-        );
-        logger.info("Tickets issued for payment", {
-          paymentId: updatedPayment.id,
+      await purchaseTicket(
+        {
+          eventId: updatedPayment.eventId,
+          ticketId: updatedPayment.ticketId,
           userId: updatedPayment.userId,
+          attendeeName:
+            `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
+          attendeeEmail: updatedPayment.email,
           quantity: updatedPayment.quantity
-        });
-      } catch (issueErr) {
-        logger.error("Failed to issue tickets after payment success", {
-          paymentId: updatedPayment.id,
-          error: issueErr?.message || String(issueErr)
-        });
-      }
+        },
+        req.app.get("io")
+      );
     }
 
     return res.status(200).send("Webhook processed");
@@ -230,55 +296,177 @@ chapaRoutes.post("/webhook", async (req, res) => {
   }
 });
 
-chapaRoutes.get("/callback", async (req, res) => {
-  console.log("Callback hit with:", req.query);
+chapaRoutes.get("/receipt", authMiddleware, async (req, res) => {
+  try {
+    const txRef = req.query.tx_ref;
+    if (!txRef) return res.status(400).json({ message: "tx_ref required" });
 
-  const { trx_ref, tx_ref, status, ref_id } = req.query;
-  const reference = trx_ref || tx_ref;
+    const payment = await prisma.payment.findUnique({
+      where: { txRef: String(txRef) }
+    });
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
 
-  if (!reference) {
-    return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
-  }
+    if (payment.receiptData) {
+      return res.status(200).json({ success: true, data: payment.receiptData });
+    }
 
-  const payment = await prisma.payment.findUnique({
-    where: { txRef: reference }
-  });
+    const organizerSettings = await prisma.organizerSettings.findUnique({
+      where: { userId: payment.organizerId }
+    });
+    if (!organizerSettings?.chapaKey) {
+      return res.status(400).json({ message: "Organizer Chapa key not set" });
+    }
 
-  if (!payment) {
-    // If payment not found, still redirect user to frontend
-    return res.redirect(`${process.env.CLIENT_URL}/payment-success`);
-  }
+    const verifyRes = await axios.get(
+      `https://api.chapa.co/v1/transaction/verify/${txRef}`,
+      { headers: { Authorization: `Bearer ${organizerSettings.chapaKey}` } }
+    );
 
-  // Mark success and issue tickets (callback path)
-  if (status === "success" && payment.status !== "success") {
     await prisma.payment.update({
       where: { id: payment.id },
-      data: { status: "success", chapaRefId: ref_id }
+      data: { receiptData: verifyRes?.data || null }
     });
 
+    return res.status(200).json({ success: true, data: verifyRes?.data });
+  } catch (err) {
+    return res.status(500).json({ message: "Receipt fetch failed" });
+  }
+});
+
+// Receipt PDF
+chapaRoutes.get("/receipt/pdf", authMiddleware, async (req, res) => {
+  try {
+    const { tx_ref: txRef } = req.query;
+    if (!txRef) return res.status(400).json({ message: "tx_ref required" });
+
+    const payment = await prisma.payment.findUnique({
+      where: { txRef: String(txRef) }
+    });
+    if (!payment) return res.status(404).json({ message: "Payment not found" });
+
+    const data = payment.receiptData || {};
+    const doc = new PDFDocument({ margin: 40 });
+
+    res.setHeader("Content-Type", "application/pdf");
+    res.setHeader(
+      "Content-Disposition",
+      `attachment; filename="receipt-${txRef}.pdf"`
+    );
+
+    doc.pipe(res);
+    doc.fontSize(18).text("Payment Receipt", { underline: true });
+    doc.moveDown();
+
+    doc.fontSize(12).text(`Transaction Ref: ${txRef}`);
+    doc.text(`Status: ${data?.data?.status || payment.status}`);
+    doc.text(`Amount: ${data?.data?.amount || payment.amount}`);
+    doc.text(`Currency: ${data?.data?.currency || payment.currency}`);
+    doc.text(
+      `Reference ID: ${data?.data?.ref_id || payment.receiptRefId || "—"}`
+    );
+    doc.text(
+      `Paid At: ${payment.paidAt ? new Date(payment.paidAt).toLocaleString() : "—"}`
+    );
+    doc.moveDown();
+
+    doc.text("Customer:");
+    doc.text(
+      `Name: ${payment.firstName || ""} ${payment.lastName || ""}`.trim()
+    );
+    doc.text(`Email: ${payment.email || "—"}`);
+
+    doc.end();
+
+    return undefined;
+  } catch {
+    return res.status(500).json({ message: "Receipt PDF failed" });
+  }
+});
+
+chapaRoutes.get(
+  "/receipt/by-registration/:registrationId",
+  authMiddleware,
+  async (req, res) => {
     try {
+      const { registrationId } = req.params;
+      const { userId } = req;
+
+      const registration = await prisma.registration.findUnique({
+        where: { id: Number(registrationId) },
+        select: { eventId: true }
+      });
+      if (!registration)
+        return res.status(404).json({ message: "Registration not found" });
+
+      const payment = await prisma.payment.findFirst({
+        where: {
+          userId,
+          eventId: registration.eventId,
+          status: "success"
+        },
+        orderBy: { createdAt: "desc" }
+      });
+      if (!payment)
+        return res.status(404).json({ message: "Payment not found" });
+
+      return res.status(200).json({
+        success: true,
+        txRef: payment.txRef,
+        data: payment.receiptData || null
+      });
+    } catch {
+      return res.status(500).json({ message: "Receipt fetch failed" });
+    }
+  }
+);
+
+const handleWebhook = async (req, res) => {
+  try {
+    const tx_ref = req.body?.tx_ref || req.query?.trx_ref || req.query?.tx_ref;
+    const status = req.body?.status || req.query?.status;
+    const reference = req.body?.reference || req.query?.ref_id;
+
+    if (!tx_ref) return res.status(400).send("tx_ref missing");
+
+    const payment = await prisma.payment.findUnique({
+      where: { txRef: String(tx_ref) }
+    });
+    if (!payment) return res.status(404).send("Payment not found");
+
+    if (payment.status === "success") {
+      return res.status(200).send("Already processed");
+    }
+
+    const updatedPayment = await prisma.payment.update({
+      where: { id: payment.id },
+      data: {
+        status: status || payment.status,
+        chapaRefId: reference,
+        receiptRefId: reference,
+        paidAt: status === "success" ? new Date() : payment.paidAt
+      }
+    });
+
+    if (status === "success") {
       await purchaseTicket(
         {
-          eventId: payment.eventId,
-          ticketId: payment.ticketId,
-          userId: payment.userId,
+          eventId: updatedPayment.eventId,
+          ticketId: updatedPayment.ticketId,
+          userId: updatedPayment.userId,
           attendeeName:
-            `${payment.firstName || ""} ${payment.lastName || ""}`.trim(),
-          attendeeEmail: payment.email,
-          quantity: payment.quantity
+            `${updatedPayment.firstName || ""} ${updatedPayment.lastName || ""}`.trim(),
+          attendeeEmail: updatedPayment.email,
+          quantity: updatedPayment.quantity
         },
         req.app.get("io")
       );
-      logger.info("Tickets issued via callback", { paymentId: payment.id });
-    } catch (issueErr) {
-      logger.error("Failed to issue tickets in callback", {
-        paymentId: payment.id,
-        error: issueErr?.message || String(issueErr)
-      });
     }
-  }
 
-  return res.redirect(
-    `${process.env.CLIENT_URL}/payment-success?status=success&receipt=${ref_id}`
-  );
-});
+    return res.status(200).send("Webhook processed");
+  } catch (err) {
+    return res.status(500).send("Error processing webhook");
+  }
+};
+
+chapaRoutes.get("/webhook", handleWebhook);
+chapaRoutes.post("/webhook", handleWebhook);

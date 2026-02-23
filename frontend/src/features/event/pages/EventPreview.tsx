@@ -117,7 +117,11 @@ export function EventPreview() {
 
           {tickets && tickets.length > 0 && (
             <div className="w-full lg:w-80">
-              <TicketList tickets={tickets} loading={ticketsLoading} />
+              <TicketList
+                tickets={tickets}
+                loading={ticketsLoading}
+                eventId={event?.id}
+              />
             </div>
           )}
         </div>

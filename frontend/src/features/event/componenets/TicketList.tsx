@@ -4,20 +4,26 @@ import type { Ticket } from "../types/event";
 import PurchaseModal from "./PurchaseModal";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser";
 import { useLocation } from "react-router-dom";
+import { useUserTicketStatus } from "../hooks/useUserTicketStatus";
 
 interface TicketListProps {
   tickets: Ticket[];
   loading?: boolean;
   showCheckout?: boolean;
+  eventId?: string | number;
 }
 
 export default function TicketList({
   tickets,
   loading,
   showCheckout = true,
+  eventId,
 }: TicketListProps) {
   const { user } = useCurrentUser();
   const location = useLocation();
+
+  const { data: status } = useUserTicketStatus(eventId, !!user?.id);
+  const ownedTicketIds = new Set<number | string>(status?.ticketIds ?? []);
 
   const showCheckoutEffective =
     showCheckout && !String(location.pathname).includes("/organizer");
@@ -29,7 +35,7 @@ export default function TicketList({
   if (!tickets || tickets.length === 0) return null;
 
   const availableTicketsExist = tickets.some(
-    (tt) => Number(tt.remainingQuantity) > 0
+    (tt) => Number(tt.remainingQuantity) > 0,
   );
 
   const handleSelect = useCallback((ticket: Ticket) => {
@@ -76,6 +82,12 @@ export default function TicketList({
               ) : (
                 <span className="absolute top-3 right-3 bg-red-200 text-gray-800 text-xs font-medium px-2 py-1 rounded-full dark:text-gray-300 dark:bg-primary">
                   {t.remainingQuantity} left
+                </span>
+              )}
+
+              {ownedTicketIds.has(t.id) && (
+                <span className="absolute bottom-3 right-3 bg-blue-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                  Already bought
                 </span>
               )}
               <h3 className="text-md">{t.type}</h3>

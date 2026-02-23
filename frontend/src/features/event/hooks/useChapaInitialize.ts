@@ -1,4 +1,3 @@
-// hooks/useChapaInitialize.ts
 import { useMutation } from "@tanstack/react-query";
 import axios from "axios";
 
@@ -6,7 +5,7 @@ interface InitializePaymentInput {
   eventId: string;
   ticketId: string;
   quantity: number;
-  attendeeName: string; // full name from UI
+  attendeeName: string;
   attendeeEmail: string;
   phoneNumber?: string;
   returnUrl?: string;
@@ -41,8 +40,7 @@ export const useChapaInitialize = () => {
         lastName, // backend expects lastName
         email: data.attendeeEmail,
         phoneNumber: data.phoneNumber,
-        returnUrl:
-          data.returnUrl ?? `${window.location.origin}/payment-success`,
+        returnUrl: data.returnUrl ?? `${window.location.origin}/payment/result`,
       };
 
       const token = localStorage.getItem("token");

@@ -109,11 +109,14 @@ export interface UserProfile {
   lastName: string;
   city?: string;
   country?: string;
+  picture?: string;
 }
 
 export interface User {
   email: string;
   profile: UserProfile;
+  image?: string;
+  name: string;
 }
 
 export interface EventCategory {
@@ -153,7 +156,7 @@ export interface PurchaseModalProps {
   onPurchase: (
     attendeeName: string,
     attendeeEmail: string,
-    quantity: number
+    quantity: number,
   ) => void;
 }
 
