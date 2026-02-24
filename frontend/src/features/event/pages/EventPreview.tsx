@@ -82,49 +82,56 @@ export function EventPreview() {
     );
   }
 
+  // EventPreview.tsx (main layout)
   return (
-    <div>
+    <div className="min-h-screen bg-slate-50 dark:bg-[#111217]">
       <Navbar
         onLogout={handleLogout}
         logoutLoading={logoutLoading}
         showSearch={false}
         user={user as any}
       />
-      <div className="max-w-7xl mx-auto px-16 py-10 flex flex-col gap-10">
-        <Breadcrumb className="mb-4">
+
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-6">
+        <Breadcrumb className="text-xs text-slate-500">
           <BreadcrumbList>
             <BreadcrumbItem>
               <BreadcrumbLink asChild>
                 <Link to="/browse-event">Events</Link>
               </BreadcrumbLink>
             </BreadcrumbItem>
-            <BreadcrumbSeparator>&gt;</BreadcrumbSeparator>
+            <BreadcrumbSeparator>/</BreadcrumbSeparator>
             <BreadcrumbItem>
-              <BreadcrumbPage>{event.title}</BreadcrumbPage>
+              <BreadcrumbPage className="truncate max-w-[220px]">
+                {event.title}
+              </BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
 
-        <div className="flex flex-col lg:flex-row gap-10">
-          <div className="flex-1 flex flex-col gap-6">
+        <section className="grid grid-cols-1 lg:grid-cols-3 gap-6 items-start">
+          <div className="order-1 lg:order-1 lg:col-span-2">
             <EventDetailsCard event={event} />
+          </div>
+
+          <section className="order-2 lg:order-3 lg:col-span-2">
             <EventTabs
               event={event}
               speakers={speakers ?? []}
               loading={speakersLoading}
             />
-          </div>
+          </section>
 
           {tickets && tickets.length > 0 && (
-            <div className="w-full lg:w-80">
+            <aside className="order-3 lg:order-2 lg:col-span-1">
               <TicketList
                 tickets={tickets}
                 loading={ticketsLoading}
-                eventId={event?.id}
+                eventId={event.id}
               />
-            </div>
+            </aside>
           )}
-        </div>
+        </section>
       </div>
     </div>
   );

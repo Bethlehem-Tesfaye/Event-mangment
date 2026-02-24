@@ -64,6 +64,7 @@ export interface EventDetail {
     id: number;
     email: string;
   };
+  locationType: string;
 }
 
 export interface EventResponse {
