@@ -70,7 +70,10 @@ export default function DashboardPage() {
       <Sidebar active={route} onNavigate={setRoute} />
       <div className="flex-1 flex flex-col">
         <Topbar user={user} onLogout={handleLogout} />
-        <PageContainer hasSidebar={true} className="flex-1 p-6">
+        <PageContainer
+          hasSidebar={false}
+          className="flex-1 w-full max-w-none mx-0 p-6"
+        >
           <div className="mt-[50px] mb-6">
             <p className="text-[24px] font-semibold">Overview</p>
           </div>
