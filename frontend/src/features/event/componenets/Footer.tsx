@@ -7,6 +7,7 @@ import {
 } from "@/components/ui/accordion";
 import { Button } from "@/components/ui/button";
 import { Facebook, Twitter, Github, Linkedin, Instagram } from "lucide-react";
+import { Link } from "react-router-dom";
 
 type FooterProps = {
   categories: string[];
@@ -33,24 +34,33 @@ export function Footer({ categories, onSelectCategory }: FooterProps) {
             <h4 className="font-semibold text-white mb-3">Quick Links</h4>
             <ul className="space-y-2 text-sm">
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link
+                  to="/about"
+                  className="hover:text-white transition-colors"
+                >
                   About Us
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link
+                  to="/discover-event"
+                  className="hover:text-white transition-colors"
+                >
                   Browse Events
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link
+                  to="/contact"
+                  className="hover:text-white transition-colors"
+                >
                   Contact
-                </a>
+                </Link>
               </li>
               <li>
-                <a href="#" className="hover:text-white transition-colors">
+                <Link to="/help" className="hover:text-white transition-colors">
                   Help Center
-                </a>
+                </Link>
               </li>
             </ul>
           </div>
@@ -125,24 +135,36 @@ export function Footer({ categories, onSelectCategory }: FooterProps) {
               <AccordionContent>
                 <ul className="space-y-2 text-sm">
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <Link
+                      to="/about"
+                      className="hover:text-white transition-colors"
+                    >
                       About Us
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <Link
+                      to="/discover-event"
+                      className="hover:text-white transition-colors"
+                    >
                       Browse Events
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <Link
+                      to="/contact"
+                      className="hover:text-white transition-colors"
+                    >
                       Contact
-                    </a>
+                    </Link>
                   </li>
                   <li>
-                    <a href="#" className="hover:text-white transition-colors">
+                    <Link
+                      to="/help"
+                      className="hover:text-white transition-colors"
+                    >
                       Help Center
-                    </a>
+                    </Link>
                   </li>
                 </ul>
               </AccordionContent>

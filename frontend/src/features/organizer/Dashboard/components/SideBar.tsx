@@ -34,12 +34,6 @@ export default function Sidebar({
       path: "/organizer/events",
     },
     {
-      key: "analytics",
-      label: "Analytics",
-      icon: <ChartColumnIncreasing />,
-      path: "/organizer/analytics",
-    },
-    {
       key: "settings",
       label: "Settings",
       icon: <Settings />,

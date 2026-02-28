@@ -243,6 +243,10 @@ model Payment {
   chapaRefId  String?
   status      String  @default("pending")
 
+  receiptRefId String?   @map("receipt_ref_id")
+  receiptData  Json?     @map("receipt_data")
+  paidAt       DateTime? @map("paid_at")
+
   firstName                String?
   lastName                 String?
   email                    String?

@@ -65,3 +65,22 @@ export const getUserTicketHistory = async (userId) => {
   });
   return registrations;
 };
+
+export const getUserEventTicketStatus = async (userId, eventId) => {
+  const registrations = await prisma.registration.findMany({
+    where: {
+      userId,
+      eventId,
+      deletedAt: null
+    },
+    select: {
+      ticketType: true
+    }
+  });
+
+  const ticketIds = registrations.map((r) => r.ticketType);
+  return {
+    hasAny: ticketIds.length > 0,
+    ticketIds
+  };
+};

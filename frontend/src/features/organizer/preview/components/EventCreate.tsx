@@ -118,7 +118,7 @@ export default function EventCreate() {
 
   const handleRemoveLocal = (
     type: "ticket" | "speaker",
-    idToRemove: string | number
+    idToRemove: string | number,
   ) => {
     if (type === "ticket") {
       setEditableEvent((prev) => ({
@@ -149,9 +149,9 @@ export default function EventCreate() {
       hasSpeakers: true,
     },
   } as any);
-
   useEffect(() => {
     if (!editableEvent) return;
+    const currentHasSpeakers = methods.getValues().hasSpeakers;
     methods.reset({
       title: editableEvent.title ?? "",
       description: editableEvent.description ?? "",
@@ -164,7 +164,8 @@ export default function EventCreate() {
         editableEvent.eventBannerPreview ?? editableEvent.eventBannerUrl ?? "",
       eventBannerUrl: editableEvent.eventBannerUrl ?? "",
       eventBannerFile: editableEvent.eventBannerFile ?? null,
-      hasSpeakers: (editableEvent.speakers?.length ?? 0) > 0,
+      hasSpeakers:
+        currentHasSpeakers ?? (editableEvent.speakers?.length ?? 0) > 0,
     });
   }, []);
 
@@ -187,7 +188,7 @@ export default function EventCreate() {
           ticketErrors.push(
             `Ticket "${t.type || t.id}": ${parsed.error.issues
               .map((i) => i.message)
-              .join(", ")}`
+              .join(", ")}`,
           );
         }
       }
@@ -206,7 +207,9 @@ export default function EventCreate() {
       const fv = methods.getValues() as any;
       const hasSpeakers =
         fv.hasSpeakers ?? (editableEvent.speakers ?? []).length > 0;
-      const speakersToProcess = hasSpeakers ? editableEvent.speakers ?? [] : [];
+      const speakersToProcess = hasSpeakers
+        ? (editableEvent.speakers ?? [])
+        : [];
 
       // prepare event payload
       const eventPayload: any = {
@@ -239,7 +242,7 @@ export default function EventCreate() {
       }
 
       const createdId = String(
-        created.data?.data?.id ?? created.data?.id ?? created.data?.event?.id
+        created.data?.data?.id ?? created.data?.id ?? created.data?.event?.id,
       );
 
       // add categories
@@ -264,14 +267,14 @@ export default function EventCreate() {
           if ((s as any).photoFile) form.append("photo", (s as any).photoFile);
           const res = await api.post(
             `/organizer/events/${createdId}/speakers`,
-            form
+            form,
           );
           // replace temp ID with server ID
           const newId = res.data?.data?.id ?? res.data?.id ?? "";
           setEditableEvent((prev) => ({
             ...prev,
             speakers: (prev.speakers ?? []).map((sp) =>
-              sp.id === s.id ? { ...sp, id: newId, isTemp: false } : sp
+              sp.id === s.id ? { ...sp, id: newId, isTemp: false } : sp,
             ),
           }));
         } catch (e) {
@@ -286,13 +289,14 @@ export default function EventCreate() {
             type: t.type,
             price: Number(t.price),
             totalQuantity: Number(t.totalQuantity),
-            maxPerUser: t.maxPerUser,
+            maxPerUser:
+              t.maxPerUser !== undefined ? Number(t.maxPerUser) : undefined,
           });
           const newId = res.data?.data?.id ?? res.data?.id ?? "";
           setEditableEvent((prev) => ({
             ...prev,
             tickets: (prev.tickets ?? []).map((tk) =>
-              tk.id === t.id ? { ...tk, id: newId, isTemp: false } : tk
+              tk.id === t.id ? { ...tk, id: newId, isTemp: false } : tk,
             ),
           }));
         } catch (e) {
@@ -337,7 +341,7 @@ export default function EventCreate() {
                 setEditableEvent((prev) => ({
                   ...prev,
                   tickets: (prev.tickets ?? []).map((t) =>
-                    t.id === id ? { ...t, [field]: value } : t
+                    t.id === id ? { ...t, [field]: value } : t,
                   ),
                 }));
               }}
@@ -345,6 +349,20 @@ export default function EventCreate() {
               onRemoteDelete={(id: number) => handleRemoveLocal("ticket", id)}
               error={ticketsError}
             />
+          </CardContent>
+
+          <CardContent>
+            <label className="inline-flex items-center gap-2">
+              <input
+                type="checkbox"
+                checked={Boolean(methods.watch("hasSpeakers"))}
+                onChange={(e) =>
+                  methods.setValue("hasSpeakers", e.target.checked)
+                }
+                className="h-4 w-4"
+              />
+              <span className="text-sm">I have speakers for this event</span>
+            </label>
           </CardContent>
 
           {(methods.watch("hasSpeakers") ||
@@ -360,7 +378,7 @@ export default function EventCreate() {
                   setEditableEvent((prev) => ({
                     ...prev,
                     speakers: (prev.speakers ?? []).map((s) =>
-                      s.id === id ? { ...s, [field]: value } : s
+                      s.id === id ? { ...s, [field]: value } : s,
                     ),
                   }));
                 }}
@@ -373,12 +391,12 @@ export default function EventCreate() {
                     setEditableEvent((prev) => ({
                       ...prev,
                       speakers: (prev.speakers ?? []).map((s) =>
-                        s.id === idOrNew ? { ...s, photoFile: file } : s
+                        s.id === idOrNew ? { ...s, photoFile: file } : s,
                       ),
                     }));
                   } else {
                     setNewSpeaker((prev: any) =>
-                      prev ? { ...prev, photoFile: file } : null
+                      prev ? { ...prev, photoFile: file } : null,
                     );
                   }
                 }}
@@ -409,7 +427,7 @@ export default function EventCreate() {
                   setEditableEvent((prev) => ({
                     ...prev,
                     categories: (prev.categories ?? []).filter(
-                      (id: number | string) => id !== cat.id
+                      (id: number | string) => id !== cat.id,
                     ),
                   }))
                 }

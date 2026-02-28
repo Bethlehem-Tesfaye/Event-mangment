@@ -114,7 +114,7 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
         attendeeName: finalName,
         attendeeEmail: finalEmail,
         phoneNumber: (user as any)?.phone ?? "", // include phone if available on user
-        returnUrl: `${window.location.origin}/payment-success`,
+        returnUrl: `${window.location.origin}/payment/result`,
       });
 
       // server should return checkoutUrl
@@ -208,21 +208,26 @@ const PurchaseModalInner: React.FC<PurchaseModalProps> = ({
                     {user && isRealUser ? user.email : attendeeEmail})
                   </p>
                 </div>
-
                 <div className="flex items-start gap-2">
-                  <Checkbox
-                    id="agree"
-                    checked={agree}
-                    onCheckedChange={(c) => setAgree(Boolean(c))}
-                  />
-                  <span className="text-sm leading-snug">
-                    I agree to the{" "}
-                    <span className="underline cursor-pointer">Terms</span> and{" "}
-                    <span className="underline cursor-pointer">
-                      Privacy Policy
+                  <label
+                    htmlFor="agree"
+                    className="flex items-start gap-2 cursor-pointer select-none"
+                  >
+                    <Checkbox
+                      id="agree"
+                      checked={agree}
+                      onCheckedChange={(c) => setAgree(Boolean(c))}
+                    />
+                    <span className="text-sm leading-snug">
+                      I agree to the{" "}
+                      <span className="underline cursor-pointer">Terms</span>{" "}
+                      and{" "}
+                      <span className="underline cursor-pointer">
+                        Privacy Policy
+                      </span>
+                      .
                     </span>
-                    .
-                  </span>
+                  </label>
                 </div>
               </>
             )}
