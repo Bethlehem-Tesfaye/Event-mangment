@@ -3,12 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import {
-  LayoutDashboard,
-  ChartColumnIncreasing,
-  Settings,
-  Calendar,
-} from "lucide-react";
+import { LayoutDashboard, Settings, Calendar } from "lucide-react";
 
 export default function Sidebar({
   active,
