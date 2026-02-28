@@ -593,7 +593,8 @@ export const getEventAttendeesService = async (eventId) => {
   });
 
   if (!registrations.length) {
-    throw new CustomError("No attendees found", 404);
+    // return empty array when there are no attendees instead of throwing 404
+    return [];
   }
 
   const attendees = registrations.map((r) => {
