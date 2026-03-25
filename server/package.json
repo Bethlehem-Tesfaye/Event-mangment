@@ -4,7 +4,9 @@
   "main": "index.js",
   "type": "module",
   "scripts": {
-    "test": "node --experimental-vm-modules node_modules/jest/bin/jest.js --config=jest.config.mjs",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "postinstall": "npx prisma generate --schema=prisma/schema.prisma",
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
@@ -61,6 +63,8 @@
     "eslint-plugin-import": "^2.25.2",
     "eslint-plugin-prettier": "^5.5.1",
     "prettier": "^3.6.2",
-    "prisma": "^6.14.0"
+    "prisma": "^6.14.0",
+    "supertest": "^7.2.2",
+    "vitest": "^4.0.18"
   }
 }
