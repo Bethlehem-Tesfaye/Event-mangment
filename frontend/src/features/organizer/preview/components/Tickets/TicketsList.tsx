@@ -27,6 +27,7 @@ export default function TicketsList({
 }) {
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState<number | string | null>(null);
+  const [formTouched, setFormTouched] = useState(false);
 
   // small helper to format price like the design
   const fmtCurrency = (v: any) =>
@@ -69,6 +70,7 @@ export default function TicketsList({
       maxPerUser: "",
     });
     setEditingId(null);
+    setFormTouched(false);
     setModalOpen(true);
   };
 
@@ -81,11 +83,18 @@ export default function TicketsList({
       maxPerUser: t.maxPerUser ?? "",
     });
     setEditingId(t.id);
+    setFormTouched(false);
     setModalOpen(true);
   };
 
   const handleSaveFromModal = () => {
+    setFormTouched(true);
     if (!newTicket) return;
+
+    if (Object.keys(newTicketErrors).length > 0) {
+      return;
+    }
+
     if (editingId !== null && editingId !== undefined) {
       onChangeTicket(editingId, "type", newTicket.type);
       onChangeTicket(editingId, "price", newTicket.price);
@@ -93,16 +102,18 @@ export default function TicketsList({
       onChangeTicket(editingId, "maxPerUser", newTicket.maxPerUser);
       setEditingId(null);
       setNewTicket(null);
+      setFormTouched(false);
       setModalOpen(false);
     } else {
       onAddLocal();
       setNewTicket(null);
+      setFormTouched(false);
       setModalOpen(false);
     }
   };
 
   return (
-    <Card className="shadow-none border dark:border-neutral-800 bg-transparent">
+    <Card className="shadow-none border dark:border-neutral-800  dark:bg-[#0b0b0b] bg-white">
       <CardHeader className="flex items-start justify-between gap-4 p-6">
         <div>
           <CardTitle className="text-2xl">Tickets</CardTitle>
@@ -244,7 +255,7 @@ export default function TicketsList({
                 setEditingId(null);
               }}
             />
-            <div className="relative bg-white dark:bg-neutral-900 rounded shadow-lg w-full max-w-md p-6 z-10">
+            <div className="relative bg-white dark:bg-neutral-900 rounded shadow-lg w-full max-w-xl p-8 z-10">
               <button
                 aria-label="Close"
                 className="absolute top-3 right-3 text-sm text-neutral-500 hover:text-neutral-700"
@@ -270,17 +281,19 @@ export default function TicketsList({
                   <div className="grid grid-cols-1 sm:grid-cols-12 gap-3">
                     <div className="sm:col-span-6 flex flex-col">
                       <label className="text-xs text-neutral-500 mb-1">
-                        Type
+                        Ticket type — e.g. "General Admission", "VIP" (clear
+                        label helps buyers)
                       </label>
                       <input
                         className="w-full px-3 py-2 rounded-md border dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm"
-                        placeholder="Type"
+                        placeholder="e.g. General Admission"
                         value={newTicket.type}
-                        onChange={(e) =>
-                          setNewTicket({ ...newTicket, type: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setFormTouched(true);
+                          setNewTicket({ ...newTicket, type: e.target.value });
+                        }}
                       />
-                      {newTicketErrors.type && (
+                      {formTouched && newTicketErrors.type && (
                         <p className="text-red-500 text-sm mt-1">
                           {newTicketErrors.type}
                         </p>
@@ -289,18 +302,19 @@ export default function TicketsList({
 
                     <div className="sm:col-span-6 flex flex-col">
                       <label className="text-xs text-neutral-500 mb-1">
-                        Price
+                        Price (USD) — amount attendees will pay for one ticket
                       </label>
                       <input
                         className="w-full px-3 py-2 rounded-md border dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm"
-                        placeholder="Price"
+                        placeholder="0.00"
                         type="number"
                         value={newTicket.price}
-                        onChange={(e) =>
-                          setNewTicket({ ...newTicket, price: e.target.value })
-                        }
+                        onChange={(e) => {
+                          setFormTouched(true);
+                          setNewTicket({ ...newTicket, price: e.target.value });
+                        }}
                       />
-                      {newTicketErrors.price && (
+                      {formTouched && newTicketErrors.price && (
                         <p className="text-red-500 text-sm mt-1">
                           {newTicketErrors.price}
                         </p>
@@ -309,21 +323,23 @@ export default function TicketsList({
 
                     <div className="sm:col-span-6 flex flex-col">
                       <label className="text-xs text-neutral-500 mb-1">
-                        Quantity
+                        Total quantity — total number of tickets available for
+                        this type
                       </label>
                       <input
                         className="w-full px-3 py-2 rounded-md border dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm"
-                        placeholder="Total Qty"
+                        placeholder="Total number of tickets (e.g. 100)"
                         type="number"
                         value={newTicket.totalQuantity}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          setFormTouched(true);
                           setNewTicket({
                             ...newTicket,
                             totalQuantity: e.target.value,
-                          })
-                        }
+                          });
+                        }}
                       />
-                      {newTicketErrors.totalQuantity && (
+                      {formTouched && newTicketErrors.totalQuantity && (
                         <p className="text-red-500 text-sm mt-1">
                           {newTicketErrors.totalQuantity}
                         </p>
@@ -332,21 +348,23 @@ export default function TicketsList({
 
                     <div className="sm:col-span-6 flex flex-col">
                       <label className="text-xs text-neutral-500 mb-1">
-                        Max per User
+                        Max tickets per user — limit how many of this ticket one
+                        buyer can purchase (leave blank for no limit)
                       </label>
                       <input
                         className="w-full px-3 py-2 rounded-md border dark:border-neutral-700 bg-white dark:bg-neutral-800 text-sm"
-                        placeholder="Max/User"
+                        placeholder="e.g. 4 (leave empty for unlimited)"
                         type="number"
                         value={newTicket.maxPerUser || ""}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          setFormTouched(true);
                           setNewTicket({
                             ...newTicket,
                             maxPerUser: e.target.value,
-                          })
-                        }
+                          });
+                        }}
                       />
-                      {newTicketErrors.maxPerUser && (
+                      {formTouched && newTicketErrors.maxPerUser && (
                         <p className="text-red-500 text-sm mt-1">
                           {newTicketErrors.maxPerUser}
                         </p>
@@ -376,7 +394,6 @@ export default function TicketsList({
                 <Button
                   size="sm"
                   onClick={handleSaveFromModal}
-                  disabled={Boolean(Object.keys(newTicketErrors).length)}
                   className="rounded px-4 py-1bg-[oklch(0.645_0.246_16.439)] hover:bg-red-600 text-white"
                 >
                   {editingId ? "Save Ticket" : "Save Ticket"}

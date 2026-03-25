@@ -1,4 +1,4 @@
-import * as notificationService from "./notification.server.js";
+import * as notificationService from "./notification.service.js";
 
 export const getNotification = async (req, res, next) => {
   const { userId } = req;

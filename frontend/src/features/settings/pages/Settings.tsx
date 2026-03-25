@@ -62,21 +62,35 @@ function Settings() {
           </p>
 
           <div className="flex items-center gap-3">
-            <select
-              value={currentTheme}
-              onChange={(e) => setTheme(e.target.value as "light" | "dark")}
-              disabled={!mounted}
-              className="rounded-lg border border-gray-300 cursor-pointer dark:border-slate-600 bg-white dark:bg-slate-700 text-gray-800 dark:text-white px-3 py-2 focus:ring-2 focus:ring-red-400 outline-none transition-all"
-            >
-              <option value="light">Light</option>
-              <option value="dark">Dark</option>
-            </select>
+            <Sun
+              className={`w-5 h-5 ${
+                currentTheme === "light" ? "text-yellow-400" : "text-gray-400"
+              }`}
+            />
 
-            {currentTheme === "dark" ? (
-              <Moon className="w-5 h-5 text-slate-300" />
-            ) : (
-              <Sun className="w-5 h-5 text-yellow-500" />
-            )}
+            <button
+              onClick={() =>
+                setTheme(currentTheme === "dark" ? "light" : "dark")
+              }
+              disabled={!mounted}
+              role="switch"
+              aria-checked={currentTheme === "dark"}
+              className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
+                currentTheme === "dark" ? "bg-red-600" : "bg-gray-300"
+              }`}
+            >
+              <span
+                className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                  currentTheme === "dark" ? "translate-x-5" : "translate-x-1"
+                }`}
+              />
+            </button>
+
+            <Moon
+              className={`w-5 h-5 ${
+                currentTheme === "dark" ? "text-slate-300" : "text-gray-400"
+              }`}
+            />
           </div>
         </section>
 

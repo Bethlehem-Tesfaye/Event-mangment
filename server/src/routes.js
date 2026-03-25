@@ -3,6 +3,7 @@ import profileRoutes from "./modules/profile/profile.routes.js";
 import { eventRoutes, organizerRoutes } from "./modules/event/event.route.js";
 import { userTicketRoutes } from "./modules/ticket/ticket.routes.js";
 import { notificationRoutes } from "./modules/notification/notification.route.js";
+import { chapaRoutes } from "./modules/payment/chapa.routes.js";
 
 const router = express.Router();
 
@@ -11,5 +12,6 @@ router.use("/events", eventRoutes);
 router.use("/organizer/events", organizerRoutes);
 router.use("/users/tickets", userTicketRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/chapa", chapaRoutes);
 
 export default router;

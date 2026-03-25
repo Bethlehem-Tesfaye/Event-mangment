@@ -1,7 +1,6 @@
 import dotenv from "dotenv";
 import express from "express";
 import http from "http";
-import { Server } from "socket.io";
 import cors from "cors";
 import passport from "passport";
 import cookieParser from "cookie-parser";
@@ -16,6 +15,8 @@ import { sendReminderRoute } from "./lib/email/sendReminderRoute.js";
 import { auth } from "./modules/auth/auth.js";
 import { chapaRoutes } from "./modules/payment/chapa.routes.js";
 import { organizerSettingsRoutes } from "./modules/payment/organizerSettingsRoutes.js";
+import { initializeSocketIO } from "./lib/socketio.js";
+import ticketAttachRouter from "./modules/recovery/ticketAttach.js";
 
 dotenv.config();
 const port = process.env.PORT || 4000;
@@ -36,14 +37,7 @@ app.use(
   })
 );
 
-const io = new Server(server, {
-  cors: {
-    origin: allowedOrigins,
-    credentials: true,
-    methods: ["GET", "POST"]
-  }
-});
-app.set("io", io);
+const io = initializeSocketIO(server);
 
 io.use(async (socket, next) => {
   logger.info("New socket connection attempt");
@@ -126,6 +120,7 @@ app.use("/api/v1", routes);
 app.use("/api/auth", authRoutes);
 app.use("/api/chapa", chapaRoutes);
 app.use("/api/chapa/settings", organizerSettingsRoutes);
+app.use("/api/tickets", ticketAttachRouter);
 app.use(errorMiddleware);
 
 conn

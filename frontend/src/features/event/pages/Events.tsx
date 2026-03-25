@@ -53,7 +53,7 @@ function Events() {
         logoutLoading={logoutLoading}
         user={user as any}
       />
-      <div className="md:mx-[70px] md:mt-5">
+      <div className="md:mx-[70px] md:mt-5 ">
         <Hero />
         <BrowsePage
           categories={categories.map((c: any) => c.name)}

@@ -39,7 +39,7 @@ export const purchaseTicket = async (payload: {
   const { data } = await api.post(
     `/events/${eventId}/tickets/purchase`,
     { ticketId, attendeeName, attendeeEmail, quantity },
-    { withCredentials: true }
+    { withCredentials: true },
   );
 
   return data;
@@ -50,4 +50,14 @@ export const fetchUserRegistrations = async () => {
   const { data } = await api.get("/users/events", { withCredentials: true });
   // returns data (controller sends { data: registrations })
   return data?.data ?? [];
+};
+
+export const fetchUserTicketStatusForEvent = async (
+  eventId: string | number,
+) => {
+  const { data } = await api.get(
+    `/users/tickets/events/${eventId}/tickets/status`,
+    { withCredentials: true },
+  );
+  return data?.data;
 };

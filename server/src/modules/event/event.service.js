@@ -1,6 +1,8 @@
 /* eslint-disable no-console */
 import QRCode from "qrcode";
+import crypto from "crypto";
 import prisma from "../../lib/prisma.js"; // ensure this import exists near top of file
+import * as socketio from "../../lib/socketio.js";
 import CustomError from "../../utils/customError.js";
 import {
   publishEmailJob,
@@ -8,6 +10,10 @@ import {
 } from "../../utils/qstashPublisher.js";
 import cloudinary from "../../lib/cloudinary.js";
 
+const mapLocationTypeToApi = (v) => {
+  if (!v) return v;
+  return v === "inPerson" ? "in-person" : v;
+};
 export const getEvents = async ({
   limit = 20,
   offset = 0,
@@ -58,8 +64,14 @@ export const getEvents = async ({
     })
   ]);
 
-  return { events, totalCount };
+  const normalizedEvents = events.map((e) => ({
+    ...e,
+    locationType: mapLocationTypeToApi(e.locationType)
+  }));
+
+  return { events: normalizedEvents, totalCount };
 };
+
 export const getEventById = async (eventId) => {
   const event = await prisma.event.findFirst({
     where: { id: eventId, status: "published", deletedAt: null },
@@ -76,7 +88,10 @@ export const getEventById = async (eventId) => {
 
   if (!event) throw new CustomError("Event not found", 404);
 
-  return event;
+  return {
+    ...event,
+    locationType: mapLocationTypeToApi(event.locationType)
+  };
 };
 
 export const getEventSpeakers = async (eventId) => {
@@ -102,12 +117,19 @@ export const getEventTickets = async (eventId) => {
   return tickets;
 };
 
-export const purchaseTicket = async (
-  { eventId, ticketId, userId, attendeeName, attendeeEmail, quantity = 1 },
-  io
-) => {
+export const purchaseTicket = async (opts) => {
+  const {
+    eventId,
+    ticketId,
+    userId,
+    attendeeName,
+    attendeeEmail,
+    quantity = 1
+  } = opts;
+
   const tTicketId = Number(ticketId);
   const tQuantity = Number(quantity) || 1;
+  const io = socketio.getConnection();
 
   // Load ticket and ensure availability
   const ticket = await prisma.ticket.findFirst({
@@ -123,22 +145,23 @@ export const purchaseTicket = async (
   }
 
   // Determine receipt email
-  let emailForReceipt = null;
-  if (userId) {
+  let emailForReceipt = attendeeEmail?.trim() || null;
+
+  if (!emailForReceipt && userId) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
       select: { email: true }
     });
     if (!user) throw new CustomError("User not found", 404);
-    emailForReceipt = (user.email || "").trim().toLowerCase();
-  } else {
-    if (!attendeeEmail)
-      throw new CustomError("Email is required for guest purchase", 400);
-    emailForReceipt = String(attendeeEmail).trim().toLowerCase();
+    emailForReceipt = user.email?.trim() || null;
+  }
+
+  if (!emailForReceipt) {
+    throw new CustomError("Email is required for ticket purchase", 400);
   }
 
   // Create registration and decrement ticket atomically
-  const reg = await prisma.$transaction(async (tx) => {
+  const createdRegistration = await prisma.$transaction(async (tx) => {
     const created = await tx.registration.create({
       data: {
         userId: userId || null,
@@ -160,7 +183,7 @@ export const purchaseTicket = async (
 
   // Build QR payload
   const qrData = JSON.stringify({
-    registrationId: reg.id,
+    registrationId: createdRegistration.id,
     eventId: ticket.eventId,
     ticketId: ticket.id,
     attendeeName: attendeeName || null,
@@ -195,7 +218,7 @@ export const purchaseTicket = async (
   if (qrUrl) {
     try {
       await prisma.registration.update({
-        where: { id: reg.id },
+        where: { id: createdRegistration.id },
         data: { qrCodeUrl: qrUrl }
       });
     } catch (uErr) {
@@ -206,7 +229,20 @@ export const purchaseTicket = async (
     }
   }
 
-  // Publish email job (send QR + receipt)
+  // Add recovery token + redirectUrl
+  const token = crypto.randomUUID();
+  const tokenHash = crypto.createHash("sha256").update(token).digest("hex");
+  const redirectUrl = `${process.env.CLIENT_URL || ""}/registrations/${createdRegistration.id}`;
+
+  await prisma.registration.update({
+    where: { id: createdRegistration.id },
+    data: {
+      recoveryTokenHash: tokenHash,
+      redirectUrl
+    }
+  });
+
+  const recoveryLink = `${process.env.AUTH_URL}/ticket/view?token=${token}&redirectUrl=${encodeURIComponent(redirectUrl)}`;
   try {
     await publishEmailJob({
       type: "ticket",
@@ -216,13 +252,11 @@ export const purchaseTicket = async (
       ticketId: ticket.id,
       qrBase64,
       qrUrl,
-      registrationId: reg.id
+      registrationId: createdRegistration.id,
+      recoveryLink
     });
-  } catch (emailErr) {
-    console.error(
-      "Failed to publish email job:",
-      emailErr?.message || emailErr
-    );
+  } catch (err) {
+    console.error("Failed to publish recovery email job:", err);
   }
 
   // Schedule reminder job
@@ -298,23 +332,20 @@ export const purchaseTicket = async (
     console.error("Failed to notify organizer:", notifErr?.message || notifErr);
   }
 
-  return reg;
+  return createdRegistration;
 };
 
-export const createEvent = async (
-  {
-    userId,
-    title,
-    description,
-    locationType,
-    location,
-    startDatetime,
-    endDatetime,
-    duration,
-    eventBannerUrl
-  },
-  io
-) => {
+export const createEvent = async ({
+  userId,
+  title,
+  description,
+  locationType,
+  location,
+  startDatetime,
+  endDatetime,
+  duration,
+  eventBannerUrl
+}) => {
   const event = await prisma.event.create({
     data: {
       userId,
@@ -329,6 +360,7 @@ export const createEvent = async (
       status: "draft"
     }
   });
+  const io = socketio.getConnection();
   const notification = await prisma.notification.create({
     data: {
       userId,
@@ -345,10 +377,14 @@ export const createEvent = async (
     type: "event_created",
     title: notification.title,
     message: notification.message,
+
     createdAt: notification.createdAt
   });
 
-  return event;
+  return {
+    ...event,
+    locationType: mapLocationTypeToApi(event.locationType)
+  };
 };
 
 export const getEventDetailById = async (eventId) => {
@@ -366,11 +402,15 @@ export const getEventDetailById = async (eventId) => {
   });
 
   if (!event) throw new CustomError("Event not found", 404);
-  return event;
+  return {
+    ...event,
+    locationType: mapLocationTypeToApi(event.locationType)
+  };
 };
 // Update event
 
-export const updateEvent = async (eventId, userId, data, io) => {
+export const updateEvent = async (eventId, userId, data) => {
+  const io = socketio.getConnection();
   const event = await prisma.event.findFirst({
     where: { id: eventId, userId }
   });
@@ -455,7 +495,10 @@ export const updateEvent = async (eventId, userId, data, io) => {
     });
   }
 
-  return updatedEvent;
+  return {
+    ...updatedEvent,
+    locationType: mapLocationTypeToApi(updatedEvent.locationType)
+  };
 };
 
 // Soft delete event
@@ -550,7 +593,8 @@ export const getEventAttendeesService = async (eventId) => {
   });
 
   if (!registrations.length) {
-    throw new CustomError("No attendees found", 404);
+    // return empty array when there are no attendees instead of throwing 404
+    return [];
   }
 
   const attendees = registrations.map((r) => {
@@ -629,6 +673,7 @@ export const getOrganizerEvents = async (
 
   const eventsWithCounts = events.map((e) => ({
     ...e,
+    locationType: mapLocationTypeToApi(e.locationType),
     attendeesCount: (e._count && e._count.registrations) || 0
   }));
 

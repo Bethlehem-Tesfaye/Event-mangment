@@ -1,69 +1,70 @@
-# React + TypeScript + Vite
+# Event Management System — Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+The frontend for the Event Management System provides a responsive, type-safe interface for creating, editing, and browsing events. It integrates closely with the backend API to handle authentication, drafts, publishing workflows, and categorized listings.
 
-Currently, two official plugins are available:
+## Tech Stack
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- **React** with **TypeScript**
+- **TanStack React Query** for server-state management
+- **Axios** for API communication
+- **Vite** for fast development and builds
 
-## Expanding the ESLint configuration
+## Key Features
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- 🔐 Authentication flows (Signup, Login)
+- 📝 Create, edit, and delete events
+- 🧑‍🏫 Manage speakers, ticket types, and categories
+- 📂 Filter and browse events by category
+- ⚡ Optimistic updates and caching via React Query
 
-```js
-export default tseslint.config([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
+## Getting Started
 
-      // Remove tseslint.configs.recommended and replace with this
-      ...tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      ...tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      ...tseslint.configs.stylisticTypeChecked,
+### Prerequisites
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+- Node.js (LTS recommended)
+- npm or yarn
+
+### Installation
+
+Navigate to the frontend directory and install dependencies:
+
+```bash
+cd frontend
+npm install
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+### Environment Variables
 
-```js
-// eslint.config.js
-import reactX from "eslint-plugin-react-x";
-import reactDom from "eslint-plugin-react-dom";
+Create a `.env` file in the `client` directory and add:
 
-export default tseslint.config([
-  globalIgnores(["dist"]),
-  {
-    files: ["**/*.{ts,tsx}"],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs["recommended-typescript"],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ["./tsconfig.node.json", "./tsconfig.app.json"],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-]);
+```bash
+VITE_BACKEND_URL=http://localhost:5000
 ```
+
+> This should point to the running backend API.
+
+### Run the App
+
+Start the development server:
+
+```bash
+npm run dev
+```
+
+The app will be available at the local Vite development URL (usually `http://localhost:5173`).
+
+## Development Notes
+
+- Server data fetching, caching, and mutations are handled via **TanStack React Query**.
+- API errors and loading states are centralized for consistent UX.
+- TypeScript types are shared across components to ensure end-to-end type safety.
+
+## Build
+
+To create a production build:
+
+```bash
+npm run build
+```
+
+The optimized output will be generated in the `dist/` directory.

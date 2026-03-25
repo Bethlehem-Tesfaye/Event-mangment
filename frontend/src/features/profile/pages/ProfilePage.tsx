@@ -2,7 +2,6 @@ import React, { useState, useEffect } from "react";
 import { BreadcrumbNav } from "../components/BreadcrumbNav";
 import { ProfileCard } from "../components/ProfileCard";
 import { ProfileForm } from "../components/ProfileForm";
-import { ProfileDisplay } from "../components/ProfileDisplay";
 import { useProfile } from "../hooks/useProfile";
 import { Navbar } from "@/features/event/componenets/Navbar";
 import { useCurrentUser } from "../../auth/hooks/useCurrentUser"; // new hook
@@ -10,7 +9,6 @@ import { useLogout } from "@/features/auth/hooks/useLogout";
 import { Skeleton } from "@/components/ui/skeleton";
 
 export default function ProfilePage() {
-  const [editing, setEditing] = useState(false);
   const { user } = useCurrentUser(); // replaced useAuth
   const { mutate: logout, isPending: logoutLoading } = useLogout();
 
@@ -51,7 +49,7 @@ export default function ProfilePage() {
     });
 
     await updateProfile(formData);
-    setEditing(false);
+    // no edit toggle — remain in edit state
     refetchProfile();
   };
 
@@ -101,22 +99,17 @@ export default function ProfilePage() {
         <ProfileCard
           profile={profile}
           email={user?.email}
-          editing={editing}
-          onEditToggle={() => setEditing(!editing)}
+          editing={true}
           onAvatarChange={(file) =>
             setFormProfile((prev: any) => ({ ...prev, picture: file }))
           }
         >
-          {editing ? (
-            <ProfileForm
-              profile={formProfile}
-              onChange={handleChange}
-              onSave={handleSave}
-              isSaving={isUpdating}
-            />
-          ) : (
-            <ProfileDisplay profile={profile} />
-          )}
+          <ProfileForm
+            profile={formProfile}
+            onChange={handleChange}
+            onSave={handleSave}
+            isSaving={isUpdating}
+          />
         </ProfileCard>
       </div>
     </div>

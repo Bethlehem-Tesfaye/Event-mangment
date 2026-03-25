@@ -3,7 +3,7 @@ import * as eventController from "./event.controller.js";
 import * as ticketController from "../ticket/ticket.controller.js";
 import * as speakeController from "../speaker/speaker.contollers.js";
 import optionalAuthMiddleware from "../../middleware/optionalAuthMiddleware.js";
-import authMiddleware from "../../middleware/authMiddleware.js";
+// import authMiddleware from "../../middleware/authMiddleware.js";
 import { validate } from "../../middleware/validate.js";
 import {
   createCategorySchema,
@@ -14,6 +14,7 @@ import isEventOwner from "../../middleware/isEventOwner.js";
 import { ticketRoutes } from "../ticket/ticket.routes.js";
 import { speakerRoutes } from "../speaker/speaker.routes.js";
 import { eventBannerUpload } from "../../middleware/upload.js";
+import requireRealUserMiddleware from "../../middleware/requireRealUserMiddleware.js";
 
 export const eventRoutes = express.Router();
 
@@ -34,7 +35,7 @@ eventRoutes.post(
 
 export const organizerRoutes = express.Router({ mergeParams: true });
 
-organizerRoutes.use(authMiddleware);
+organizerRoutes.use(requireRealUserMiddleware);
 
 organizerRoutes.get("/", eventController.listOrganizerEvents);
 organizerRoutes.get("/stats", eventController.getDashboardStatsController);

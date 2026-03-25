@@ -4,9 +4,10 @@ import authMiddleware from "../../middleware/authMiddleware.js";
 import { validate } from "../../middleware/validate.js";
 import isEventOwner from "../../middleware/isEventOwner.js";
 import { createTicketSchema, UpdateTicketSchema } from "./ticket.schema.js";
+import requireRealUserMiddleware from "../../middleware/requireRealUserMiddleware.js";
 
 export const ticketRoutes = express.Router({ mergeParams: true });
-ticketRoutes.use(authMiddleware);
+ticketRoutes.use(requireRealUserMiddleware);
 ticketRoutes.use(isEventOwner);
 
 ticketRoutes.get("/tickets", ticketController.getTicketsForEvent);
@@ -29,4 +30,8 @@ userTicketRoutes.get(
   "/tickets",
   authMiddleware,
   ticketController.getUserTicketHistory
+);
+userTicketRoutes.get(
+  "/events/:eventId/tickets/status",
+  ticketController.getUserTicketStatusForEvent
 );

@@ -20,6 +20,7 @@ import {
   isThisWeek,
 } from "date-fns";
 import { Navbar } from "@/features/event/componenets/Navbar";
+import PageContainer from "@/components/PageContainer";
 
 function NotificationPage() {
   const { user } = useCurrentUser();
@@ -91,7 +92,7 @@ function NotificationPage() {
         showSearch={false}
         user={user as any}
       />
-      <main className="p-6 max-w-7xl w-full mx-auto flex-1">
+      <PageContainer>
         <h1>Notifications</h1>
         <div className="space-y-6 mt-4">
           {nonEmptySections.length === 0 && (
@@ -270,7 +271,7 @@ function NotificationPage() {
             );
           })}
         </div>
-      </main>
+      </PageContainer>
     </div>
   );
 }

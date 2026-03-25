@@ -107,9 +107,18 @@ model Registration {
   updatedAt          DateTime  @default(now()) @map("updated_at") @db.Timestamp(6)
   deletedAt          DateTime? @map("deleted_at")
   eventId            String    @map("event_id")
-  event              Event     @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
-  ticket             Ticket    @relation(fields: [ticketType], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "registrations_ticket_id_fkey")
-  user               User?     @relation(fields: [userId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  recoveryTokenHash    String?   @unique @map("recovery_token_hash")
+  recoveryTokenExpires DateTime? @map("recovery_token_expires")
+  recoveryTokenUsed    Boolean   @default(false) @map("recovery_token_used")
+  otpHash              String?   @map("otp_hash")
+  otpExpires           DateTime? @map("otp_expires")
+  redirectUrl          String?   @map("redirect_url")
+  recoverySourceUserId String?   @map("recovery_source_user_id")
+
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade, onUpdate: NoAction)
+  ticket Ticket @relation(fields: [ticketType], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "registrations_ticket_id_fkey")
+  user   User?  @relation(fields: [userId], references: [id], onDelete: SetNull, onUpdate: NoAction)
 
   @@index([eventId])
   @@index([userId])
@@ -139,8 +148,8 @@ model Ticket {
 
 model User {
   id                String             @id
-  name              String
-  email             String
+  name              String?
+  email             String?
   emailVerified     Boolean            @default(false)
   image             String?
   createdAt         DateTime           @default(now())
@@ -154,6 +163,7 @@ model User {
   notifications     Notification[]
   payments          Payment[]
   organizerSettings OrganizerSettings?
+  isAnonymous       Boolean            @default(false) @map("is_anonymous")
 
   @@unique([email])
   @@map("user")
@@ -214,8 +224,8 @@ model Notification {
   read      Boolean  @default(false)
   createdAt DateTime @default(now())
 
-  user  User   @relation(fields: [userId], references: [id])
-  event Event? @relation(fields: [eventId], references: [id])
+  user  User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  event Event? @relation(fields: [eventId], references: [id], onDelete: Cascade)
 
   @@map("notification")
 }
@@ -232,6 +242,10 @@ model Payment {
   txRef       String  @unique
   chapaRefId  String?
   status      String  @default("pending")
+
+  receiptRefId String?   @map("receipt_ref_id")
+  receiptData  Json?     @map("receipt_data")
+  paidAt       DateTime? @map("paid_at")
 
   firstName                String?
   lastName                 String?
@@ -251,9 +265,9 @@ model Payment {
   createdAt DateTime @default(now())
   updatedAt DateTime @default(now()) @updatedAt
 
-  event  Event  @relation(fields: [eventId], references: [id])
-  ticket Ticket @relation(fields: [ticketId], references: [id])
-  user   User?  @relation(fields: [userId], references: [id])
+  event  Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  ticket Ticket @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  user   User?  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model OrganizerSettings {
@@ -263,7 +277,7 @@ model OrganizerSettings {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  user User @relation(fields: [userId], references: [id])
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 enum EventStatusEnum {

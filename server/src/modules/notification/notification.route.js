@@ -1,24 +1,24 @@
 import express from "express";
 
 import * as notificationController from "./notification.controller.js";
-import authMiddleware from "../../middleware/authMiddleware.js";
+import optionalAuthMiddleware from "../../middleware/optionalAuthMiddleware.js";
 
 export const notificationRoutes = express.Router();
 
 notificationRoutes.get(
   "/",
-  authMiddleware,
+  optionalAuthMiddleware,
   notificationController.getNotification
 );
 
 notificationRoutes.put(
   "/:id/read",
-  authMiddleware,
+  optionalAuthMiddleware,
   notificationController.markAsRead
 );
 
 notificationRoutes.put(
   "/read-all",
-  authMiddleware,
+  optionalAuthMiddleware,
   notificationController.markAllAsRead
 );

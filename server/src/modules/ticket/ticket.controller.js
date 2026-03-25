@@ -60,3 +60,17 @@ export const getUserTicketHistory = async (req, res, next) => {
     return next(err);
   }
 };
+
+export const getUserTicketStatusForEvent = async (req, res, next) => {
+  try {
+    const { userId } = req;
+    const { eventId } = req.params;
+    const status = await ticketService.getUserEventTicketStatus(
+      userId,
+      eventId
+    );
+    return res.status(200).json({ data: status });
+  } catch (err) {
+    return next(err);
+  }
+};

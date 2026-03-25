@@ -6,7 +6,45 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { formatDate } from "../utils/date";
 import type { EventGridProps } from "../types/event";
 import { EmptyEventsPlaceholder } from "./EmptyEventsPlaceholde";
+import { useEventTickets } from "../hooks/useEventDetails";
 
+function EventCard({ event }: { event: any }) {
+  const { data: tickets, isLoading } = useEventTickets(event.id);
+
+  const soldOut =
+    !isLoading &&
+    Array.isArray(tickets) &&
+    tickets.length > 0 &&
+    tickets.every((t) => Number(t.remainingQuantity) === 0);
+
+  return (
+    <Link to={`/events/${event.id}`}>
+      <Card className="cursor-pointer shadow-none hover:shadow-lg transition-shadow duration-300 w-full max-w-[250px] border-0 py-0 mx-auto relative overflow-hidden">
+        {soldOut && (
+          <span className="absolute top-3 left-3 z-10 bg-red-700 text-white text-xs font-semibold px-3 py-1 rounded-full uppercase tracking-wide">
+            SOLD OUT
+          </span>
+        )}
+        <div className="h-[140px] w-full overflow-hidden rounded-t-lg">
+          <img
+            src={event.eventBannerUrl || "/placeholder.jpg"}
+            alt={event.title}
+            className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
+          />
+        </div>
+        <CardContent className="flex flex-col gap-1 py-3">
+          <CardTitle className="text-md font-semibold">{event.title}</CardTitle>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <Calendar className="w-4 h-4" /> {formatDate(event.startDatetime)}
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <MapPin className="w-4 h-4" /> {event.location}
+          </div>
+        </CardContent>
+      </Card>
+    </Link>
+  );
+}
 
 export function EventGrid({ events, isLoading }: EventGridProps) {
   return (
@@ -35,7 +73,7 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
         >
-          <EmptyEventsPlaceholder/>
+          <EmptyEventsPlaceholder />
         </motion.p>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 justify-center">
@@ -48,28 +86,7 @@ export function EventGrid({ events, isLoading }: EventGridProps) {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4 }}
             >
-              <Link to={`/events/${event.id}`}>
-                <Card className="cursor-pointer shadow-none hover:shadow-lg transition-shadow duration-300 w-full max-w-[250px] border-0 py-0 mx-auto">
-                  <div className="h-[140px] w-full overflow-hidden rounded-t-lg">
-                    <img
-                      src={event.eventBannerUrl || "/placeholder.jpg"}
-                      alt={event.title}
-                      className="object-cover w-full h-full transition-transform duration-300 hover:scale-105"
-                    />
-                  </div>
-                  <CardContent className="flex flex-col gap-1 py-3">
-                    <CardTitle className="text-md font-semibold">
-                      {event.title}
-                    </CardTitle>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <Calendar className="w-4 h-4" /> {formatDate(event.startDatetime)}
-                    </div>
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <MapPin className="w-4 h-4" /> {event.location}
-                    </div>
-                  </CardContent>
-                </Card>
-              </Link>
+              <EventCard event={event} />
             </motion.div>
           ))}
         </div>

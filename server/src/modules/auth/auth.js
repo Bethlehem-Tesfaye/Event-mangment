@@ -5,11 +5,12 @@ import { PrismaClient } from "@prisma/client";
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
-import { openAPI } from "better-auth/plugins";
+import { openAPI, anonymous } from "better-auth/plugins";
 import transporter from "../../lib/mailer.js";
 import { ResetTemplate } from "../../lib/email/template/ResetTemplate.js";
 import { VerifyTemplate } from "../../lib/email/template/VerifyTemplate.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";
+import { ticketRecoveryPlugin } from "../recovery/ticketRecoveryPlugin.js";
 
 const prisma = new PrismaClient();
 export const auth = betterAuth({
@@ -54,11 +55,78 @@ export const auth = betterAuth({
   socialProviders: {
     google: {
       prompt: "select_account",
-      clientId: process.env.GOOGLE_CLIENT_ID,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET
+      clientId: process.env.GOOGLE_CLIENT_ID_BAUTH,
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET_BAUTH
     }
   },
-  plugins: [openAPI()],
+  plugins: [
+    openAPI(),
+    anonymous({
+      onLinkAccount: async ({ anonymousUser, newUser }) => {
+        const anonId = anonymousUser?.user?.id;
+        const newId = newUser?.user?.id;
+        console.log("onLinkAccount triggered!", {
+          anonId,
+          newId
+        });
+
+        if (!anonId || !newId) return;
+
+        try {
+          await prisma.$transaction([
+            prisma.profile.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            }),
+            prisma.event.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            }),
+            prisma.registration.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            }),
+            prisma.payment.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            }),
+            prisma.notification.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            }),
+            prisma.account.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            }),
+            prisma.session.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            }),
+            prisma.organizerSettings.updateMany({
+              where: { userId: anonId },
+              data: { userId: newId }
+            })
+          ]);
+          // Ensure the new user has a profile
+          const profileExists = newId
+            ? await prisma.profile.findUnique({ where: { userId: newId } })
+            : null;
+
+          if (!profileExists) {
+            await prisma.profile.create({ data: { userId: newId } });
+            console.log(`Profile created for new user ${newId}`);
+          }
+          console.log(
+            `Successfully linked anonymous user ${anonId} -> ${newId}`
+          );
+        } catch (err) {
+          console.error("Failed to link anonymous user to real account:", err);
+          throw err;
+        }
+      }
+    }),
+    ticketRecoveryPlugin()
+  ],
   hooks: {
     after: createAuthMiddleware(async (ctx) => {
       if (ctx.path === "/sign-up/email") {

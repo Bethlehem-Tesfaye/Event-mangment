@@ -27,8 +27,6 @@ export const getEventDetails = async (req, res, next) => {
     return next(err);
   }
 };
-
-// ??
 export const purchaseTicket = async (req, res, next) => {
   const { eventId } = req.params;
   const { ticketId, attendeeName, attendeeEmail, quantity } = req.body;
@@ -54,7 +52,6 @@ export const purchaseTicket = async (req, res, next) => {
     return next(err);
   }
 };
-
 //
 export const createEvent = async (req, res, next) => {
   try {
@@ -67,13 +64,10 @@ export const createEvent = async (req, res, next) => {
       eventData.locationType = "inPerson";
     }
 
-    const eventCreated = await eventService.createEvent(
-      {
-        userId,
-        ...eventData
-      },
-      req.app.get("io")
-    );
+    const eventCreated = await eventService.createEvent({
+      userId,
+      ...eventData
+    });
     return res.status(201).json({ data: eventCreated });
   } catch (err) {
     return next(err);
@@ -106,15 +100,10 @@ export const updateEvent = async (req, res, next) => {
       eventData.locationType = "inPerson";
     }
 
-    const updatedEvent = await eventService.updateEvent(
-      eventId,
-      userId,
-      {
-        ...eventData,
-        status
-      },
-      req.app.get("io")
-    );
+    const updatedEvent = await eventService.updateEvent(eventId, userId, {
+      ...eventData,
+      status
+    });
     return res.status(200).json({ data: { event: updatedEvent } });
   } catch (err) {
     return next(err);
