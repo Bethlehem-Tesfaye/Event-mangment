@@ -10,9 +10,8 @@ const mockPrisma = {
 
 vi.mock("../../lib/prisma.js", () => ({ default: mockPrisma }));
 
-const { getNotification, markAsRead, markAllAsRead } = await import(
-  "./notification.server.js"
-);
+const { getNotification, markAsRead, markAllAsRead } =
+  await import("./notification.server.js");
 
 describe("getNotification", () => {
   beforeEach(() => vi.clearAllMocks());

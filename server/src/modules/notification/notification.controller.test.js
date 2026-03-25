@@ -9,9 +9,8 @@ vi.mock("./notification.server.js", () => ({
 }));
 
 const notifService = await import("./notification.server.js");
-const { getNotification, markAsRead, markAllAsRead } = await import(
-  "./notification.controller.js"
-);
+const { getNotification, markAsRead, markAllAsRead } =
+  await import("./notification.controller.js");
 
 describe("getNotification controller", () => {
   beforeEach(() => vi.clearAllMocks());

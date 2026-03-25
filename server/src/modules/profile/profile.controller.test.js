@@ -7,9 +7,8 @@ vi.mock("./profile.service.js", () => ({
   updateUserProfile: vi.fn()
 }));
 
-const { getUserProfile, updateUserProfile } = await import(
-  "./profile.service.js"
-);
+const { getUserProfile, updateUserProfile } =
+  await import("./profile.service.js");
 const { getProfile, setProfile } = await import("./profile.controller.js");
 
 describe("getProfile", () => {

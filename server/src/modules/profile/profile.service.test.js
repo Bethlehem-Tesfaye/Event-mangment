@@ -9,9 +9,8 @@ const mockPrisma = {
 
 vi.mock("../../lib/prisma.js", () => ({ default: mockPrisma }));
 
-const { getUserProfile, updateUserProfile } = await import(
-  "./profile.service.js"
-);
+const { getUserProfile, updateUserProfile } =
+  await import("./profile.service.js");
 
 describe("getUserProfile", () => {
   beforeEach(() => {

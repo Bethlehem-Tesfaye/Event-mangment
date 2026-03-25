@@ -17,9 +17,8 @@ vi.mock("../utils/logger.js", () => ({
   default: { info: vi.fn(), error: vi.fn(), warn: vi.fn(), debug: vi.fn() }
 }));
 
-const { default: optionalAuthMiddleware } = await import(
-  "./optionalAuthMiddleware.js"
-);
+const { default: optionalAuthMiddleware } =
+  await import("./optionalAuthMiddleware.js");
 
 describe("optionalAuthMiddleware", () => {
   let req;

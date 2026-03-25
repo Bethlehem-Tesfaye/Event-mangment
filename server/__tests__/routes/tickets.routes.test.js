@@ -26,9 +26,8 @@ vi.mock("../../src/lib/prisma.js", () => ({
   default: {}
 }));
 
-const { ticketRoutes, userTicketRoutes } = await import(
-  "../../src/modules/ticket/ticket.routes.js"
-);
+const { ticketRoutes, userTicketRoutes } =
+  await import("../../src/modules/ticket/ticket.routes.js");
 
 describe("Organizer ticket routes", () => {
   let app;

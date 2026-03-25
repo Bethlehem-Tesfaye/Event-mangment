@@ -36,9 +36,8 @@ vi.mock("../../src/lib/prisma.js", () => ({
   default: {}
 }));
 
-const { default: profileRoutes } = await import(
-  "../../src/modules/profile/profile.routes.js"
-);
+const { default: profileRoutes } =
+  await import("../../src/modules/profile/profile.routes.js");
 
 describe("Profile routes", () => {
   let app;

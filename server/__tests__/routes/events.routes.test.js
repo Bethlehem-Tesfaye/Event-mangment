@@ -72,9 +72,8 @@ vi.mock("../../src/lib/prisma.js", () => ({
   default: {}
 }));
 
-const { eventRoutes, organizerRoutes } = await import(
-  "../../src/modules/event/event.route.js"
-);
+const { eventRoutes, organizerRoutes } =
+  await import("../../src/modules/event/event.route.js");
 
 describe("Public event routes", () => {
   let app;
