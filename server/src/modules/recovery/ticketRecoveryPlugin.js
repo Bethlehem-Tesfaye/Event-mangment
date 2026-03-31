@@ -1,5 +1,5 @@
 // ticketRecoveryPlugin.js
-import { createAuthEndpoint } from "better-auth/plugins";
+import { createAuthEndpoint } from "better-auth/api";
 import crypto, { randomInt } from "crypto";
 import prisma from "../../lib/prisma.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";

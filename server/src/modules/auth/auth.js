@@ -14,6 +14,7 @@ import { ticketRecoveryPlugin } from "../recovery/ticketRecoveryPlugin.js";
 
 const prisma = new PrismaClient();
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL,
   database: prismaAdapter(prisma, {
     provider: "postgresql"
   }),
