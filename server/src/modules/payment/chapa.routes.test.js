@@ -7,13 +7,15 @@ const mockPrisma = {
     create: vi.fn(),
     findUnique: vi.fn(),
     update: vi.fn()
-  }
+  },
+  registration: { findFirst: vi.fn() }
 };
 
 vi.mock("../../lib/prisma.js", () => ({ default: mockPrisma }));
 vi.mock("axios", () => ({
   default: {
-    post: vi.fn()
+    post: vi.fn(),
+    get: vi.fn()
   }
 }));
 vi.mock("../event/event.service.js", () => ({
@@ -227,15 +229,14 @@ describe("GET /chapa/callback", () => {
   });
 
   it("redirects to client when no reference", async () => {
-    const res = await supertest(app).get("/chapa/callback");
-    expect(res.status).toBe(302);
-    expect(res.headers.location).toContain("example.com/payment-success");
+    const res = await supertest(app).get("/chapa/result");
+    expect(res.status).toBe(400);
   });
 
   it("redirects when payment not found", async () => {
     mockPrisma.payment.findUnique.mockResolvedValue(null);
-    const res = await supertest(app).get("/chapa/callback?tx_ref=bad");
-    expect(res.status).toBe(302);
+    const res = await supertest(app).get("/chapa/result?tx_ref=bad");
+    expect(res.status).toBe(404);
   });
 
   it("issues tickets on successful callback", async () => {
@@ -253,10 +254,20 @@ describe("GET /chapa/callback", () => {
     mockPrisma.payment.update.mockResolvedValue({});
     purchaseTicket.mockResolvedValue({});
 
+    // provide organizer settings and chapa verify response
+    mockPrisma.organizerSettings.findUnique.mockResolvedValue({
+      chapaKey: "CHASECK_TEST-xxx"
+    });
+    const axios = (await import("axios")).default;
+    axios.get.mockResolvedValue({
+      data: { data: { status: "success", ref_id: "chapa-ref" } }
+    });
+
+    mockPrisma.registration.findFirst.mockResolvedValue({ id: "reg1" });
     const res = await supertest(app).get(
-      "/chapa/callback?tx_ref=ref1&status=success&ref_id=chapa-ref"
+      "/chapa/result?tx_ref=ref1&status=success&ref_id=chapa-ref"
     );
-    expect(res.status).toBe(302);
+    expect(res.status).toBe(200);
     expect(purchaseTicket).toHaveBeenCalled();
   });
 });

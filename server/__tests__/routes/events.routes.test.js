@@ -1,4 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+// Ensure `createAuthEndpoint` (and other plugins) exist in test env
+vi.mock("better-auth/plugins", () => ({
+  createAuthEndpoint: (path, method, handler) => handler,
+  openAPI: () => () => {},
+  anonymous: () => () => {}
+}));
 import supertest from "supertest";
 import { createTestApp } from "./setup.js";
 
@@ -20,6 +26,10 @@ vi.mock("../../src/middleware/optionalAuthMiddleware.js", () => ({
 }));
 
 vi.mock("../../src/middleware/isEventOwner.js", () => ({
+  default: (_req, _res, next) => next()
+}));
+
+vi.mock("../../src/middleware/requireRealUserMiddleware.js", () => ({
   default: (_req, _res, next) => next()
 }));
 

@@ -143,8 +143,7 @@ describe("createEvent controller", () => {
     const next = vi.fn();
     await createEvent(req, res, next);
     expect(eventService.createEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ eventBannerUrl: "/uploads/banner.jpg" }),
-      expect.anything()
+      expect.objectContaining({ eventBannerUrl: "/uploads/banner.jpg" })
     );
   });
 
@@ -158,8 +157,7 @@ describe("createEvent controller", () => {
     const next = vi.fn();
     await createEvent(req, res, next);
     expect(eventService.createEvent).toHaveBeenCalledWith(
-      expect.objectContaining({ locationType: "inPerson" }),
-      expect.anything()
+      expect.objectContaining({ locationType: "inPerson" })
     );
   });
 });
@@ -195,8 +193,7 @@ describe("updateEvent controller", () => {
     expect(eventService.updateEvent).toHaveBeenCalledWith(
       "e1",
       "u1",
-      expect.objectContaining({ title: "Updated", status: "published" }),
-      expect.anything()
+      expect.objectContaining({ title: "Updated", status: "published" })
     );
   });
 });

@@ -2,13 +2,13 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { createMockReq } from "../../../__tests__/helpers/createMockReq.js";
 import { createMockRes } from "../../../__tests__/helpers/createMockRes.js";
 
-vi.mock("./notification.server.js", () => ({
+vi.mock("./notification.service.js", () => ({
   getNotification: vi.fn(),
   markAsRead: vi.fn(),
   markAllAsRead: vi.fn()
 }));
 
-const notifService = await import("./notification.server.js");
+const notifService = await import("./notification.service.js");
 const { getNotification, markAsRead, markAllAsRead } =
   await import("./notification.controller.js");
 

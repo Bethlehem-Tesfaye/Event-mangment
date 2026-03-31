@@ -45,6 +45,7 @@ vi.mock("../../lib/cloudinary.js", () => ({
     }
   }
 }));
+vi.mock("../../lib/socketio.js", () => ({ getConnection: vi.fn() }));
 vi.mock("../../utils/qstashPublisher.js", () => ({
   publishEmailJob: vi.fn().mockResolvedValue(true),
   publishReminderJob: vi.fn().mockResolvedValue(true)
@@ -159,17 +160,22 @@ describe("purchaseTicket", () => {
       createdAt: new Date()
     });
 
-    const result = await purchaseTicket(
-      { eventId: "e1", ticketId: 1, userId: "u1", quantity: 1 },
-      io
-    );
+    // ensure service uses our mocked socket connection
+    const socketio = await import("../../lib/socketio.js");
+    socketio.getConnection.mockReturnValue(io);
+    const result = await purchaseTicket({
+      eventId: "e1",
+      ticketId: 1,
+      userId: "u1",
+      quantity: 1
+    });
     expect(result.id).toBe("r1");
   });
 
   it("throws 404 when ticket not found", async () => {
     mockPrisma.ticket.findFirst.mockResolvedValue(null);
     await expect(
-      purchaseTicket({ eventId: "e1", ticketId: 999, userId: "u1" }, io)
+      purchaseTicket({ eventId: "e1", ticketId: 999, userId: "u1" })
     ).rejects.toThrow("Ticket not found");
   });
 
@@ -180,11 +186,8 @@ describe("purchaseTicket", () => {
       remainingQuantity: 0
     });
     await expect(
-      purchaseTicket(
-        { eventId: "e1", ticketId: 1, userId: "u1", quantity: 1 },
-        io
-      )
-    ).rejects.toThrow("Not enough tickets");
+      purchaseTicket({ eventId: "e1", ticketId: 1, userId: "u1", quantity: 1 })
+    ).rejects.toThrow("Not enough tickets available");
   });
 
   it("requires email for guest purchase", async () => {
@@ -194,11 +197,8 @@ describe("purchaseTicket", () => {
       remainingQuantity: 10
     });
     await expect(
-      purchaseTicket(
-        { eventId: "e1", ticketId: 1, userId: null, quantity: 1 },
-        io
-      )
-    ).rejects.toThrow("Email is required for guest purchase");
+      purchaseTicket({ eventId: "e1", ticketId: 1, userId: null, quantity: 1 })
+    ).rejects.toThrow("Email is required for ticket purchase");
   });
 });
 
@@ -218,7 +218,9 @@ describe("createEvent", () => {
       message: "msg",
       createdAt: new Date()
     });
-    const result = await createEvent({ userId: "u1", title: "Test" }, io);
+    const socketio = await import("../../lib/socketio.js");
+    socketio.getConnection.mockReturnValue(io);
+    const result = await createEvent({ userId: "u1", title: "Test" });
     expect(result.id).toBe("e1");
     expect(io.to).toHaveBeenCalledWith("user:u1");
     expect(io.emit).toHaveBeenCalledWith(
@@ -258,13 +260,15 @@ describe("updateEvent", () => {
       status: "draft"
     });
     mockPrisma.event.update.mockResolvedValue({ id: "e1", title: "Updated" });
-    const result = await updateEvent("e1", "u1", { title: "Updated" }, io);
+    const socketio = await import("../../lib/socketio.js");
+    socketio.getConnection.mockReturnValue(io);
+    const result = await updateEvent("e1", "u1", { title: "Updated" });
     expect(result.title).toBe("Updated");
   });
 
   it("throws 404 when event not found", async () => {
     mockPrisma.event.findFirst.mockResolvedValue(null);
-    await expect(updateEvent("bad", "u1", { title: "x" }, io)).rejects.toThrow(
+    await expect(updateEvent("bad", "u1", { title: "x" })).rejects.toThrow(
       "Event not found"
     );
   });
@@ -276,7 +280,7 @@ describe("updateEvent", () => {
       status: "cancelled"
     });
     await expect(
-      updateEvent("e1", "u1", { status: "published" }, io)
+      updateEvent("e1", "u1", { status: "published" })
     ).rejects.toThrow("Cannot change status");
   });
 
@@ -289,7 +293,7 @@ describe("updateEvent", () => {
       description: null
     });
     await expect(
-      updateEvent("e1", "u1", { status: "published" }, io)
+      updateEvent("e1", "u1", { status: "published" })
     ).rejects.toThrow("Incomplete event data");
   });
 
@@ -308,7 +312,7 @@ describe("updateEvent", () => {
     mockPrisma.eventCategory.findFirst.mockResolvedValue(null);
     mockPrisma.ticket.findFirst.mockResolvedValue(null);
     await expect(
-      updateEvent("e1", "u1", { status: "published" }, io)
+      updateEvent("e1", "u1", { status: "published" })
     ).rejects.toThrow("Event must have category and ticket to publish");
   });
 });
@@ -395,11 +399,10 @@ describe("getEventAnalytics", () => {
 describe("getEventAttendeesService", () => {
   beforeEach(() => vi.clearAllMocks());
 
-  it("throws 404 when no attendees", async () => {
+  it("returns empty array when no attendees", async () => {
     mockPrisma.registration.findMany.mockResolvedValue([]);
-    await expect(getEventAttendeesService("e1")).rejects.toThrow(
-      "No attendees found"
-    );
+    const result = await getEventAttendeesService("e1");
+    expect(result).toEqual([]);
   });
 
   it("returns formatted attendees", async () => {
