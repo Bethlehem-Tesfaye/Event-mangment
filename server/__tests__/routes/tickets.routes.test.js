@@ -1,12 +1,12 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import supertest from "supertest";
+import { createTestApp } from "./setup.js";
 // Ensure `createAuthEndpoint` (and other plugins) exist in test env
 vi.mock("better-auth/plugins", () => ({
   createAuthEndpoint: (path, method, handler) => handler,
   openAPI: () => () => {},
   anonymous: () => () => {}
 }));
-import supertest from "supertest";
-import { createTestApp } from "./setup.js";
 
 vi.mock("../../src/middleware/authMiddleware.js", () => ({
   default: (req, _res, next) => {

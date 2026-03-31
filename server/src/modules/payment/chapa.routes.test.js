@@ -258,7 +258,7 @@ describe("GET /chapa/callback", () => {
     mockPrisma.organizerSettings.findUnique.mockResolvedValue({
       chapaKey: "CHASECK_TEST-xxx"
     });
-    const axios = (await import("axios")).default;
+    // const axios = (await import("axios")).default;
     axios.get.mockResolvedValue({
       data: { data: { status: "success", ref_id: "chapa-ref" } }
     });
