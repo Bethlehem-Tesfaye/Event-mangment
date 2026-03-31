@@ -6,14 +6,12 @@ import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
 import { createAuthMiddleware } from "better-auth/api";
 import { openAPI, anonymous } from "better-auth/plugins";
-import transporter from "../../lib/mailer.js";
-import { ResetTemplate } from "../../lib/email/template/ResetTemplate.js";
-import { VerifyTemplate } from "../../lib/email/template/VerifyTemplate.js";
 import { publishEmailJob } from "../../utils/qstashPublisher.js";
 import { ticketRecoveryPlugin } from "../recovery/ticketRecoveryPlugin.js";
 
 const prisma = new PrismaClient();
 export const auth = betterAuth({
+  baseURL: process.env.BETTER_AUTH_URL,
   database: prismaAdapter(prisma, {
     provider: "postgresql"
   }),
