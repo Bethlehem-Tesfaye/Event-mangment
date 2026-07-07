@@ -228,9 +228,7 @@ export function Navbar(props: Partial<NavbarProps> & { showSearch?: boolean }) {
                     <Skeleton className="h-4 w-28 rounded ml-2  bg-gray-400" />
                   ) : (
                     <span className="text-sm text-gray-700 dark:text-gray-300 ml-2">
-                      {isRealUser
-                        ? effectiveUser?.email
-                        : effectiveUser?.email?.slice(0, 6)}
+                      {isRealUser ? effectiveUser?.email : "Guest"}
                     </span>
                   )}
                   {open ? (
